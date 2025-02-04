@@ -1,47 +1,104 @@
-import { solve } from "yalps";
+import { solve } from 'yalps';
 
-type Food = {
-  name: string;
-  shokuhinbangou: string;
-  cost: number;     // 100gあたりの金額
+type NutritionFacts = {
   calories: number; // 100gあたりの栄養価
   protein: number;
   fat: number;
   fiber: number;
-}
+  vitaminB12: number;
+  vitaminC: number;
+};
+
+type Food = NutritionFacts & {
+  name: string;
+  shokuhinbangou: string;
+  cost: number; // 100gあたりの金額
+};
 
 export default async function DietPage() {
   // 最適化を実行する関数
   async function optimizeDiet() {
     // 1日に必要な栄養素の量
-    const referenceDailyIntakes = {
+    const referenceDailyIntakes: NutritionFacts = {
       calories: 2700, // kcal
-      protein: 65,    // g
-      fat: 2700 * 0.2 / 9, // g. 9kcal/g
-      fiber: 21      // g
+      protein: 65, // g
+      fat: (2700 * 0.2) / 9, // g. 9kcal/g
+      fiber: 21, // g
+      vitaminB12: 2.4, // μg
+      vitaminC: 100, // mg
     };
 
     // 各食材の栄養素データとコスト.
     // 値は100gあたりのものです
     const foods: Food[] = [
-      { name: "白米", shokuhinbangou: "01083", cost: (15390 / 60000) * 100, calories: 342, protein: 6.2, fat: 0.9, fiber: 0.4 },
-      { name: "蕎麦の実", shokuhinbangou: "01126", cost: (1850 / 1000) * 100, calories: 347, protein: 9.6, fat: 2.5, fiber: 3.7 },
-      { name: "ロウカット玄米", shokuhinbangou: "01080", cost: (1723 / 2000) * 100, calories: 346, protein: 6.8, fat: 2.7, fiber: 3.0 },
-      { name: "大豆 黄 乾", shokuhinbangou: "04023", cost: (1050 / 900) * 100, calories: 372, protein: 33.8, fat: 19.7, fiber: 21.5 }
+      {
+        name: '白米',
+        shokuhinbangou: '01083',
+        cost: (15390 / 60000) * 100,
+        calories: 342,
+        protein: 6.2,
+        fat: 0.9,
+        fiber: 0.4,
+        vitaminB12: 0,
+        vitaminC: 0,
+      },
+      {
+        name: '蕎麦の実',
+        shokuhinbangou: '01126',
+        cost: (1850 / 1000) * 100,
+        calories: 347,
+        protein: 9.6,
+        fat: 2.5,
+        fiber: 3.7,
+        vitaminB12: 0,
+        vitaminC: 0,
+      },
+      {
+        name: 'ロウカット玄米',
+        shokuhinbangou: '01080',
+        cost: (1723 / 2000) * 100,
+        calories: 346,
+        protein: 6.8,
+        fat: 2.7,
+        fiber: 3.0,
+        vitaminB12: 0,
+        vitaminC: 0,
+      },
+      {
+        name: '大豆 黄 乾',
+        shokuhinbangou: '04023',
+        cost: (1050 / 900) * 100,
+        calories: 372,
+        protein: 33.8,
+        fat: 19.7,
+        fiber: 21.5,
+        vitaminB12: 0,
+        vitaminC: 3,
+      },
     ];
 
     // モデルの作成
     const model = {
-      direction: "minimize" as const,
-      objective: "cost",
+      direction: 'minimize' as const,
+      objective: 'cost',
       constraints: {
         // ※ここでは各栄養素が「必要最小量」を満たすように設定しています
         calories: { min: referenceDailyIntakes.calories },
         protein: { min: referenceDailyIntakes.protein },
         fat: { min: referenceDailyIntakes.fat },
-        fiber: { min: referenceDailyIntakes.fiber }
+        fiber: { min: referenceDailyIntakes.fiber },
       },
-      variables: {} as { [key: string]: { cost: number; calories: number; protein: number; fat: number; fiber: number } }
+      variables: {} as {
+        [key: string]: {
+          cost: number;
+          calories: number;
+          protein: number;
+          fat: number;
+          fiber: number;
+          vitaminB12: number;
+          vitaminC: number;
+        };
+      },
     };
 
     // foods 配列から各食材をモデルの変数として追加
@@ -52,7 +109,9 @@ export default async function DietPage() {
         calories: food.calories,
         protein: food.protein,
         fat: food.fat,
-        fiber: food.fiber
+        fiber: food.fiber,
+        vitaminB12: food.vitaminB12,
+        vitaminC: food.vitaminC,
       };
     }
 
@@ -75,13 +134,13 @@ export default async function DietPage() {
       return {
         name,
         grams: grams,
-        cost: foodCost
+        cost: foodCost,
       };
     });
 
     return {
-      totalCost: solution.result.toFixed(2),
-      breakdown
+      totalCost: solution.result,
+      breakdown,
     };
   }
 
@@ -92,13 +151,13 @@ export default async function DietPage() {
     <main className="container mx-auto p-6">
       <h1 className="text-2xl font-bold mb-4">1日に最適な食材の組み合わせ</h1>
       <p className="mb-2">
-        総コスト: <strong>¥{totalCost}</strong>
+        総コスト: <strong>¥{Math.ceil(totalCost)}</strong>
       </p>
       <h2 className="text-xl font-semibold mt-4 mb-2">購入量と金額内訳:</h2>
       <ul className="list-disc list-inside">
         {breakdown.map(({ name, grams, cost }) => (
           <li key={name}>
-            {name}:  ¥{Math.round(cost)} / {grams.toFixed(2)} g
+            {name}: ¥{Math.round(cost)} / {grams.toFixed(2)} g
           </li>
         ))}
       </ul>
