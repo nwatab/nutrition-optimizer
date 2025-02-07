@@ -29,12 +29,12 @@ export default async function DietPage() {
     };
 
     // 各食材の栄養素データとコスト.
-    // 値は100gあたりのものです
+    // 値は100gあたりのものです。値段は税込。
     const foods: Food[] = [
       {
         name: '白米',
         shokuhinbangou: '01083',
-        cost: (15390 / 60000) * 100,
+        cost: (1996 / 2000) * 100, //無洗米　秋田こまち
         calories: 342,
         protein: 6.2,
         fat: 0.9,
@@ -56,7 +56,7 @@ export default async function DietPage() {
       {
         name: 'ロウカット玄米',
         shokuhinbangou: '01080',
-        cost: (1723 / 2000) * 100,
+        cost: (1726 / 2000) * 100,
         calories: 346,
         protein: 6.8,
         fat: 2.7,
