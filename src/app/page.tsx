@@ -1,18 +1,7 @@
 import { foods } from '@/data';
-import { optimizeDiet } from '@/services';
-import { NutritionFacts } from '@/types';
+import { optimizeDiet, referenceDailyIntakes } from '@/services';
 
 export default async function DietPage() {
-  // 1日に必要な栄養素の量
-  const referenceDailyIntakes: NutritionFacts = {
-    calories: 2700, // kcal
-    protein: 65, // g
-    fat: (2700 * 0.2) / 9, // g. 脂質単位gあたりのエネルギー = 9kcal/g. 脂質は全エネルギーの20%と仮定
-    fiber: 21, // g
-    vitaminB12: 2.4, // μg
-    vitaminC: 100, // mg
-  };
-
   // サーバー側で最適化を実行
   const { totalCost, breakdown } = await optimizeDiet(
     foods,
@@ -21,7 +10,10 @@ export default async function DietPage() {
 
   return (
     <main className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">1日に最適な食材の組み合わせ</h1>
+      <h1 className="text-2xl font-bold mb-4">
+        ビーガン向け1日に最適な食材の組み合わせ
+        (33-49歳、身体活動レベルふつう、男性)
+      </h1>
       <p className="mb-2">
         総コスト: <strong>¥{Math.ceil(totalCost)}</strong>
       </p>
