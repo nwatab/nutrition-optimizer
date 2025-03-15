@@ -1,7 +1,5 @@
-import { FoodData } from './types';
-
-// 値は100gあたりのものです。値段は税込。
-export const foods: FoodData[] = [
+// 100gあたりのものです。値段は税込。
+export const foods = [
   {
     name: '白米',
     shokuhinbangou: '01083',

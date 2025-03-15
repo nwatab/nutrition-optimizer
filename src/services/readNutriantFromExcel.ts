@@ -1,5 +1,5 @@
 import { NutritionFacts } from '@/types';
-import * as fs from 'fs';
+import { promises as fs } from 'fs';
 import * as xlsx from 'xlsx';
 
 const excelColumnToIndex = (column: string): number => {
@@ -10,19 +10,17 @@ const excelColumnToIndex = (column: string): number => {
   return index - 1; // 0-based index にするため -1
 };
 
-export const getNutriantFromExcel = (
-  filepathForNutriants: string,
-  filepathForFats: string
-) => {
-  const nutriandBuffer = fs.readFileSync(filepathForNutriants);
-  const nutriantWorkbook = xlsx.read(nutriandBuffer, { type: 'buffer' });
-  const fatBuffer = fs.readFileSync(filepathForFats);
-  const fatWorkbook = xlsx.read(fatBuffer, { type: 'buffer' });
-  return (
-    productNumber: string,
-    nutriant: keyof NutritionFacts
-  ): string | null => {
+export const readExcelWorkbook = async (filepath: string) => {
+  const buffer = await fs.readFile(filepath);
+  const workbook = xlsx.read(buffer, { type: 'buffer' });
+  return workbook;
+};
+
+export const getNutriantFromExcelWorkbook =
+  (nutriantWorkbook: xlsx.WorkBook, fatWorkbook: xlsx.WorkBook) =>
+  (productNumber: string, nutriant: keyof NutritionFacts): string => {
     // "表全体" という名前のテーブルを取得
+
     const sheet = [
       'saturatedFattyAcids',
       'n6PolyunsaturatedFattyAcids',
@@ -37,10 +35,14 @@ export const getNutriantFromExcel = (
     // シートをJSONに変換
     const jsonData = xlsx.utils.sheet_to_json(sheet, {
       header: 1,
+      defval: '',
     }) as string[][];
 
     // 商品番号を検索し、対応する飽和脂肪酸の値を取得
     const row = jsonData.find((row) => row[1] === productNumber);
+    if (!row) {
+      throw new Error('指定された商品番号が見つかりません。');
+    }
     const excelMapping: Record<keyof NutritionFacts, string> = {
       calories: 'G',
       protein: 'J',
@@ -77,6 +79,39 @@ export const getNutriantFromExcel = (
       molybdenum: 'AK',
     };
     const columnIndex = excelColumnToIndex(excelMapping[nutriant]);
-    return row?.[columnIndex] ?? null;
+    if (row.length <= columnIndex) {
+      throw new Error('指定された列が見つかりません。');
+    }
+    return row[columnIndex];
   };
-};
+
+/**
+ * 文字列1つを number | null に変換する関数
+ */
+export function parseNutrientValue(str: string): number | null {
+  // 前後の空白を除去
+  const trimmed = str.trim();
+
+  // ハイフン (未測定) は null として扱う
+  if (trimmed === '-') {
+    return null;
+  }
+
+  // カッコを外す（例: "(1.2)" -> "1.2", "(Tr)" -> "Tr"）
+  const withoutParens = trimmed.replace(/[()]/g, '');
+
+  // "Tr" は 0 として扱う（カッコ付きを外した結果でもOK）
+  if (withoutParens === 'Tr') {
+    return 0;
+  }
+
+  // parseFloat で数値化
+  const value = parseFloat(withoutParens);
+
+  // 数値化に失敗した場合は null
+  if (isNaN(value)) {
+    return null;
+  }
+
+  return value;
+}

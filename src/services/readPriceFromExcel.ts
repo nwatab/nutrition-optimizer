@@ -1,24 +1,21 @@
-import * as fs from 'fs';
+import { promises as fs } from 'fs';
 import * as xlsx from 'xlsx';
 
-export const readPriceFromExcel = (filepath1: string, filepath2: string) => {
-  const [sheet1, sheet2] = [
-    fs.readFileSync(filepath1),
-    fs.readFileSync(filepath2),
-  ].map((buffer) => {
-    const workbook = xlsx.read(buffer, { type: 'buffer' });
-    const sheetName = workbook.SheetNames[0]; // Assuming first sheet
-    return workbook.Sheets[sheetName];
+export const readPriceDataFromExcel = async (filepath: string) => {
+  const buffer = await fs.readFile(filepath);
+  const workbook = xlsx.read(buffer, { type: 'buffer' });
+  const sheetName = workbook.SheetNames[0]; // Assuming first sheet
+  const sheet = workbook.Sheets[sheetName];
+  const data = xlsx.utils.sheet_to_json<(string | number)[]>(sheet, {
+    header: 1,
+    defval: '',
   });
-  const [data1, data2] = [sheet1, sheet2].map((sheet) =>
-    xlsx.utils.sheet_to_json<string[]>(sheet, { header: 1 })
-  );
-  return [data1, data2];
+  return data;
 };
 
-export const getPriceAndUnitFromExcelData =
-  (data: string[][]) =>
-  (itemCode: string): { price: number; unit: string } | null => {
+export const getPriceFromExcelData =
+  (data: (string | number)[][]) =>
+  (itemCode: number): number | null => {
     // Locate item codes (Row 10, index 9)
     const itemCodes = data[9];
     const columnIndex = itemCodes.findIndex((code) => code === itemCode);
@@ -31,11 +28,13 @@ export const getPriceAndUnitFromExcelData =
     const unit = data[11][columnIndex] ?? '';
 
     // Retrieve price (Row 27, index 26)
-    const price = parseFloat(data[26][columnIndex]);
+    console.log(data[26][columnIndex]);
+    console.log(typeof data[26][columnIndex]);
+    const price = parseFloat(data[26][columnIndex] as string);
     if (isNaN(price)) {
       console.error('Invalid price value');
       return null;
     }
 
-    return { price, unit };
+    return price;
   };

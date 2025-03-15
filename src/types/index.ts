@@ -50,7 +50,10 @@ export type MinMaxRange = {
 export type NutritionFacts = NutritionBase<number>;
 
 export type NutritionFactAndCost = NutritionFacts & {
-  cost: number; // 100gあたりの金額
+  /**
+   * 100gあたりの金額
+   */
+  cost: number;
 };
 
 /**
