@@ -1,7 +1,5 @@
-import { Food } from './types';
-
-// 値は100gあたりのものです。値段は税込。
-export const foods: Food[] = [
+// 100gあたりのものです。値段は税込。
+export const foods = [
   {
     name: '白米',
     shokuhinbangou: '01083',
@@ -10,6 +8,9 @@ export const foods: Food[] = [
     protein: 6.2,
     fat: 0.9,
     fiber: 0.4,
+    saturatedFattyAcids: 0.81,
+    n6PolyunsaturatedFattyAcids: 0.3,
+    n3PolyunsaturatedFattyAcids: 0.01,
     vitaminB12: 0,
     vitaminC: 0,
   },
