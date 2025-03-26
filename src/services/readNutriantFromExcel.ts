@@ -88,17 +88,19 @@ export const getNutriantFromExcelWorkbook =
 /**
  * 文字列1つを number | null に変換する関数
  */
-export function parseNutrientValue(str: string): number | null {
+export function parseNutrientValue(str: string | number): number | null {
   // 前後の空白を除去
-  const trimmed = str.trim();
 
   // ハイフン (未測定) は null として扱う
-  if (trimmed === '-') {
+  if (str === '-') {
     return null;
+  }
+  if (typeof str === 'number') {
+    return str;
   }
 
   // カッコを外す（例: "(1.2)" -> "1.2", "(Tr)" -> "Tr"）
-  const withoutParens = trimmed.replace(/[()]/g, '');
+  const withoutParens = str.replace(/[()]/g, '');
 
   // "Tr" は 0 として扱う（カッコ付きを外した結果でもOK）
   if (withoutParens === 'Tr') {

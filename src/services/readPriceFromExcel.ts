@@ -17,19 +17,18 @@ export const getPriceFromExcelData =
   (data: (string | number)[][]) =>
   (itemCode: number): number | null => {
     // Locate item codes (Row 10, index 9)
-    const itemCodes = data[9];
+    const ITEM_CODE_ROW = 9;
+    const itemCodes = data[ITEM_CODE_ROW];
     const columnIndex = itemCodes.findIndex((code) => code === itemCode);
     if (columnIndex === -1) {
-      console.error('Item code not found');
       return null;
     }
 
     // Retrieve unit (Row 12, index 11)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const unit = data[11][columnIndex] ?? '';
 
     // Retrieve price (Row 27, index 26)
-    console.log(data[26][columnIndex]);
-    console.log(typeof data[26][columnIndex]);
     const price = parseFloat(data[26][columnIndex] as string);
     if (isNaN(price)) {
       console.error('Invalid price value');

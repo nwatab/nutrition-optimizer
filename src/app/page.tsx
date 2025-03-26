@@ -1,4 +1,5 @@
 // import { foods } from '@/data';
+import path from 'path';
 import { crossFoodReference } from '@/data';
 import {
   getNutriantFromExcelWorkbook,
@@ -48,22 +49,23 @@ const nutriantNames: (keyof NutritionFacts)[] = [
 ];
 
 export default async function DietPage() {
-  const [price1, price2] = await Promise.all(
-    [
-      process.cwd() + '/data/b002-1.xlsx',
-      process.cwd() + '/data/b002-2.xlsx',
-    ].map(readPriceDataFromExcel)
+  const [priceData1, priceData2] = await Promise.all(
+    ['b002-1.xlsx', 'b002-2.xlsx']
+      .map((filename) => path.join(process.cwd(), 'data', filename))
+      .map(readPriceDataFromExcel)
   );
-  const [priceReader1, priceReader2] = [price1, price2].map(
+  const [priceReader1, priceReader2] = [priceData1, priceData2].map(
     getPriceFromExcelData
   );
   const readPrice = (estatId: number) =>
     priceReader1(estatId) ?? priceReader2(estatId);
-  const [nutriantWorkbook, fnmtWorkbook] = await Promise.all(
+  const [nutriantWorkbook, fatWorkbook] = await Promise.all(
     [
-      process.cwd() + '/data/20230428-mxt_kagsei-mext_00001_012.xlsx',
-      process.cwd() + '/data/20230428-mxt_kagsei-mext_00001_032.xlsx',
-    ].map(readExcelWorkbook)
+      '20230428-mxt_kagsei-mext_00001_012.xlsx',
+      '20230428-mxt_kagsei-mext_00001_032.xlsx',
+    ]
+      .map((filename) => path.join(process.cwd(), 'data', filename))
+      .map(readExcelWorkbook)
   );
   const readNutriant = getNutriantFromExcelWorkbook(
     nutriantWorkbook,
