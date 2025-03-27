@@ -53,27 +53,28 @@ const nutriantNames: (keyof NutritionFacts)[] = [
 const DATA_DIR = 'public_data';
 
 export default async function DietPage() {
-  const [priceData1Buffer, priceData2Buffer] = await Promise.all(
-    ['b002-1.xlsx', 'b002-2.xlsx']
-      .map((filename) => path.join(process.cwd(), DATA_DIR, filename))
-      .map((filepath) => fs.readFile(filepath))
-  );
-
-  const [priceReader1, priceReader2] = [priceData1Buffer, priceData2Buffer]
-    .map(readDataFromExcelBuffer)
-    .map(trimData)
-    .map(makeReadPriceFromExcelData);
-  const readPrice = (estatId: number) =>
-    priceReader1(estatId) ?? priceReader2(estatId);
-
-  const [nutriantWorkbookBuffer, fatWorkbookBuffer] = await Promise.all(
+  const [
+    priceData1Buffer,
+    priceData2Buffer,
+    nutriantWorkbookBuffer,
+    fatWorkbookBuffer,
+  ] = await Promise.all(
     [
+      'b002-1.xlsx',
+      'b002-2.xlsx',
       '20230428-mxt_kagsei-mext_00001_012.xlsx',
       '20230428-mxt_kagsei-mext_00001_032.xlsx',
     ]
       .map((filename) => path.join(process.cwd(), DATA_DIR, filename))
       .map((filepath) => fs.readFile(filepath))
   );
+  const [priceReader1, priceReader2] = [priceData1Buffer, priceData2Buffer]
+    .map(readDataFromExcelBuffer)
+    .map(trimData)
+    .map(makeReadPriceFromExcelData);
+  const readRecentPrices = (estatId: number) =>
+    priceReader1(estatId) ?? priceReader2(estatId);
+
   const [nutriantWorkbook, fatWorkbook] = [
     nutriantWorkbookBuffer,
     fatWorkbookBuffer,
@@ -85,10 +86,19 @@ export default async function DietPage() {
 
   const estatFoodData: FoodData[] = crossFoodReference.map(
     ({ estatId, shokuhinbangou, estatMassGram }) => {
-      const priceOfProduct = readPrice(estatId);
-      if (priceOfProduct === null) {
+      const recentPricesOfProduct = readRecentPrices(estatId);
+      if (
+        recentPricesOfProduct === null ||
+        recentPricesOfProduct.length === 0
+      ) {
         throw new Error(`Price not found for ${estatId}`);
       }
+      const priceOfProduct =
+        recentPricesOfProduct
+          .slice(-3)
+          .reduce((acc, data) => acc + data.price, 0) /
+        recentPricesOfProduct.slice(-3).length;
+
       const pricePer100 = (priceOfProduct / estatMassGram) * 100;
       const nutriantValues = nutriantNames.reduce(
         (acc, nutriant) => ({
@@ -101,7 +111,7 @@ export default async function DietPage() {
       );
       return {
         ...nutriantValues,
-        name: shokuhinbangou, // ToDo: Use actual name
+        name: recentPricesOfProduct[0].name,
         shokuhinbangou,
         cost: pricePer100,
       };
