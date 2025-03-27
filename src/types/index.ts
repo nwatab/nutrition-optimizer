@@ -14,10 +14,19 @@ export type NutritionBase<T> = {
   saturatedFattyAcids: T;
   n6PolyunsaturatedFattyAcids: T;
   n3PolyunsaturatedFattyAcids: T;
+  /**
+   * 利用可能炭水化物（質量計）
+   */
   carbohydrates: T;
+  /**
+   * レチノール活性当量
+   */
   vitaminA: T;
   vitaminD: T;
   vitaminE: T;
+  /**
+   * α-トコフェロール
+   */
   vitaminK: T;
   vitaminB1: T;
   vitaminB2: T;
@@ -33,6 +42,9 @@ export type NutritionBase<T> = {
   iron: T;
   zinc: T;
   copper: T;
+  /**
+   * マンガン
+   */
   manganese: T;
   iodine: T;
   selenium: T;

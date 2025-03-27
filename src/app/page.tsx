@@ -3,52 +3,15 @@ import path from 'path';
 import { promises as fs } from 'fs';
 import { crossFoodReference } from '@/data';
 import {
-  getNutriantFromExcelWorkbook,
+  getNutriantsFromExcelWorkbook,
   makeReadPriceFromExcelData,
   optimizeDiet,
-  parseNutrientValue,
   readExcelWorkbook,
   readDataFromExcelBuffer,
   referenceDailyIntakes,
   trimData,
 } from '@/services';
-import { FoodData, NutritionFacts } from '@/types';
-
-const nutriantNames: (keyof NutritionFacts)[] = [
-  'calories',
-  'protein',
-  'fat',
-  'fiber',
-  'vitaminB12',
-  'vitaminC',
-  'saturatedFattyAcids',
-  'n6PolyunsaturatedFattyAcids',
-  'n3PolyunsaturatedFattyAcids',
-  'carbohydrates', // 利用可能炭水化物（質量計）
-  'vitaminA', // レチノール活性当量
-  'vitaminD',
-  'vitaminE', // α-トコフェロール
-  'vitaminK',
-  'vitaminB1',
-  'vitaminB2',
-  'niacin',
-  'folate',
-  'pantothenicAcid',
-  'biotin',
-  'nacl',
-  'potassium',
-  'calcium',
-  'magnesium',
-  'phosphorus',
-  'iron',
-  'zinc',
-  'copper',
-  'manganese', // マンガン
-  'iodine',
-  'selenium',
-  'chromium',
-  'molybdenum',
-];
+import { FoodData } from '@/types';
 
 const DATA_DIR = 'public_data';
 
@@ -79,7 +42,7 @@ export default async function DietPage() {
     nutriantWorkbookBuffer,
     fatWorkbookBuffer,
   ].map(readExcelWorkbook);
-  const readNutriant = getNutriantFromExcelWorkbook(
+  const readNutriants = getNutriantsFromExcelWorkbook(
     nutriantWorkbook,
     fatWorkbook
   );
@@ -100,24 +63,17 @@ export default async function DietPage() {
         recentPricesOfProduct.slice(-3).length;
 
       const pricePer100 = (priceOfProduct / estatMassGram) * 100;
-      const nutriantValues = nutriantNames.reduce(
-        (acc, nutriant) => ({
-          ...acc,
-          [nutriant]: parseNutrientValue(
-            readNutriant(shokuhinbangou, nutriant)
-          ),
-        }),
-        {} as NutritionFacts
-      );
+      const { name: productName, ...nutriantValues } =
+        readNutriants(shokuhinbangou);
+
       return {
         ...nutriantValues,
-        name: recentPricesOfProduct[0].name,
+        name: recentPricesOfProduct[0].name + ' (' + productName + ')',
         shokuhinbangou,
         cost: pricePer100,
       };
     }
   );
-
   // サーバー側で最適化を実行
   const { totalCost, breakdown } = await optimizeDiet(
     estatFoodData,
