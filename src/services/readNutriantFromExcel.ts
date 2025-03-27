@@ -1,5 +1,4 @@
 import { NutritionFacts } from '@/types';
-import { promises as fs } from 'fs';
 import * as xlsx from 'xlsx';
 
 const excelColumnToIndex = (column: string): number => {
@@ -10,12 +9,12 @@ const excelColumnToIndex = (column: string): number => {
   return index - 1; // 0-based index にするため -1
 };
 
-export const readExcelWorkbook = async (filepath: string) => {
-  const buffer = await fs.readFile(filepath);
+export const readExcelWorkbook = (buffer: Buffer) => {
   const workbook = xlsx.read(buffer, { type: 'buffer' });
   return workbook;
 };
 
+// nutriantをまとめて返す関数としてしまった方が使い勝手が良さそう。
 export const getNutriantFromExcelWorkbook =
   (nutriantWorkbook: xlsx.WorkBook, fatWorkbook: xlsx.WorkBook) =>
   (productNumber: string, nutriant: keyof NutritionFacts): string => {
@@ -41,7 +40,7 @@ export const getNutriantFromExcelWorkbook =
     // 商品番号を検索し、対応する飽和脂肪酸の値を取得
     const row = jsonData.find((row) => row[1] === productNumber);
     if (!row) {
-      throw new Error('指定された商品番号が見つかりません。');
+      throw new Error(`指定された商品番号が見つかりません。: ${productNumber}`);
     }
     const excelMapping: Record<keyof NutritionFacts, string> = {
       calories: 'G',

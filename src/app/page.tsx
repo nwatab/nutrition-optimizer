@@ -1,14 +1,16 @@
 // import { foods } from '@/data';
 import path from 'path';
+import { promises as fs } from 'fs';
 import { crossFoodReference } from '@/data';
 import {
   getNutriantFromExcelWorkbook,
-  getPriceFromExcelData,
+  makeReadPriceFromExcelData,
   optimizeDiet,
   parseNutrientValue,
   readExcelWorkbook,
-  readPriceDataFromExcel,
+  readDataFromExcelBuffer,
   referenceDailyIntakes,
+  trimData,
 } from '@/services';
 import { FoodData, NutritionFacts } from '@/types';
 
@@ -48,25 +50,34 @@ const nutriantNames: (keyof NutritionFacts)[] = [
   'molybdenum',
 ];
 
+const DATA_DIR = 'public_data';
+
 export default async function DietPage() {
-  const [priceData1, priceData2] = await Promise.all(
+  const [priceData1Buffer, priceData2Buffer] = await Promise.all(
     ['b002-1.xlsx', 'b002-2.xlsx']
-      .map((filename) => path.join(process.cwd(), 'data', filename))
-      .map(readPriceDataFromExcel)
+      .map((filename) => path.join(process.cwd(), DATA_DIR, filename))
+      .map((filepath) => fs.readFile(filepath))
   );
-  const [priceReader1, priceReader2] = [priceData1, priceData2].map(
-    getPriceFromExcelData
-  );
+
+  const [priceReader1, priceReader2] = [priceData1Buffer, priceData2Buffer]
+    .map(readDataFromExcelBuffer)
+    .map(trimData)
+    .map(makeReadPriceFromExcelData);
   const readPrice = (estatId: number) =>
     priceReader1(estatId) ?? priceReader2(estatId);
-  const [nutriantWorkbook, fatWorkbook] = await Promise.all(
+
+  const [nutriantWorkbookBuffer, fatWorkbookBuffer] = await Promise.all(
     [
       '20230428-mxt_kagsei-mext_00001_012.xlsx',
       '20230428-mxt_kagsei-mext_00001_032.xlsx',
     ]
-      .map((filename) => path.join(process.cwd(), 'data', filename))
-      .map(readExcelWorkbook)
+      .map((filename) => path.join(process.cwd(), DATA_DIR, filename))
+      .map((filepath) => fs.readFile(filepath))
   );
+  const [nutriantWorkbook, fatWorkbook] = [
+    nutriantWorkbookBuffer,
+    fatWorkbookBuffer,
+  ].map(readExcelWorkbook);
   const readNutriant = getNutriantFromExcelWorkbook(
     nutriantWorkbook,
     fatWorkbook
