@@ -103,11 +103,15 @@ export const getNutriantsFromExcelWorkbook =
         return;
       }
 
+      // ToDo: 本関数はエクセルファイルを読み出しのみの責務として、返り値は、表データそのままの値とする。
+      // 以下の行に書かれtた、後処理のparseは別の箇所に切り出す。
       const value = parseNutrientValue(row[columnIndex]);
       if (value === null) {
-        throw new Error(
+        console.warn(
           `食品番号 ${productNumber} の ${nutrient} の値が null です。`
         );
+        result[nutrient] = 0;
+        return;
       }
       result[nutrient] = value;
     });
@@ -154,9 +158,9 @@ export function parseNutrientValue(str: string | number): number | null {
   // parseFloat で数値化
   const value = parseFloat(withoutParens);
 
-  // 数値化に失敗した場合は null
+  // 数値化に失敗した場合はエラー
   if (isNaN(value)) {
-    return null;
+    throw new Error(`数値化に失敗しました。: ${str}`);
   }
 
   return value;

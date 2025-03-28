@@ -66,6 +66,14 @@ export default async function DietPage() {
       const { name: productName, ...nutriantValues } =
         readNutriants(shokuhinbangou);
 
+      // 未測定値をゼロとする
+      // const nutriantValuesWithoutNull = Object.fromEntries(
+      //   Object.entries(nutriantValues).map(([key, value]) => [
+      //     key,
+      //     value === null ? 0 : value,
+      //   ])
+      // ) as NutritionBase<number>;
+
       return {
         ...nutriantValues,
         name: recentPricesOfProduct[0].name + ' (' + productName + ')',

@@ -28,6 +28,11 @@ export const crossFoodReference: CrossFoodDataReference[] = [
     shokuhinbangou: '06153',
   },
   {
+    estatId: 1438, // しいたけ
+    estatMassGram: 1000,
+    shokuhinbangou: '08039',
+  },
+  {
     estatId: 1443, // ぶなしめじ
     estatMassGram: 1000,
     shokuhinbangou: '08016',
@@ -36,6 +41,21 @@ export const crossFoodReference: CrossFoodDataReference[] = [
     estatId: 1444, // さつまいも
     estatMassGram: 1000,
     shokuhinbangou: '08016',
+  },
+  {
+    estatId: 1471, // 豆腐
+    estatMassGram: 1000,
+    shokuhinbangou: '04032',
+  },
+  {
+    estatId: 1473, // 納豆
+    estatMassGram: 1000,
+    shokuhinbangou: '04046',
+  },
+  {
+    estatId: 1583, // アボカド
+    estatMassGram: 1000,
+    shokuhinbangou: '07006',
   },
   {
     estatId: 1581, // バナナ
@@ -51,5 +71,10 @@ export const crossFoodReference: CrossFoodDataReference[] = [
     estatId: 1983, // 豆乳
     estatMassGram: 1020, // 1.02g/1mlとする。
     shokuhinbangou: '04052',
+  },
+  {
+    estatId: 1415, // にんじん
+    estatMassGram: 1000,
+    shokuhinbangou: '06212',
   },
 ];
