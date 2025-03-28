@@ -23,6 +23,56 @@ export const crossFoodReference: CrossFoodDataReference[] = [
     shokuhinbangou: '06061',
   },
   {
+    estatId: 1402, // ほうれん草
+    estatMassGram: 1000,
+    shokuhinbangou: '06267',
+  },
+  {
+    estatId: 1403, // 白菜
+    estatMassGram: 1000,
+    shokuhinbangou: '06233',
+  },
+  {
+    estatId: 1405, // ねぎ
+    estatMassGram: 1000,
+    shokuhinbangou: '06226',
+  },
+  {
+    estatId: 1406, // レタス
+    estatMassGram: 1000,
+    shokuhinbangou: '06312',
+  },
+  {
+    estatId: 1407, // もやし
+    estatMassGram: 1000,
+    shokuhinbangou: '06287',
+  },
+  {
+    estatId: 1409, // ブロッコリー
+    estatMassGram: 1000,
+    shokuhinbangou: '06263',
+  },
+  {
+    estatId: 1410, // アスパラガス
+    estatMassGram: 1000,
+    shokuhinbangou: '06007',
+  },
+  {
+    estatId: 1411, // さつまいも
+    estatMassGram: 1000,
+    shokuhinbangou: '08016',
+  },
+  {
+    estatId: 1412, // ジャガイモ
+    estatMassGram: 1000,
+    shokuhinbangou: '02063',
+  },
+  {
+    estatId: 1413, // 里芋
+    estatMassGram: 1000,
+    shokuhinbangou: '02010',
+  },
+  {
     estatId: 1417, // たまねぎ
     estatMassGram: 1000,
     shokuhinbangou: '06153',
