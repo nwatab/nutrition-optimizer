@@ -61,6 +61,13 @@ export type MinMaxRange = {
 
 export type NutritionFacts = NutritionBase<number>;
 
+/**
+ * NutritionFactsRaw は、89, 6.1, '(0)', '0.30', '2.0', 'Tr', '1.00' などの形式の生データを扱います。
+ * 各栄養成分は string または number で表現されます。
+ */
+export type NutritionFactsRaw = NutritionBase<string | number>;
+export type NullableNutritionFacts = NutritionBase<number | null>;
+
 export type NutritionFactAndCost = NutritionFacts & {
   /**
    * 100gあたりの金額

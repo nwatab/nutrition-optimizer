@@ -1,4 +1,4 @@
-import { NutritionFacts } from '@/types';
+import type { NutritionFacts, NutritionFactsRaw } from '@/types';
 import * as xlsx from 'xlsx';
 
 const excelColumnToIndex = (column: string): number => {
@@ -16,7 +16,7 @@ export const readExcelWorkbook = (buffer: Buffer) => {
 
 export const getNutriantsFromExcelWorkbook =
   (nutriantWorkbook: xlsx.WorkBook, fatWorkbook: xlsx.WorkBook) =>
-  (productNumber: string): NutritionFacts & { name: string } => {
+  (productNumber: string): NutritionFactsRaw & { name: string } => {
     const excelMapping: Record<
       keyof (NutritionFacts & { name: string }),
       string
@@ -66,7 +66,7 @@ export const getNutriantsFromExcelWorkbook =
       ],
     };
 
-    const result: Partial<NutritionFacts & { name: string }> = {};
+    const result: Partial<NutritionFactsRaw & { name: string }> = {};
 
     (
       Object.keys(excelMapping) as Array<
@@ -85,7 +85,7 @@ export const getNutriantsFromExcelWorkbook =
       const jsonData = xlsx.utils.sheet_to_json(sheet, {
         header: 1,
         defval: '',
-      }) as string[][];
+      }) as (string | number)[][];
 
       const row = jsonData.find((row) => row[1] === productNumber);
       if (!row) {
@@ -99,23 +99,24 @@ export const getNutriantsFromExcelWorkbook =
         throw new Error('指定された列が見つかりません。');
       }
       if (nutrient === 'name') {
-        result.name = row[columnIndex];
+        result.name = row[columnIndex] as string;
         return;
       }
 
       // ToDo: 本関数はエクセルファイルを読み出しのみの責務として、返り値は、表データそのままの値とする。
       // 以下の行に書かれtた、後処理のparseは別の箇所に切り出す。
-      const value = parseNutrientValue(row[columnIndex]);
-      if (value === null) {
-        console.warn(
-          `食品番号 ${productNumber} の ${nutrient} の値が null です。`
-        );
-        result[nutrient] = 0;
-        return;
-      }
-      result[nutrient] = value;
+      // const value = parseNutrientValue(row[columnIndex]);
+      // if (value === null) {
+      //   console.warn(
+      //     `食品番号 ${productNumber} の ${nutrient} の値が null です。`
+      //   );
+      //   result[nutrient] = 0;
+      //   return;
+      // }
+      // result[nutrient] = value;
+      result[nutrient] = row[columnIndex];
     });
-    return result as NutritionFacts & { name: string };
+    return result as NutritionFactsRaw & { name: string };
   };
 
 /**

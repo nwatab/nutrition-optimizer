@@ -10,8 +10,9 @@ import {
   readDataFromExcelBuffer,
   referenceDailyIntakes,
   trimData,
+  parseNutrientValue,
 } from '@/services';
-import { FoodData } from '@/types';
+import { FoodData, NutritionFacts } from '@/types';
 
 const DATA_DIR = 'public_data';
 
@@ -67,15 +68,15 @@ export default async function DietPage() {
         readNutriants(shokuhinbangou);
 
       // 未測定値をゼロとする
-      // const nutriantValuesWithoutNull = Object.fromEntries(
-      //   Object.entries(nutriantValues).map(([key, value]) => [
-      //     key,
-      //     value === null ? 0 : value,
-      //   ])
-      // ) as NutritionBase<number>;
+      const nutriantValuesWithoutNull = Object.fromEntries(
+        Object.entries(nutriantValues).map(([key, value]) => [
+          key,
+          parseNutrientValue(value) ?? 0,
+        ])
+      ) as NutritionFacts;
 
       return {
-        ...nutriantValues,
+        ...nutriantValuesWithoutNull,
         name: recentPricesOfProduct[0].name + ' (' + productName + ')',
         shokuhinbangou,
         cost: pricePer100,
