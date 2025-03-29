@@ -60,24 +60,68 @@ export const crossFoodReference: CrossFoodDataReference[] = [
     shokuhinbangou: '02010',
   },
   {
+    estatId: 1414, // 大根
+    shokuhinbangou: '06132',
+  },
+  {
+    estatId: 1415, // にんじん
+    shokuhinbangou: '06212',
+  },
+  {
+    estatId: 1416, // ゴボウ
+    shokuhinbangou: '06084',
+  },
+  {
     estatId: 1417, // たまねぎ
     shokuhinbangou: '06153',
   },
   {
-    estatId: 1438, // しいたけ
+    estatId: 1419, // れんこん
+    shokuhinbangou: '06317',
+  },
+  {
+    estatId: 1420, // ながいも
+    shokuhinbangou: '02025',
+  },
+  {
+    estatId: 1421, // しょうが
+    shokuhinbangou: '06103',
+  },
+  {
+    estatId: 1433, // かぼちゃ
+    shokuhinbangou: '06046',
+  },
+  {
+    estatId: 1434, // きゅうり
+    shokuhinbangou: '06065',
+  },
+  {
+    estatId: 1435, // なす
+    shokuhinbangou: '06191',
+  },
+  {
+    estatId: 1436, // トマト
+    shokuhinbangou: '06183',
+  },
+  {
+    estatId: 1437, // ピーマン
+    shokuhinbangou: '06245',
+  },
+  {
+    estatId: 1438, // 生しいたけ
     shokuhinbangou: '08039',
+  },
+  {
+    estatId: 1442, // えのきたけ
+    shokuhinbangou: '08001',
   },
   {
     estatId: 1443, // ぶなしめじ
     shokuhinbangou: '08016',
   },
   {
-    estatId: 1411, // さつまいも
-    shokuhinbangou: '02045',
-  },
-  {
-    estatId: 1471, // 豆腐
-    shokuhinbangou: '04032',
+    estatId: 1502, // りんご
+    shokuhinbangou: '07176',
   },
   {
     estatId: 1473, // 納豆
@@ -93,8 +137,49 @@ export const crossFoodReference: CrossFoodDataReference[] = [
     shokuhinbangou: '07107',
   },
   {
-    estatId: 1594, // ナッツ
-    shokuhinbangou: '04023',
+    estatId: 1571, // いちご
+    shokuhinbangou: '07012',
+  },
+  {
+    estatId: 1584, // パイナップル
+    shokuhinbangou: '07097',
+  },
+  {
+    estatId: 1021, // 食パン(1kg)
+    shokuhinbangou: '01026',
+  },
+  {
+    estatId: 1042, // スパゲッティ
+    shokuhinbangou: '01063',
+  },
+  {
+    estatId: 1453, // 干ししいたけ
+    shokuhinbangou: '08013',
+  },
+  {
+    estatId: 1461, // 干しのり 10枚
+    estatMassGram: 3 * 10, // 3g/枚とする。
+    shokuhinbangou: '09003',
+  },
+  {
+    estatId: 1462, // わかめ 多分、乾燥
+    shokuhinbangou: '09040',
+  },
+  {
+    estatId: 1463, // こんぶ。栄養価は真昆布を採用。
+    shokuhinbangou: '09017',
+  },
+  {
+    estatId: 1464, // ひじき
+    shokuhinbangou: '09017',
+  },
+  {
+    estatId: 1471, // 豆腐
+    shokuhinbangou: '04032',
+  },
+  {
+    estatId: 1472, // 油揚げ
+    shokuhinbangou: '04040',
   },
   {
     estatId: 1983, // 豆乳
@@ -102,7 +187,15 @@ export const crossFoodReference: CrossFoodDataReference[] = [
     shokuhinbangou: '04052',
   },
   {
-    estatId: 1415, // にんじん
-    shokuhinbangou: '06212',
+    estatId: 1481, // こんにゃく
+    shokuhinbangou: '02003',
+  },
+  {
+    estatId: 1487, // キムチ
+    shokuhinbangou: '06236',
+  },
+  {
+    estatId: 1594, // ナッツ
+    shokuhinbangou: '04023',
   },
 ];

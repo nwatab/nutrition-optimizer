@@ -16,7 +16,7 @@ export const readExcelWorkbook = (buffer: Buffer) => {
 
 export const getNutriantsFromExcelWorkbook =
   (nutriantWorkbook: xlsx.WorkBook, fatWorkbook: xlsx.WorkBook) =>
-  (productNumber: string): NutritionFactsRaw & { name: string } => {
+  (shokuhinbangou: string): NutritionFactsRaw & { name: string } => {
     const excelMapping: Record<
       keyof (NutritionFacts & { name: string }),
       string
@@ -58,14 +58,6 @@ export const getNutriantsFromExcelWorkbook =
       molybdenum: 'AK',
     };
 
-    const sheets = {
-      fatty: [
-        'saturatedFattyAcids',
-        'n6PolyunsaturatedFattyAcids',
-        'n3PolyunsaturatedFattyAcids',
-      ],
-    };
-
     const result: Partial<NutritionFactsRaw & { name: string }> = {};
 
     (
@@ -73,7 +65,14 @@ export const getNutriantsFromExcelWorkbook =
         keyof (NutritionFacts & { name: string })
       >
     ).forEach((nutrient) => {
-      const isInFattySheet = sheets.fatty.includes(nutrient);
+      const fattyAcids = [
+        'saturatedFattyAcids',
+        'n6PolyunsaturatedFattyAcids',
+        'n3PolyunsaturatedFattyAcids',
+      ] as const;
+      const isInFattySheet = fattyAcids.includes(
+        nutrient as (typeof fattyAcids)[number]
+      );
       const sheet = isInFattySheet
         ? fatWorkbook.Sheets['表全体']
         : nutriantWorkbook.Sheets['表全体'];
@@ -86,11 +85,20 @@ export const getNutriantsFromExcelWorkbook =
         header: 1,
         defval: '',
       }) as (string | number)[][];
+      if (shokuhinbangou.endsWith('02003')) {
+        console.log();
+      }
+      const row = jsonData.find((row) => row[1] === shokuhinbangou);
 
-      const row = jsonData.find((row) => row[1] === productNumber);
       if (!row) {
+        if (fattyAcids.includes(nutrient as (typeof fattyAcids)[number])) {
+          // ToDo: 脂肪酸のデータがない場合は0とする。例えば、こんにゃくは脂肪酸が含まれず、データもない。
+          // nullを返すようにしても良いが、typeの変更も必要。
+          result[nutrient as (typeof fattyAcids)[number]] = 0;
+          return;
+        }
         throw new Error(
-          `指定された商品番号が見つかりません。: ${productNumber}`
+          `指定された商品番号が見つかりません。食品番号: ${shokuhinbangou}, nutrient: ${nutrient}`
         );
       }
 
@@ -102,18 +110,6 @@ export const getNutriantsFromExcelWorkbook =
         result.name = row[columnIndex] as string;
         return;
       }
-
-      // ToDo: 本関数はエクセルファイルを読み出しのみの責務として、返り値は、表データそのままの値とする。
-      // 以下の行に書かれtた、後処理のparseは別の箇所に切り出す。
-      // const value = parseNutrientValue(row[columnIndex]);
-      // if (value === null) {
-      //   console.warn(
-      //     `食品番号 ${productNumber} の ${nutrient} の値が null です。`
-      //   );
-      //   result[nutrient] = 0;
-      //   return;
-      // }
-      // result[nutrient] = value;
       result[nutrient] = row[columnIndex];
     });
     return result as NutritionFactsRaw & { name: string };
