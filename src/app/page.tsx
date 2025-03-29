@@ -49,21 +49,22 @@ export default async function DietPage() {
   );
 
   const estatFoodData: FoodData[] = crossFoodReference.map(
-    ({ estatId, shokuhinbangou, estatMassGram }) => {
-      const recentPricesOfProduct = readRecentPrices(estatId);
-      if (
-        recentPricesOfProduct === null ||
-        recentPricesOfProduct.length === 0
-      ) {
+    ({ estatId, estatMassGram, shokuhinbangou }) => {
+      const priceData = readRecentPrices(estatId);
+      if (priceData === null || priceData.prices.length === 0) {
         throw new Error(`Price not found for ${estatId}`);
       }
       const priceOfProduct =
-        recentPricesOfProduct
-          .slice(-3)
-          .reduce((acc, data) => acc + data.price, 0) /
-        recentPricesOfProduct.slice(-3).length;
+        priceData.prices.slice(-3).reduce((acc, data) => acc + data.price, 0) /
+        priceData.prices.slice(-3).length;
 
-      const pricePer100 = (priceOfProduct / estatMassGram) * 100;
+      const estatMass = estatMassGram ?? priceData.estatMassGram;
+      if (!estatMass) {
+        throw new Error(
+          `Estat mass not found for ${estatId} (name: ${priceData.name})`
+        );
+      }
+      const pricePer100 = (priceOfProduct / estatMass) * 100;
       const { name: productName, ...nutriantValues } =
         readNutriants(shokuhinbangou);
 
@@ -77,7 +78,7 @@ export default async function DietPage() {
 
       return {
         ...nutriantValuesWithoutNull,
-        name: recentPricesOfProduct[0].name + ' (' + productName + ')',
+        name: priceData.name + ' (' + productName + ')',
         shokuhinbangou,
         cost: pricePer100,
       };
