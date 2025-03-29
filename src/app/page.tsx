@@ -1,7 +1,10 @@
 // import { foods } from '@/data';
 import path from 'path';
 import { promises as fs } from 'fs';
+import Link from 'next/link';
+
 import { crossFoodReference } from '@/data';
+import ThemeImage from '@/components/theme-image';
 import {
   getNutriantsFromExcelWorkbook,
   makeReadPriceFromExcelData,
@@ -96,6 +99,20 @@ export default async function DietPage() {
         ビーガン向け1日に最適な食材の組み合わせ
         (33-49歳、身体活動レベルふつう、男性)
       </h1>
+      <Link
+        href="https://github.com/nwatab/nutrition-optimizer"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center"
+      >
+        <ThemeImage
+          srcLight="/github-mark.svg"
+          srcDark="/github-mark-white.svg"
+          alt="GitHub"
+          width={24}
+          height={24}
+        />
+      </Link>
       <p className="mb-2">
         総コスト: <strong>¥{Math.ceil(totalCost)}</strong>
       </p>
