@@ -117,7 +117,7 @@ export default async function DietPage() {
       const nutrientFactsPer100 = Object.fromEntries(
         Object.entries(nutriantValues).map(([key, value]) => [
           key,
-          value * (100 / massForNutritionGram),
+          (value ?? 0) * (100 / massForNutritionGram),
         ])
       ) as NutritionFacts;
       return {

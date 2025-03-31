@@ -6,7 +6,7 @@ type FoodProductDataReference = {
   productMassGram: number;
   massForNutritionGram: number;
   url: string;
-} & NutritionFacts;
+} & Partial<NutritionFacts>;
 
 export const foodProductDataReferences: FoodProductDataReference[] = [
   {
@@ -56,5 +56,19 @@ export const foodProductDataReferences: FoodProductDataReference[] = [
     n6PolyunsaturatedFattyAcids: 1.2,
     // NutritionFacts型に含まれていない追加情報
     // n9MonounsaturatedFattyAcids: 0.2,
+  },
+  {
+    name: '金芽ロウカット玄米 4kg（2kg×2袋） 【送料無料】',
+    price: 3900 + 0,
+    productMassGram: 4000,
+    massForNutritionGram: 100,
+    url: 'https://www.toyorice.jp/c/item/5000010400',
+    // 炊く前（お米の状態）／エネルギー354kcal、たんぱく質5.6g、脂質2.5g、炭水化物76.2g（糖質72.7g、食物繊維3.5g）、食塩相当量0g
+    calories: 354,
+    protein: 5.6,
+    fat: 2.5,
+    carbohydrates: 76.2,
+    fiber: 3.5,
+    nacl: 0,
   },
 ];
