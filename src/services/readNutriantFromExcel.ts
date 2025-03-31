@@ -56,6 +56,7 @@ export const getNutriantsFromExcelWorkbook =
       selenium: 'AI',
       chromium: 'AJ',
       molybdenum: 'AK',
+      vitaminB6: 'BB',
     };
 
     const result: Partial<NutritionFactsRaw & { name: string }> = {};
@@ -133,7 +134,7 @@ export const getNutriantsFromExcelWorkbook =
 //     expect(parseNutrientValue('-')).toBeNull();
 //   });
 // });
-export function parseNutrientValue(str: string | number): number | null {
+export function parseNutrientRawValue(str: string | number): number | null {
   // 前後の空白を除去
 
   // ハイフン (未測定) は null として扱う
@@ -162,3 +163,15 @@ export function parseNutrientValue(str: string | number): number | null {
 
   return value;
 }
+
+export const parseNutritionsRaw = (
+  nutriantValues: NutritionFactsRaw
+): NutritionFacts => {
+  const nutriantValuesWithoutNull = Object.fromEntries(
+    Object.entries(nutriantValues).map(([key, value]) => [
+      key,
+      parseNutrientRawValue(value) ?? 0, // 未測定値をゼロとする
+    ])
+  ) as NutritionFacts;
+  return nutriantValuesWithoutNull;
+};
