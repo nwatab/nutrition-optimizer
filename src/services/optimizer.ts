@@ -1,7 +1,10 @@
-import { FoodData, NutritionFactAndCost, NutritionTarget } from '@/types';
+import { ManualFoodData, NutritionFactAndCost, NutritionTarget } from '@/types';
 import { solve } from 'yalps';
 
-export async function optimizeDiet(foods: FoodData[], target: NutritionTarget) {
+export async function optimizeDiet(
+  foods: ManualFoodData[],
+  target: NutritionTarget
+) {
   // モデルの作成
   const model = {
     direction: 'minimize' as const,

@@ -9,6 +9,7 @@ export type NutritionBase<T> = {
   protein: T;
   fat: T;
   fiber: T;
+  vitaminB6: T;
   vitaminB12: T;
   vitaminC: T;
   saturatedFattyAcids: T;
@@ -81,4 +82,8 @@ export type NutritionFactAndCost = NutritionFacts & {
 export type FoodData = NutritionFactAndCost & {
   name: string;
   shokuhinbangou: string;
+};
+
+export type ManualFoodData = NutritionFactAndCost & {
+  name: string;
 };

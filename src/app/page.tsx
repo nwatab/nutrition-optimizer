@@ -3,7 +3,11 @@ import path from 'path';
 import { promises as fs } from 'fs';
 import Link from 'next/link';
 
-import { crossFoodReference } from '@/data';
+import {
+  crossFoodReference,
+  foodIngredientDataReference,
+  foodProductDataReferences,
+} from '@/data';
 import ThemeImage from '@/components/theme-image';
 import {
   getNutriantsFromExcelWorkbook,
@@ -13,9 +17,9 @@ import {
   readDataFromExcelBuffer,
   referenceDailyIntakes,
   trimData,
-  parseNutrientValue,
+  parseNutritionsRaw,
 } from '@/services';
-import { FoodData, NutritionFacts } from '@/types';
+import { FoodData, ManualFoodData, NutritionFacts } from '@/types';
 
 const DATA_DIR = 'public_data';
 
@@ -70,14 +74,7 @@ export default async function DietPage() {
       const pricePer100 = (priceOfProduct / estatMass) * 100;
       const { name: productName, ...nutriantValues } =
         readNutriants(shokuhinbangou);
-
-      // 未測定値をゼロとする
-      const nutriantValuesWithoutNull = Object.fromEntries(
-        Object.entries(nutriantValues).map(([key, value]) => [
-          key,
-          parseNutrientValue(value) ?? 0,
-        ])
-      ) as NutritionFacts;
+      const nutriantValuesWithoutNull = parseNutritionsRaw(nutriantValues);
 
       return {
         ...nutriantValuesWithoutNull,
@@ -87,9 +84,57 @@ export default async function DietPage() {
       };
     }
   );
+  const manualIngredentData: FoodData[] = foodIngredientDataReference.map(
+    (food) => {
+      const pricePer100 = (food.price / food.massGram) * 100;
+      const { name: productName, ...nutriantValues } = readNutriants(
+        food.shokuhinbangou
+      );
+      const nutriantValuesWithoutNull = parseNutritionsRaw(nutriantValues);
+      return {
+        ...nutriantValuesWithoutNull,
+        name: productName + ' (' + food.name + ')',
+        shokuhinbangou: food.shokuhinbangou,
+        cost: pricePer100,
+      };
+    }
+  );
+
+  // それぞれのtypeについては、要整理。estat idがある場合や、URLがある場合など、型ガードを検討。
+  const manualFoodProductData: ManualFoodData[] = foodProductDataReferences.map(
+    (food) => {
+      const {
+        price,
+        productMassGram,
+        massForNutritionGram,
+        name,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        url,
+        ...nutriantValues
+      } = food;
+      const pricePer100 = (price / productMassGram) * 100;
+      // nutriantValuesの値を100/massForNutritionGram倍する
+      const nutrientFactsPer100 = Object.fromEntries(
+        Object.entries(nutriantValues).map(([key, value]) => [
+          key,
+          value * (100 / massForNutritionGram),
+        ])
+      ) as NutritionFacts;
+      return {
+        ...nutrientFactsPer100,
+        name: name,
+        cost: pricePer100,
+      };
+    }
+  );
   // サーバー側で最適化を実行
+  const foodData: ManualFoodData[] = [
+    ...estatFoodData,
+    ...manualIngredentData,
+    ...manualFoodProductData,
+  ];
   const { totalCost, breakdown } = await optimizeDiet(
-    estatFoodData,
+    foodData,
     referenceDailyIntakes
   );
 
