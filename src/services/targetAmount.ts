@@ -17,6 +17,7 @@ export const referenceDailyIntakes: NutritionTarget = {
   vitaminK: { min: 150 }, // μg
   vitaminB1: { min: 1.4 }, // mg
   vitaminB2: { min: 1.6 }, // mg
+  vitaminB6: { min: 1.4 }, // mg
   vitaminB12: { min: 2.4 }, // μg
   niacin: { min: 15 }, // mg
   folate: { min: 240 }, // μg 葉酸
