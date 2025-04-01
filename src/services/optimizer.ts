@@ -32,11 +32,11 @@ export async function optimizeDiet(
 
   // 各食材の購入量と費用内訳を計算する
   // ※変数の値は「100g単位」としているので、最終的なグラム数は value * 100
-  const breakdown = solution.variables.map(([name, value]) => {
+  const breakdown = solution.variables.map(([name, hectoGrams]) => {
     const food = foods.find((f) => f.name === name);
     if (!food) return { name, grams: 0, cost: 0 };
-    const grams = value * 100; // 100g単位 → グラムに変換
-    const foodCost = value * food.cost; // 各食材の合計費用
+    const grams = hectoGrams * 100; // 100g単位 → グラムに変換
+    const foodCost = hectoGrams * food.cost; // 各食材の合計費用。値段は100gあたりの値段
     return {
       name,
       grams: grams,
