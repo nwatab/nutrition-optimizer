@@ -2,9 +2,9 @@
  * 100gあたりの栄養価
  */
 
-export type NutritionTarget = NutritionBase<Range>;
+export type NutritionTarget = NutritionFactBase<Range>;
 
-export type NutritionBase<T> = {
+export type NutritionFactBase<T> = {
   calories: T;
   protein: T;
   fat: T;
@@ -60,30 +60,55 @@ export type MinMaxRange = {
   max?: number;
 };
 
-export type NutritionFacts = NutritionBase<number>;
-
 /**
  * NutritionFactsRaw は、89, 6.1, '(0)', '0.30', '2.0', 'Tr', '1.00' などの形式の生データを扱います。
  * 各栄養成分は string または number で表現されます。
  */
-export type NutritionFactsRaw = NutritionBase<string | number>;
-export type NullableNutritionFacts = NutritionBase<number | null>;
-
-export type NutritionFactAndCost = NutritionFacts & {
-  /**
-   * 100gあたりの金額
-   */
-  cost: number;
-};
+export type NutritionFactsRaw = NutritionFactBase<string | number>;
+export type NullableNutritionFacts = NutritionFactBase<number | null>;
 
 /**
  * 食材情報
  */
-export type FoodData = NutritionFactAndCost & {
-  name: string;
+export type EstatPriceFoodData = {
+  nameInEstat: string;
+  nameInNutritionFacts: string;
   shokuhinbangou: string;
+  /**
+   * 100gあたりの金額
+   */
+  cost: number;
+  /**
+   * 可食部100gあたりの栄養成分
+   */
+  nutritionFacts: NutritionFactBase<number>;
+};
+export type ManualPriceFoodData = {
+  productName: string;
+  nutritionFactName: string;
+  shokuhinbangou: string;
+  /**
+   * 100gあたりの金額
+   */
+  cost: number;
+  /**
+   * 可食部100gあたりの栄養成分
+   */
+  nutritionFacts: NutritionFactBase<number>;
 };
 
-export type ManualFoodData = NutritionFactAndCost & {
-  name: string;
+export type ManualFoodData = {
+  productName: string;
+  /**
+   * 可食部100gあたりの栄養成分
+   */
+  nutritionFacts: NutritionFactBase<number>;
+  /**
+   * 100gあたりの金額
+   */
+  cost: number;
+  /**
+   * 商品のURL
+   */
+  url: string;
 };

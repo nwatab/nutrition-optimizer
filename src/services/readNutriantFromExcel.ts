@@ -1,4 +1,4 @@
-import type { NutritionFacts, NutritionFactsRaw } from '@/types';
+import type { NutritionFactBase } from '@/types';
 import * as xlsx from 'xlsx';
 
 const excelColumnToIndex = (column: string): number => {
@@ -16,22 +16,32 @@ export const readExcelWorkbook = (buffer: Buffer) => {
 
 export const getNutriantsFromExcelWorkbook =
   (nutriantWorkbook: xlsx.WorkBook, fatWorkbook: xlsx.WorkBook) =>
-  (shokuhinbangou: string): NutritionFactsRaw & { name: string } => {
-    const excelMapping: Record<
-      keyof (NutritionFacts & { name: string }),
+  (
+    shokuhinbangou: string
+  ): {
+    name: string;
+    shokuhinbangou: string;
+    nutritionFacts: NutritionFactBase<string | number | null>;
+  } => {
+    const excelFoodNameMapping: Record<string, string> = {
+      name: 'D',
+    };
+    const excelNuturitionMapping: Record<
+      keyof Omit<
+        NutritionFactBase<string | number>,
+        | 'name'
+        | 'saturatedFattyAcids'
+        | 'n6PolyunsaturatedFattyAcids'
+        | 'n3PolyunsaturatedFattyAcids'
+      >,
       string
     > = {
-      name: 'D',
-
       calories: 'G',
       protein: 'J',
       fat: 'M',
       fiber: 'S',
       vitaminB12: 'BC',
       vitaminC: 'BG',
-      saturatedFattyAcids: 'I',
-      n6PolyunsaturatedFattyAcids: 'M',
-      n3PolyunsaturatedFattyAcids: 'L',
       carbohydrates: 'P',
       vitaminA: 'AQ',
       vitaminD: 'AR',
@@ -58,62 +68,96 @@ export const getNutriantsFromExcelWorkbook =
       molybdenum: 'AK',
       vitaminB6: 'BB',
     };
+    const excelFattyAcidsMapping: Record<
+      | 'saturatedFattyAcids'
+      | 'n6PolyunsaturatedFattyAcids'
+      | 'n3PolyunsaturatedFattyAcids',
+      string
+    > = {
+      saturatedFattyAcids: 'I',
+      n6PolyunsaturatedFattyAcids: 'M',
+      n3PolyunsaturatedFattyAcids: 'L',
+    };
+    const [nutrientJsonData, fattyAcidsJsonData] = [
+      nutriantWorkbook.Sheets['表全体'],
+      fatWorkbook.Sheets['表全体'],
+    ].map(
+      (sheet) =>
+        xlsx.utils.sheet_to_json(sheet, {
+          header: 1,
+          defval: '',
+        }) as (string | number)[][]
+    );
+    const nutritionRow = nutrientJsonData.find(
+      (row) => row[1] === shokuhinbangou
+    );
+    const name = nutritionRow?.[
+      excelColumnToIndex(excelFoodNameMapping['name'])
+    ] as string | undefined;
 
-    const result: Partial<NutritionFactsRaw & { name: string }> = {};
+    if (!name || !nutritionRow) {
+      throw new Error(
+        `指定された商品番号が見つかりません。食品番号: ${shokuhinbangou}`
+      );
+    }
 
-    (
-      Object.keys(excelMapping) as Array<
-        keyof (NutritionFacts & { name: string })
+    const nutritionWithoutFattyAcids = (
+      Object.entries(excelNuturitionMapping) as Array<
+        [
+          keyof Omit<
+            NutritionFactBase<string | number>,
+            | 'name'
+            | 'saturatedFattyAcids'
+            | 'n6PolyunsaturatedFattyAcids'
+            | 'n3PolyunsaturatedFattyAcids'
+          >,
+          string,
+        ]
       >
-    ).forEach((nutrient) => {
-      const fattyAcids = [
+    ).reduce(
+      (acc, [key, value]) => {
+        const columnIndex = excelColumnToIndex(value);
+        if (nutritionRow.length <= columnIndex) {
+          throw new Error(
+            `指定された列が見つかりません。食品番号: ${shokuhinbangou}, 列: ${value}`
+          );
+        }
+        acc[key] = nutritionRow[columnIndex];
+        return acc;
+      },
+      {} as Partial<NutritionFactBase<string | number>>
+    ) as NutritionFactBase<string | number>;
+
+    const fattyAcidRow = fattyAcidsJsonData.find(
+      (row) => row[1] === shokuhinbangou
+    );
+
+    const [
+      saturatedFattyAcids,
+      n6PolyunsaturatedFattyAcids,
+      n3PolyunsaturatedFattyAcids,
+    ] = (
+      [
         'saturatedFattyAcids',
         'n6PolyunsaturatedFattyAcids',
         'n3PolyunsaturatedFattyAcids',
-      ] as const;
-      const isInFattySheet = fattyAcids.includes(
-        nutrient as (typeof fattyAcids)[number]
-      );
-      const sheet = isInFattySheet
-        ? fatWorkbook.Sheets['表全体']
-        : nutriantWorkbook.Sheets['表全体'];
+      ] as const
+    ).map((fattyAccid) =>
+      fattyAcidRow
+        ? fattyAcidRow[excelColumnToIndex(excelFattyAcidsMapping[fattyAccid])]
+        : null
+    );
 
-      if (!sheet) {
-        throw new Error("指定されたテーブル '表全体' が見つかりません。");
-      }
-
-      const jsonData = xlsx.utils.sheet_to_json(sheet, {
-        header: 1,
-        defval: '',
-      }) as (string | number)[][];
-      if (shokuhinbangou.endsWith('02003')) {
-        console.log();
-      }
-      const row = jsonData.find((row) => row[1] === shokuhinbangou);
-
-      if (!row) {
-        if (fattyAcids.includes(nutrient as (typeof fattyAcids)[number])) {
-          // ToDo: 脂肪酸のデータがない場合は0とする。例えば、こんにゃくは脂肪酸が含まれず、データもない。
-          // nullを返すようにしても良いが、typeの変更も必要。
-          result[nutrient as (typeof fattyAcids)[number]] = 0;
-          return;
-        }
-        throw new Error(
-          `指定された商品番号が見つかりません。食品番号: ${shokuhinbangou}, nutrient: ${nutrient}`
-        );
-      }
-
-      const columnIndex = excelColumnToIndex(excelMapping[nutrient]);
-      if (row.length <= columnIndex) {
-        throw new Error('指定された列が見つかりません。');
-      }
-      if (nutrient === 'name') {
-        result.name = row[columnIndex] as string;
-        return;
-      }
-      result[nutrient] = row[columnIndex];
-    });
-    return result as NutritionFactsRaw & { name: string };
+    return {
+      name,
+      shokuhinbangou,
+      nutritionFacts: {
+        ...nutritionWithoutFattyAcids,
+        saturatedFattyAcids,
+        n6PolyunsaturatedFattyAcids,
+        n3PolyunsaturatedFattyAcids,
+      },
+    };
   };
 
 /**
@@ -165,13 +209,13 @@ export function parseNutrientRawValue(str: string | number): number | null {
 }
 
 export const parseNutritionsRaw = (
-  nutriantValues: NutritionFactsRaw
-): NutritionFacts => {
+  nutriantValues: NutritionFactBase<string | number | null>
+): NutritionFactBase<number> => {
   const nutriantValuesWithoutNull = Object.fromEntries(
     Object.entries(nutriantValues).map(([key, value]) => [
       key,
-      parseNutrientRawValue(value) ?? 0, // 未測定値をゼロとする
+      value === null ? 0 : (parseNutrientRawValue(value) ?? 0), // 未測定値をゼロとする
     ])
-  ) as NutritionFacts;
+  ) as NutritionFactBase<number>;
   return nutriantValuesWithoutNull;
 };

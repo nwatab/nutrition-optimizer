@@ -1,6 +1,6 @@
-// import { foods } from '@/data';
 import path from 'path';
 import { promises as fs } from 'fs';
+import crypto from 'crypto';
 import Link from 'next/link';
 
 import {
@@ -19,7 +19,12 @@ import {
   trimData,
   parseNutritionsRaw,
 } from '@/services';
-import { FoodData, ManualFoodData, NutritionFacts } from '@/types';
+import {
+  EstatPriceFoodData,
+  ManualFoodData,
+  ManualPriceFoodData,
+  NutritionFactBase,
+} from '@/types';
 
 const DATA_DIR = 'public_data';
 
@@ -50,12 +55,12 @@ export default async function DietPage() {
     nutriantWorkbookBuffer,
     fatWorkbookBuffer,
   ].map(readExcelWorkbook);
-  const readNutriants = getNutriantsFromExcelWorkbook(
+  const readNutritionFacts = getNutriantsFromExcelWorkbook(
     nutriantWorkbook,
     fatWorkbook
   );
 
-  const estatFoodData: FoodData[] = crossFoodReference.map(
+  const estatFoodData: EstatPriceFoodData[] = crossFoodReference.map(
     ({ estatId, estatMassGram, shokuhinbangou }) => {
       const priceData = readRecentPrices(estatId);
       if (priceData === null || priceData.prices.length === 0) {
@@ -72,33 +77,33 @@ export default async function DietPage() {
         );
       }
       const pricePer100 = (priceOfProduct / estatMass) * 100;
-      const { name: productName, ...nutriantValues } =
-        readNutriants(shokuhinbangou);
-      const nutriantValuesWithoutNull = parseNutritionsRaw(nutriantValues);
+      const { name: nutritionFactName, nutritionFacts: nutriantRawFacts } =
+        readNutritionFacts(shokuhinbangou);
+      const nutriantValuesWithoutNull = parseNutritionsRaw(nutriantRawFacts);
 
       return {
-        ...nutriantValuesWithoutNull,
-        name: priceData.name + ' (' + productName + ')',
+        nutritionFacts: nutriantValuesWithoutNull,
+        nameInEstat: priceData.name,
+        nameInNutritionFacts: nutritionFactName,
         shokuhinbangou,
         cost: pricePer100,
       };
     }
   );
-  const manualIngredentData: FoodData[] = foodIngredientDataReference.map(
-    (food) => {
+  const manualPriceIngredentData: ManualPriceFoodData[] =
+    foodIngredientDataReference.map((food) => {
       const pricePer100 = (food.price / food.massGram) * 100;
-      const { name: productName, ...nutriantValues } = readNutriants(
-        food.shokuhinbangou
-      );
-      const nutriantValuesWithoutNull = parseNutritionsRaw(nutriantValues);
+      const { name: nutritionFactName, nutritionFacts: nutritionRawFacts } =
+        readNutritionFacts(food.shokuhinbangou);
+      const nutriantValuesWithoutNull = parseNutritionsRaw(nutritionRawFacts);
       return {
-        ...nutriantValuesWithoutNull,
-        name: productName + ' (' + food.name + ')',
+        nutritionFacts: nutriantValuesWithoutNull,
+        productName: food.name,
+        nutritionFactName: nutritionFactName,
         shokuhinbangou: food.shokuhinbangou,
         cost: pricePer100,
       };
-    }
-  );
+    });
 
   // それぞれのtypeについては、要整理。estat idがある場合や、URLがある場合など、型ガードを検討。
   const manualFoodProductData: ManualFoodData[] = foodProductDataReferences.map(
@@ -108,33 +113,51 @@ export default async function DietPage() {
         productMassGram,
         massForNutritionGram,
         name,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         url,
-        ...nutriantValues
+        nutritionFacts,
       } = food;
-      const pricePer100 = (price / productMassGram) * 100;
+      const pricePer100g = (price / productMassGram) * 100;
       // nutriantValuesの値を100/massForNutritionGram倍する
       const nutrientFactsPer100 = Object.fromEntries(
-        Object.entries(nutriantValues).map(([key, value]) => [
+        Object.entries(nutritionFacts).map(([key, value]) => [
           key,
           (value ?? 0) * (100 / massForNutritionGram),
         ])
-      ) as NutritionFacts;
+      ) as NutritionFactBase<number>;
       return {
-        ...nutrientFactsPer100,
-        name: name,
-        cost: pricePer100,
+        nutritionFacts: nutrientFactsPer100,
+        productName: name,
+        url: url,
+        cost: pricePer100g,
       };
     }
   );
   // サーバー側で最適化を実行
-  const foodData: ManualFoodData[] = [
-    ...estatFoodData,
-    ...manualIngredentData,
-    ...manualFoodProductData,
+  const foods = [
+    ...estatFoodData.map((data) => ({
+      ...data,
+      id: crypto
+        .createHash('sha256')
+        .update(data.nameInEstat + data.nameInNutritionFacts)
+        .digest('base64'),
+      type: 'estat' as const,
+    })),
+    ...manualPriceIngredentData.map((data) => ({
+      ...data,
+      id: crypto
+        .createHash('sha256')
+        .update(data.productName + data.nutritionFactName)
+        .digest('base64'),
+      type: 'manualPrice' as const,
+    })),
+    ...manualFoodProductData.map((data) => ({
+      ...data,
+      id: crypto.createHash('sha256').update(data.productName).digest('base64'),
+      type: 'manual' as const,
+    })),
   ];
   const { totalCost, breakdown } = await optimizeDiet(
-    foodData,
+    foods,
     referenceDailyIntakes
   );
 
@@ -163,9 +186,14 @@ export default async function DietPage() {
       </p>
       <h2 className="text-xl font-semibold mt-4 mb-2">購入量と金額内訳:</h2>
       <ul className="list-disc list-inside">
-        {breakdown.map(({ name, grams, cost }) => (
-          <li key={name}>
-            {name}: ¥{Math.round(cost)} / {grams.toFixed(2)} g
+        {breakdown.map((food) => (
+          <li key={food.id}>
+            {'nameInEstat' in food
+              ? food.nameInEstat + ' (' + food.nameInNutritionFacts + ')'
+              : 'nutritionFactName' in food
+                ? food.productName + ' (' + food.nutritionFactName + ')'
+                : food.productName}
+            {Math.round(food.cost)} / {(food.hectoGrams * 100).toFixed(2)} g
           </li>
         ))}
       </ul>
