@@ -1,4 +1,4 @@
-import { NutritionFactBase } from '@/types';
+import { NutritionFactBase } from '@/types/nutrition';
 
 type FoodProductDataReference = {
   name: string;

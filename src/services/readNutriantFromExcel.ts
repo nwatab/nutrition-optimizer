@@ -1,4 +1,4 @@
-import type { NutritionFactBase } from '@/types';
+import type { NutritionFactBase } from '@/types/nutrition';
 import * as xlsx from 'xlsx';
 
 const excelColumnToIndex = (column: string): number => {
