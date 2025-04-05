@@ -1,7 +1,10 @@
 import path from 'path';
 import { promises as fs } from 'fs';
 import crypto from 'crypto';
-import Link from 'next/link';
+
+import NutritionSummary from '@/components/nutrition-summary';
+import IngredientsList from '@/components/ingredients-list';
+import NutritionCategoryCharts from '@/components/nutrition-category-charts';
 
 import {
   crossFoodReference,
@@ -24,7 +27,8 @@ import {
   ManualFoodData,
   ManualPriceFoodData,
   NutritionFactBase,
-} from '@/types';
+} from '@/types/nutrition';
+import Link from 'next/link';
 
 const DATA_DIR = 'public_data';
 
@@ -102,6 +106,7 @@ export default async function DietPage() {
         nutritionFactName: nutritionFactName,
         shokuhinbangou: food.shokuhinbangou,
         cost: pricePer100,
+        url: food.url,
       };
     });
 
@@ -156,17 +161,42 @@ export default async function DietPage() {
       type: 'manual' as const,
     })),
   ];
-  const { totalCost, breakdown } = await optimizeDiet(
+  const { totalCost, totalNutritionFacts, breakdown } = optimizeDiet(
     foods,
     referenceDailyIntakes
   );
 
   return (
-    <main className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">
-        ビーガン向け1日に最適な食材の組み合わせ
-        (33-49歳、身体活動レベルふつう、男性)
-      </h1>
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50 p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        <header className="mb-8 text-center">
+          <h1 className="text-3xl md:text-4xl font-bold text-emerald-800 mb-2">
+            栄養最適化の結果
+          </h1>
+          <p className="text-emerald-600">
+            栄養バランスを最適化し、コストを最小限に抑えた食材の組み合わせです
+          </p>
+        </header>
+
+        <div className="grid gap-8">
+          {/* 総合サマリー */}
+          <NutritionSummary
+            totalCost={totalCost}
+            totalNutrition={totalNutritionFacts}
+            target={referenceDailyIntakes}
+          />
+
+          {/* 食材リスト */}
+          <IngredientsList ingredients={breakdown} />
+
+          {/* 栄養素カテゴリー別チャート */}
+          <NutritionCategoryCharts
+            totalNutrition={totalNutritionFacts}
+            target={referenceDailyIntakes}
+            breakdown={breakdown}
+          />
+        </div>
+      </div>
       <Link
         href="https://github.com/nwatab/nutrition-optimizer"
         target="_blank"
@@ -181,22 +211,6 @@ export default async function DietPage() {
           height={24}
         />
       </Link>
-      <p className="mb-2">
-        総コスト: <strong>¥{Math.ceil(totalCost)}</strong>
-      </p>
-      <h2 className="text-xl font-semibold mt-4 mb-2">購入量と金額内訳:</h2>
-      <ul className="list-disc list-inside">
-        {breakdown.map((food) => (
-          <li key={food.id}>
-            {'nameInEstat' in food
-              ? food.nameInEstat + ' (' + food.nameInNutritionFacts + ')'
-              : 'nutritionFactName' in food
-                ? food.productName + ' (' + food.nutritionFactName + ')'
-                : food.productName}
-            {Math.round(food.cost)} / {(food.hectoGrams * 100).toFixed(2)} g
-          </li>
-        ))}
-      </ul>
-    </main>
+    </div>
   );
 }

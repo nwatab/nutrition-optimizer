@@ -24,10 +24,10 @@ export type NutritionFactBase<T> = {
    */
   vitaminA: T;
   vitaminD: T;
-  vitaminE: T;
   /**
    * α-トコフェロール
    */
+  vitaminE: T;
   vitaminK: T;
   vitaminB1: T;
   vitaminB2: T;
@@ -95,6 +95,10 @@ export type ManualPriceFoodData = {
    * 可食部100gあたりの栄養成分
    */
   nutritionFacts: NutritionFactBase<number>;
+  /**
+   * 商品のURL
+   */
+  url: string;
 };
 
 export type ManualFoodData = {
@@ -112,3 +116,22 @@ export type ManualFoodData = {
    */
   url: string;
 };
+
+export type WithId<T> = T & { id: string };
+export type WithIngredientType<
+  I,
+  T extends 'manual' | 'estat' | 'manualPrice',
+> = I & {
+  type: T;
+};
+
+export type FoodRequired =
+  | (WithId<WithIngredientType<ManualFoodData, 'manual'>> & {
+      hectoGrams: number;
+    })
+  | (WithId<WithIngredientType<EstatPriceFoodData, 'estat'>> & {
+      hectoGrams: number;
+    })
+  | (WithId<WithIngredientType<ManualPriceFoodData, 'manualPrice'>> & {
+      hectoGrams: number;
+    });

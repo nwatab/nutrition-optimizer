@@ -1,9 +1,9 @@
-import { NutritionTarget } from '@/types';
+import { NutritionTarget } from '@/types/nutrition';
 /**
  * 1日に必要な栄養素の量
  */
 export const referenceDailyIntakes: NutritionTarget = {
-  calories: { min: 2700, max: 2700 * 1.2 }, // kcal
+  calories: { min: 2700 * 0.9, max: 2700 * 1.2 }, // kcal
   protein: { min: 65 }, // g
   fat: { min: (2700 * 0.2) / 9, max: (2700 * 0.3) / 9 }, // g. 脂質単位gあたりのエネルギー = 9kcal/g. 脂質は全エネルギーの20%と仮定
   saturatedFattyAcids: { max: (2700 * 0.07) / 9 }, // 9kcal/g

@@ -1,17 +1,20 @@
-import {
+import type {
   EstatPriceFoodData,
+  FoodRequired,
   ManualFoodData,
   ManualPriceFoodData,
   NutritionFactBase,
   NutritionTarget,
-} from '@/types';
+  WithId,
+  WithIngredientType,
+} from '@/types/nutrition';
 import { solve } from 'yalps';
 
-export async function optimizeDiet(
+export function optimizeDiet(
   foods: (
-    | (ManualFoodData & { id: string; type: 'manual' })
-    | (EstatPriceFoodData & { id: string; type: 'estat' })
-    | (ManualPriceFoodData & { id: string; type: 'manualPrice' })
+    | WithId<WithIngredientType<ManualFoodData, 'manual'>>
+    | WithId<WithIngredientType<EstatPriceFoodData, 'estat'>>
+    | WithId<WithIngredientType<ManualPriceFoodData, 'manualPrice'>>
   )[],
   target: NutritionTarget
 ) {
@@ -45,7 +48,7 @@ export async function optimizeDiet(
 
   // 各食材の購入量と費用内訳を計算する
   // ※変数の値は「100g単位」としているので、最終的なグラム数は value * 100
-  const breakdown = solution.variables
+  const breakdown: FoodRequired[] = solution.variables
     .map(([id, hectoGrams]) => {
       const food = foods.find((f) => f.id === id);
       if (!food) return null;
