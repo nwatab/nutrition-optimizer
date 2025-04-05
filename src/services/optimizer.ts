@@ -1,23 +1,12 @@
 import type {
-  EstatPriceFoodData,
   FoodRequired,
-  ManualFoodData,
-  ManualPriceFoodData,
+  FoodToOptimize,
   NutritionFactBase,
   NutritionTarget,
-  WithId,
-  WithIngredientType,
 } from '@/types/nutrition';
 import { solve } from 'yalps';
 
-export function optimizeDiet(
-  foods: (
-    | WithId<WithIngredientType<ManualFoodData, 'manual'>>
-    | WithId<WithIngredientType<EstatPriceFoodData, 'estat'>>
-    | WithId<WithIngredientType<ManualPriceFoodData, 'manualPrice'>>
-  )[],
-  target: NutritionTarget
-) {
+export function optimizeDiet(foods: FoodToOptimize[], target: NutritionTarget) {
   // モデルの作成
   const model = {
     direction: 'minimize' as const,
@@ -37,7 +26,6 @@ export function optimizeDiet(
     ),
   };
 
-  // 最適化を実行
   const solution = solve(model);
   // solution の形式は以下のようなオブジェクトになります:
   // {
@@ -52,13 +40,14 @@ export function optimizeDiet(
     .map(([id, hectoGrams]) => {
       const food = foods.find((f) => f.id === id);
       if (!food) return null;
-      const { cost, nutritionFacts, ...others } = food;
+      const { cost: costPerHectogram, nutritionFacts, ...others } = food;
       const nutritionFactsRequired = Object.fromEntries(
         Object.entries(nutritionFacts).map(([key, value]) => [
           key,
           value * hectoGrams,
         ])
       ) as NutritionFactBase<number>;
+
       return {
         /**
          * 食材の必要な量 単位は[100g]
@@ -67,20 +56,31 @@ export function optimizeDiet(
         /**
          * 食材の費用 [円]
          */
-        cost: hectoGrams * cost,
+        cost: costPerHectogram * hectoGrams,
         nutritionFacts: nutritionFactsRequired,
         ...others,
       };
     })
     .filter((food) => food !== null);
 
-  const totalNutritionFacts = breakdown.reduce((acc, food) => {
-    return Object.entries(food.nutritionFacts).reduce((acc, [key, value]) => {
-      acc[key as keyof NutritionFactBase<number>] =
-        (acc[key as keyof NutritionFactBase<number>] || 0) + value;
-      return acc;
-    }, {} as NutritionFactBase<number>);
-  }, {} as NutritionFactBase<number>);
+  // オブジェクトの値を合計する汎用関数
+  function mergeObjects<T extends Record<string, number>>(
+    obj1: T,
+    obj2: Partial<T>
+  ): T {
+    const result = { ...obj1 };
+
+    for (const [key, value] of Object.entries(obj2)) {
+      const typedKey = key as keyof T;
+      result[typedKey] = (result[typedKey] || 0) + value;
+    }
+    return result;
+  }
+
+  const totalNutritionFacts = breakdown.reduce(
+    (acc, food) => mergeObjects(acc, food.nutritionFacts),
+    {} as NutritionFactBase<number>
+  );
 
   return {
     status: solution.status,
