@@ -138,15 +138,12 @@ export type FoodToOptimize =
   | WithId<WithIngredientType<ManualPriceFoodData, 'manualPrice'>>;
 
 export type FoodRequired =
-  | (WithId<WithIngredientType<ManualFoodData, 'manual'>> & {
-      hectoGrams: number;
-    })
   | (WithId<WithIngredientType<EstatPriceFoodData, 'estat'>> & {
       hectoGrams: number;
     })
   | (WithId<WithIngredientType<ManualPriceFoodData, 'manualPrice'>> & {
       hectoGrams: number;
     })
-  | (WithId<WithIngredientType<ManualFoodData, 'productLink'>> & {
+  | (WithId<WithIngredientType<ManualFoodData, 'manual'>> & {
       hectoGrams: number;
     });

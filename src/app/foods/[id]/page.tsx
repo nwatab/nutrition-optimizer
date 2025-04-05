@@ -11,9 +11,14 @@ export const generateStaticParams = async () => {
   return foods.map((food) => ({ id: food.id }));
 };
 
-export default async function FoodPage({ params }: { params: { id: string } }) {
+export default async function FoodPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
   const foods = await loadFoodData();
-  const food = foods.find((food) => food.id === params.id);
+  const food = foods.find((food) => food.id === id);
 
   if (!food) {
     notFound();

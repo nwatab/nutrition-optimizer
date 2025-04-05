@@ -1,13 +1,11 @@
 import type { NutritionFactBase } from '@/types/nutrition';
 
-type NutritionRadarChartProps = {
-  nutritionFacts: NutritionFactBase<number>;
-};
-
 // SSGページなので、クライアントサイドでのみ実行されるチャートのプレースホルダー
 export default function NutritionRadarChart({
   nutritionFacts,
-}: NutritionRadarChartProps) {
+}: {
+  nutritionFacts: NutritionFactBase<number>;
+}) {
   // 主要な栄養素を選択
   const keyNutrients = [
     { key: 'protein', name: 'タンパク質', max: 30 },

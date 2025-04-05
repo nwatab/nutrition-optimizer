@@ -6,7 +6,7 @@ type FoodProductDataReference = {
   productMassGram: number;
   massForNutritionGram: number;
   url: string;
-  nutritionFacts: Partial<NutritionFactBase<number>>;
+  nutritionFacts: NutritionFactBase<number>;
 };
 
 export const foodProductDataReferences: FoodProductDataReference[] = [
@@ -74,6 +74,35 @@ export const foodProductDataReferences: FoodProductDataReference[] = [
       carbohydrates: 76.2,
       fiber: 3.5,
       nacl: 0,
+      // 型定義にあるが、提供されたデータにはない値
+      calcium: 0,
+      vitaminB12: 0,
+      vitaminC: 0,
+      saturatedFattyAcids: 0,
+      n3PolyunsaturatedFattyAcids: 0,
+      n6PolyunsaturatedFattyAcids: 0,
+      vitaminA: 0,
+      vitaminD: 0,
+      vitaminE: 0,
+      vitaminK: 0,
+      vitaminB2: 0,
+      niacin: 0,
+      folate: 0,
+      pantothenicAcid: 0,
+      biotin: 0,
+      potassium: 0,
+      phosphorus: 0,
+      manganese: 0,
+      iodine: 0,
+      selenium: 0,
+      chromium: 0,
+      molybdenum: 0,
+      vitaminB6: 0,
+      vitaminB1: 0,
+      magnesium: 0,
+      iron: 0,
+      zinc: 0,
+      copper: 0,
     },
   },
 ];

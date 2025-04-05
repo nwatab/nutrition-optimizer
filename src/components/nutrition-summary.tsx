@@ -15,38 +15,46 @@ export default function NutritionSummary({
   // 栄養素の達成率を計算する関数
   const calculateAchievement = (
     value: number,
-    target: MinMaxRange
+    constraintRange: MinMaxRange
   ): { percentage: number; status: 'low' | 'optimal' | 'high' } => {
-    if (!target.min && !target.max)
+    if (!('min' in constraintRange) && !('max' in constraintRange))
       return { percentage: 100, status: 'optimal' };
 
-    if (target.min && !target.max) {
-      const percentage = (value / target.min) * 100;
+    if ('min' in constraintRange && !('max' in constraintRange)) {
+      const percentage = (value / constraintRange.min) * 100;
       if (percentage < 100) return { percentage, status: 'low' };
       if (percentage > 150) return { percentage, status: 'high' };
       return { percentage, status: 'optimal' };
     }
 
-    if (!target.min && target.max) {
-      const percentage = (value / target.max) * 100;
+    if (!('min' in constraintRange) && 'max' in constraintRange) {
+      const percentage = (value / constraintRange.max) * 100;
       if (percentage > 100) return { percentage, status: 'high' };
       return { percentage, status: 'optimal' };
     }
 
     // min と max の両方がある場合
-    if (target.min && target.max) {
-      if (value < target.min) {
-        return { percentage: (value / target.min) * 100, status: 'low' };
+    if ('min' in constraintRange && 'max' in constraintRange) {
+      if (value < constraintRange.min) {
+        return {
+          percentage: (value / constraintRange.min) * 100,
+          status: 'low',
+        };
       }
-      if (value > target.max) {
-        return { percentage: (value / target.max) * 100, status: 'high' };
+      if (value > constraintRange.max) {
+        return {
+          percentage: (value / constraintRange.max) * 100,
+          status: 'high',
+        };
       }
       // 範囲内の場合、最小値からの達成率を計算
-      const range = target.max - target.min;
-      const position = value - target.min;
+      const range = constraintRange.max - constraintRange.min;
+      const position = value - constraintRange.min;
       const percentage = (position / range) * 50 + 50; // 50-100%の範囲にマッピング
       return { percentage, status: 'optimal' };
     }
+    const _never: never = constraintRange;
+    console.error(`constraintRange is ${_never}`);
 
     return { percentage: 100, status: 'optimal' };
   };
@@ -122,9 +130,9 @@ export default function NutritionSummary({
                 <span className="text-sm font-medium text-gray-700">
                   {value.toFixed(0)}
                   {unit}
-                  {targetValue.min && ` / ${targetValue.min}${unit}`}
-                  {targetValue.max &&
-                    !targetValue.min &&
+                  {'min' in targetValue && ` / ${targetValue.min}${unit}`}
+                  {'max' in targetValue &&
+                    !('min' in targetValue) &&
                     ` / ${targetValue.max}${unit}`}
                 </span>
               </div>
