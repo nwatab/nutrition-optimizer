@@ -16,6 +16,19 @@ export const crossFoodReference: CrossFoodDataReference[] = [
     shokuhinbangou: '01084',
   },
   {
+    estatId: 1041, // そうめん
+    shokuhinbangou: '01043',
+  },
+
+  {
+    estatId: 1021, // 食パン(1kg)
+    shokuhinbangou: '01026',
+  },
+  {
+    estatId: 1042, // スパゲッティ
+    shokuhinbangou: '01063',
+  },
+  {
     estatId: 1401, // キャベツ
     shokuhinbangou: '06061',
   },
@@ -88,6 +101,14 @@ export const crossFoodReference: CrossFoodDataReference[] = [
     shokuhinbangou: '06103',
   },
   {
+    estatId: 1430, // えだまめ
+    shokuhinbangou: '06015',
+  },
+  {
+    estatId: 1432, // さやいんげん
+    shokuhinbangou: '06010',
+  },
+  {
     estatId: 1433, // かぼちゃ
     shokuhinbangou: '06046',
   },
@@ -124,11 +145,6 @@ export const crossFoodReference: CrossFoodDataReference[] = [
     shokuhinbangou: '07176',
   },
   {
-    estatId: 1473, // 納豆
-    estatMassGram: 150,
-    shokuhinbangou: '04046',
-  },
-  {
     estatId: 1583, // アボカド
     shokuhinbangou: '07006',
   },
@@ -143,14 +159,6 @@ export const crossFoodReference: CrossFoodDataReference[] = [
   {
     estatId: 1584, // パイナップル
     shokuhinbangou: '07097',
-  },
-  {
-    estatId: 1021, // 食パン(1kg)
-    shokuhinbangou: '01026',
-  },
-  {
-    estatId: 1042, // スパゲッティ
-    shokuhinbangou: '01063',
   },
   {
     estatId: 1453, // 干ししいたけ
@@ -181,21 +189,49 @@ export const crossFoodReference: CrossFoodDataReference[] = [
     estatId: 1472, // 油揚げ
     shokuhinbangou: '04040',
   },
+
   {
-    estatId: 1983, // 豆乳
-    estatMassGram: 1020, // 1.02g/1mlとする。
-    shokuhinbangou: '04052',
+    estatId: 1473, // 納豆
+    estatMassGram: 150,
+    shokuhinbangou: '04046',
   },
   {
     estatId: 1481, // こんにゃく
     shokuhinbangou: '02003',
   },
   {
+    estatId: 1482, // 梅干し
+    shokuhinbangou: '07022',
+  },
+  {
+    estatId: 1483, // 大根漬け
+    shokuhinbangou: '06138',
+  },
+  {
+    estatId: 1485, // 昆布佃煮
+    shokuhinbangou: '09023',
+  },
+  {
+    estatId: 1486, // はくさい漬け
+    shokuhinbangou: '06235',
+  },
+  {
     estatId: 1487, // キムチ
     shokuhinbangou: '06236',
   },
+
   {
     estatId: 1594, // ナッツ
     shokuhinbangou: '04023',
+  },
+  {
+    estatId: 1631, // みそ
+    estatMassGram: 750,
+    shokuhinbangou: '17045',
+  },
+  {
+    estatId: 1983, // 豆乳
+    estatMassGram: 1020, // 1.02g/1mlとする。
+    shokuhinbangou: '04052',
   },
 ];
