@@ -71,9 +71,18 @@ export async function optimizeDiet(
     })
     .filter((food) => food !== null);
 
+  const totalNutritionFacts = breakdown.reduce((acc, food) => {
+    return Object.entries(food.nutritionFacts).reduce((acc, [key, value]) => {
+      acc[key as keyof NutritionFactBase<number>] =
+        (acc[key as keyof NutritionFactBase<number>] || 0) + value;
+      return acc;
+    }, {} as NutritionFactBase<number>);
+  }, {} as NutritionFactBase<number>);
+
   return {
     status: solution.status,
     totalCost: solution.result,
+    totalNutritionFacts,
     breakdown,
   };
 }
