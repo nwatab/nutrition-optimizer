@@ -55,10 +55,17 @@ export type NutritionFactBase<T> = {
 
 type Range = MinMaxRange;
 
-export type MinMaxRange = {
-  min?: number;
-  max?: number;
-};
+export type MinMaxRange =
+  | {
+      min: number;
+      max: number;
+    }
+  | {
+      min: number;
+    }
+  | {
+      max: number;
+    };
 
 /**
  * NutritionFactsRaw は、89, 6.1, '(0)', '0.30', '2.0', 'Tr', '1.00' などの形式の生データを扱います。
@@ -85,7 +92,7 @@ export type EstatPriceFoodData = {
 };
 export type ManualPriceFoodData = {
   productName: string;
-  nutritionFactName: string;
+  nameInNutritionFacts: string;
   shokuhinbangou: string;
   /**
    * 100gあたりの金額
@@ -120,10 +127,15 @@ export type ManualFoodData = {
 export type WithId<T> = T & { id: string };
 export type WithIngredientType<
   I,
-  T extends 'manual' | 'estat' | 'manualPrice',
+  T extends 'manual' | 'estat' | 'manualPrice' | 'productLink',
 > = I & {
   type: T;
 };
+
+export type FoodToOptimize =
+  | WithId<WithIngredientType<ManualFoodData, 'manual'>>
+  | WithId<WithIngredientType<EstatPriceFoodData, 'estat'>>
+  | WithId<WithIngredientType<ManualPriceFoodData, 'manualPrice'>>;
 
 export type FoodRequired =
   | (WithId<WithIngredientType<ManualFoodData, 'manual'>> & {
@@ -133,5 +145,8 @@ export type FoodRequired =
       hectoGrams: number;
     })
   | (WithId<WithIngredientType<ManualPriceFoodData, 'manualPrice'>> & {
+      hectoGrams: number;
+    })
+  | (WithId<WithIngredientType<ManualFoodData, 'productLink'>> & {
       hectoGrams: number;
     });

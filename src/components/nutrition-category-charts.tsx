@@ -153,20 +153,20 @@ export default function NutritionCategoryCharts({
     targetRange: MinMaxRange
   ): number | null => {
     // 両方の値がない場合はnullとする
-    if (!targetRange.min && !targetRange.max) return null;
+    if (!('min' in targetRange) && !('max' in targetRange)) return null;
 
     // 下限のみある場合（最低摂取量を満たすべき栄養素）
-    if (targetRange.min && !targetRange.max) {
+    if ('min' in targetRange && !('max' in targetRange)) {
       return (value / targetRange.min) * 100;
     }
 
     // 上限のみある場合（摂りすぎに注意すべき栄養素）
-    if (!targetRange.min && targetRange.max) {
+    if (!('min' in targetRange && 'max' in targetRange)) {
       return (value / targetRange.max) * 100;
     }
 
     // 両方ある場合（適正範囲のある栄養素）
-    if (targetRange.min && targetRange.max) {
+    if ('min' in targetRange && 'max' in targetRange) {
       if (value < targetRange.min) {
         // 下限未満の場合は達成率を下限に対する割合で表す
         return (value / targetRange.min) * 100;
@@ -174,6 +174,8 @@ export default function NutritionCategoryCharts({
       // 範囲内なら100%
       return 100;
     }
+    const _never: never = targetRange;
+    console.error(_never);
 
     return null; // デフォルト
   };
@@ -217,9 +219,9 @@ export default function NutritionCategoryCharts({
             </h3>
             <p className="text-sm text-gray-600">
               {value.toFixed(2)} {nutrientUnits[key]}
-              {targetValue.min &&
+              {'min' in targetValue &&
                 ` / 目標: ${targetValue.min}${nutrientUnits[key]}`}
-              {targetValue.max &&
+              {'max' in targetValue &&
                 ` (上限: ${targetValue.max}${nutrientUnits[key]})`}
             </p>
           </div>
@@ -234,7 +236,7 @@ export default function NutritionCategoryCharts({
             className={`h-2.5 rounded-full ${
               achievement < 90
                 ? 'bg-amber-500'
-                : achievement > 110 && targetValue.max
+                : achievement > 110 && 'max' in targetValue
                   ? 'bg-rose-500'
                   : 'bg-emerald-500'
             }`}

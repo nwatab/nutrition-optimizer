@@ -85,31 +85,45 @@ export default function IngredientsList({
                 key={ingredient.id}
                 className={`border-b ${index % 2 === 0 ? 'bg-white/50' : 'bg-emerald-50/50'}`}
               >
-                <td className="px-4 py-3 font-medium">
-                  {ingredient.type === 'estat' && (
-                    <span className="text-emerald-600 hover:text-emerald-800 hover:underline">
-                      {ingredient.nameInEstat} (
-                      {ingredient.nameInNutritionFacts})
+                <td className="px-4 py-3 font-medium flex flex-col gap-1">
+                  {ingredient.type === 'estat' ? (
+                    <span className="text-sm font-normal text-emerald-600">
+                      {ingredient.nameInEstat}
                     </span>
-                  )}
-                  {ingredient.type === 'manualPrice' && (
+                  ) : (
                     <Link
                       href={ingredient.url}
-                      className="text-emerald-600 hover:text-emerald-800 hover:underline"
-                      target="_blank"
-                    >
-                      {ingredient.productName} ({ingredient.nutritionFactName})
-                    </Link>
-                  )}
-                  {ingredient.type === 'manual' && (
-                    <Link
-                      href={ingredient.url}
-                      className="text-emerald-600 hover:text-emerald-800 hover:underline"
+                      className="text-sm font-medium text-emerald-600 hover:text-emerald-800 hover:underline inline-flex items-center gap-1"
                       target="_blank"
                     >
                       {ingredient.productName}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="inline-block"
+                      >
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                        <polyline points="15 3 21 3 21 9"></polyline>
+                        <line x1="10" y1="14" x2="21" y2="3"></line>
+                      </svg>
                     </Link>
                   )}
+                  <Link
+                    href={`/foods/${ingredient.id}`}
+                    className="text-xs font-medium text-emerald-600 hover:text-emerald-800 hover:underline"
+                  >
+                    {ingredient.type === 'estat' ||
+                    ingredient.type === 'manualPrice'
+                      ? ingredient.nameInNutritionFacts
+                      : '栄養成分へ'}
+                  </Link>
                 </td>
                 <td className="px-4 py-3">
                   {(ingredient.hectoGrams * 100).toFixed(0)}
@@ -200,7 +214,7 @@ export default function IngredientsList({
                   : ingredient.type === 'manualPrice'
                     ? ingredient.productName +
                       ' (' +
-                      ingredient.nutritionFactName +
+                      ingredient.nameInNutritionFacts +
                       ')'
                     : ingredient.productName}
               </h4>
