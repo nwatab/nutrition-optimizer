@@ -38,7 +38,7 @@ export default async function DietPage() {
           </h1>
           <p className="text-emerald-600">
             栄養バランスを最適化し、コストを最小限に抑えた食材の組み合わせです。対象:
-            男性, 30代, 運動量普通
+            男性, 30代, 運動量普通, Vegan
           </p>
         </header>
 

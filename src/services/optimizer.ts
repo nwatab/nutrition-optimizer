@@ -27,6 +27,9 @@ export function optimizeDiet(foods: FoodToOptimize[], target: NutritionTarget) {
   };
 
   const solution = solve(model);
+  if (solution.status !== 'optimal') {
+    throw new Error(`最適化に失敗しました: ${solution.status}`);
+  }
   // solution の形式は以下のようなオブジェクトになります:
   // {
   //   status: "optimal",
