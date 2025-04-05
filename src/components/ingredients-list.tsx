@@ -139,7 +139,7 @@ export default function IngredientsList({
               <td className="px-4 py-3">
                 {ingredients
                   .reduce((sum, ing) => sum + ing.hectoGrams * 100, 0)
-                  .toFixed(0)}
+                  .toLocaleString('ja-JP', { maximumFractionDigits: 0 })}
               </td>
               <td className="px-4 py-3">
                 {ingredients.reduce((sum, ing) => sum + ing.cost, 0).toFixed(0)}
@@ -147,17 +147,17 @@ export default function IngredientsList({
               <td className="px-4 py-3">
                 {ingredients
                   .reduce((sum, ing) => sum + ing.nutritionFacts.calories, 0)
-                  .toFixed(0)}
+                  .toLocaleString('ja-JP', { maximumFractionDigits: 0 })}
               </td>
               <td className="px-4 py-3">
                 {ingredients
                   .reduce((sum, ing) => sum + ing.nutritionFacts.protein, 0)
-                  .toFixed(0)}
+                  .toLocaleString('ja-JP', { maximumFractionDigits: 0 })}
               </td>
               <td className="px-4 py-3">
                 {ingredients
                   .reduce((sum, ing) => sum + ing.nutritionFacts.fat, 0)
-                  .toFixed(0)}
+                  .toLocaleString('ja-JP', { maximumFractionDigits: 0 })}
               </td>
               <td className="px-4 py-3">
                 {ingredients
@@ -165,12 +165,12 @@ export default function IngredientsList({
                     (sum, ing) => sum + ing.nutritionFacts.carbohydrates,
                     0
                   )
-                  .toFixed(0)}
+                  .toLocaleString('ja-JP', { maximumFractionDigits: 0 })}
               </td>
               <td className="px-4 py-3 rounded-br-lg">
                 {ingredients
                   .reduce((sum, ing) => sum + ing.nutritionFacts.fiber, 0)
-                  .toFixed(0)}
+                  .toLocaleString('ja-JP', { maximumFractionDigits: 0 })}
               </td>
             </tr>
           </tfoot>
@@ -212,9 +212,7 @@ export default function IngredientsList({
               <div className="space-y-2">
                 <details className="group">
                   <summary className="flex justify-between items-center font-medium cursor-pointer list-none">
-                    <span className="text-sm text-emerald-600">
-                      詳細栄養素情報
-                    </span>
+                    <span className="text-sm text-emerald-600">詳細</span>
                     <span className="transition group-open:rotate-180">
                       <svg
                         fill="none"

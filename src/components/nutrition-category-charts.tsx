@@ -1,12 +1,9 @@
-'use client';
-
 import { Card } from '@/components/ui/card';
 import type {
   NutritionFactBase,
   MinMaxRange,
   FoodRequired,
 } from '@/types/nutrition';
-import { useState } from 'react';
 
 type NutritionCategoryChartsProps = {
   totalNutrition: NutritionFactBase<number>;
@@ -19,8 +16,6 @@ export default function NutritionCategoryCharts({
   target,
   breakdown,
 }: NutritionCategoryChartsProps) {
-  const [activeCategory, setActiveCategory] = useState<string>('macros');
-
   // 栄養素カテゴリー
   const categories = [
     {
@@ -182,131 +177,135 @@ export default function NutritionCategoryCharts({
 
     return null; // デフォルト
   };
-  // 現在のカテゴリーの栄養素を取得
-  const currentCategory =
-    categories.find((cat) => cat.id === activeCategory) || categories[0];
 
   // 食材ごとの色
   const ingredientColors = [
-    'bg-emerald-500',
-    'bg-teal-500',
-    'bg-cyan-500',
-    'bg-sky-500',
-    'bg-blue-500',
-    'bg-indigo-500',
-    'bg-violet-500',
-    'bg-purple-500',
-    'bg-fuchsia-500',
-    'bg-pink-500',
+    'bg-cyan-400',
+    'bg-teal-400',
+    'bg-emerald-400',
+    'bg-green-400',
+    'bg-lime-400',
+    'bg-yellow-400',
+    'bg-amber-400',
+    'bg-orange-400',
   ];
+
+  // 栄養素データを表示する関数
+  const renderNutrientData = (key: string) => {
+    const nutrientKey = key as keyof NutritionFactBase<number>;
+    const value = totalNutrition[nutrientKey];
+    const targetValue =
+      target[nutrientKey as keyof NutritionFactBase<MinMaxRange>];
+    const achievement = calculateAchievement(value, targetValue) ?? 0;
+
+    // 各食材の寄与度を計算
+    const contributions = breakdown.map((food) => {
+      const nutrientValue = food.nutritionFacts[nutrientKey] || 0;
+      return {
+        name: food.type === 'estat' ? food.nameInEstat : food.productName,
+        value: nutrientValue,
+        percentage: value > 0 ? (nutrientValue / value) * 100 : 0,
+      };
+    });
+
+    return (
+      <div key={key} className="space-y-2 mb-8">
+        <div className="flex justify-between items-end">
+          <div>
+            <h3 className="text-lg font-medium text-emerald-800">
+              {nutrientNames[key] || key}
+            </h3>
+            <p className="text-sm text-gray-600">
+              {value.toFixed(2)} {nutrientUnits[key]}
+              {targetValue.min &&
+                ` / 目標: ${targetValue.min}${nutrientUnits[key]}`}
+              {targetValue.max &&
+                ` (上限: ${targetValue.max}${nutrientUnits[key]})`}
+            </p>
+          </div>
+          <div className="text-sm font-medium">
+            達成率: {Math.round(achievement)}%
+          </div>
+        </div>
+
+        {/* 達成率バー */}
+        <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+          <div
+            className={`h-2.5 rounded-full ${
+              achievement < 90
+                ? 'bg-amber-500'
+                : achievement > 110 && targetValue.max
+                  ? 'bg-rose-500'
+                  : 'bg-emerald-500'
+            }`}
+            style={{ width: `${Math.min(achievement, 100)}%` }}
+          ></div>
+        </div>
+
+        {/* 食材ごとの寄与度 */}
+        <div className="flex h-8 w-full rounded-md overflow-hidden">
+          {contributions.map((contribution, index) => (
+            <div
+              key={`${key}-${index}`}
+              className={`${ingredientColors[index % ingredientColors.length]} h-full`}
+              style={{ width: `${contribution.percentage}%` }}
+              title={`${contribution.name}: ${contribution.value}${nutrientUnits[key]} (${Math.round(contribution.percentage)}%)`}
+            ></div>
+          ))}
+        </div>
+
+        {/* 凡例 */}
+        <div className="flex flex-wrap gap-x-4 gap-y-2 mt-2">
+          {contributions.map((contribution, index) => (
+            <div
+              key={`legend-${key}-${index}`}
+              className="flex items-center text-xs"
+            >
+              <div
+                className={`w-3 h-3 mr-1 ${ingredientColors[index % ingredientColors.length]}`}
+              ></div>
+              <span>
+                {contribution.name} ({Math.round(contribution.percentage)}%)
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <Card className="p-6 backdrop-blur-sm bg-white/70 rounded-xl shadow-lg">
       <h2 className="text-2xl font-bold text-emerald-800 mb-4">
         栄養素カテゴリー分析
       </h2>
-
       <div className="flex flex-wrap gap-2 mb-6">
         {categories.map((category) => (
-          <button
+          <a
             key={category.id}
-            onClick={() => setActiveCategory(category.id)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              activeCategory === category.id
-                ? 'bg-emerald-600 text-white'
-                : 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
-            }`}
+            href={'#' + category.id}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200
+              bg-emerald-100 text-emerald-800 hover:bg-emerald-200 hover:shadow-md
+              border border-emerald-200 hover:border-emerald-300
+            `}
           >
             {category.name}
-          </button>
+          </a>
         ))}
       </div>
 
-      <div className="space-y-8">
-        {currentCategory.keys.map((key) => {
-          const nutrientKey = key as keyof NutritionFactBase<number>;
-          const value = totalNutrition[nutrientKey];
-          const targetValue =
-            target[nutrientKey as keyof NutritionFactBase<MinMaxRange>];
-          const achievement = calculateAchievement(value, targetValue) ?? 0;
-
-          // 各食材の寄与度を計算
-          const contributions = breakdown.map((food) => {
-            const nutrientValue = food.nutritionFacts[nutrientKey] || 0;
-            return {
-              name: food.type === 'estat' ? food.nameInEstat : food.productName,
-              value: nutrientValue,
-              // 寄与度の計算は正しい（その食材の栄養素の量 / 全体の栄養素の量）
-              percentage: value > 0 ? (nutrientValue / value) * 100 : 0,
-            };
-          });
-
-          return (
-            <div key={key} className="space-y-2">
-              <div className="flex justify-between items-end">
-                <div>
-                  <h3 className="text-lg font-medium text-emerald-800">
-                    {nutrientNames[key] || key}
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    {value.toFixed(2)} {nutrientUnits[key]}
-                    {targetValue.min &&
-                      ` / 目標: ${targetValue.min}${nutrientUnits[key]}`}
-                    {targetValue.max &&
-                      ` (上限: ${targetValue.max}${nutrientUnits[key]})`}
-                  </p>
-                </div>
-                <div className="text-sm font-medium">
-                  達成率: {Math.round(achievement)}%
-                </div>
-              </div>
-
-              {/* 達成率バー */}
-              <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
-                <div
-                  className={`h-2.5 rounded-full ${
-                    achievement < 90
-                      ? 'bg-amber-500'
-                      : achievement > 110 && targetValue.max
-                        ? 'bg-rose-500'
-                        : 'bg-emerald-500'
-                  }`}
-                  style={{ width: `${Math.min(achievement, 100)}%` }}
-                ></div>
-              </div>
-
-              {/* 食材ごとの寄与度 */}
-              <div className="flex h-8 w-full rounded-md overflow-hidden">
-                {contributions.map((contribution, index) => (
-                  <div
-                    key={`${key}-${index}`}
-                    className={`${ingredientColors[index % ingredientColors.length]} h-full`}
-                    style={{ width: `${contribution.percentage}%` }}
-                    title={`${contribution.name}: ${contribution.value}${nutrientUnits[key]} (${Math.round(contribution.percentage)}%)`}
-                  ></div>
-                ))}
-              </div>
-
-              {/* 凡例 */}
-              <div className="flex flex-wrap gap-x-4 gap-y-2 mt-2">
-                {contributions.map((contribution, index) => (
-                  <div
-                    key={`legend-${key}-${index}`}
-                    className="flex items-center text-xs"
-                  >
-                    <div
-                      className={`w-3 h-3 mr-1 ${ingredientColors[index % ingredientColors.length]}`}
-                    ></div>
-                    <span>
-                      {contribution.name} ({Math.round(contribution.percentage)}
-                      %)
-                    </span>
-                  </div>
-                ))}
-              </div>
+      {/* すべてのカテゴリを表示 */}
+      <div className="space-y-20">
+        {categories.map((category) => (
+          <div key={category.id} id={category.id}>
+            <h2 className="text-xl font-bold text-emerald-700 mb-4 pt-6 border-t border-emerald-100 first:border-t-0 first:pt-0">
+              {category.name}
+            </h2>
+            <div className="space-y-8">
+              {category.keys.map((key) => renderNutrientData(key))}
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
     </Card>
   );

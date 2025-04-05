@@ -70,12 +70,12 @@ export default function NutritionSummary({
         <div>
           <p className="text-lg font-medium text-gray-700">総コスト</p>
           <p className="text-3xl font-bold text-emerald-700">
-            {totalCost.toLocaleString()}円
+            {totalCost.toLocaleString('ja-JP', { maximumFractionDigits: 0 })}円
           </p>
         </div>
 
         <div className="mt-4 md:mt-0">
-          <p className="text-lg font-medium text-gray-700">1日あたりの目安</p>
+          <p className="text-lg font-medium text-gray-700">1日あたりの摂取量</p>
           <div className="flex gap-2 flex-wrap">
             {keyNutrients.map(({ name, key, unit }) => {
               const achievement = calculateAchievement(
