@@ -49,10 +49,10 @@ export const makeReadPriceFromExcelData =
       return null;
     }
     const itemName = data[ITEM_NAME_ROW][columnIndex] as string;
-    type EstatMassGramRaw = '(100g)' | '(1kg)' | '(1袋･5kg)';
+    type EstatMassGramRaw = '(100g)' | '(1kg)' | '(1袋･5kg)' | '(1袋･300g)';
 
     const estatMassGram =
-      { '(100g)': 100, '(1kg)': 1000, '(1袋･5kg)': 5000 }[
+      { '(100g)': 100, '(1kg)': 1000, '(1袋･5kg)': 5000, '(1袋･300g)': 300 }[
         data[ESTAT_MASS_GRAM_ROW][columnIndex] as EstatMassGramRaw | string
       ] ?? null; // default to null if not found.
     const recentPrices = data

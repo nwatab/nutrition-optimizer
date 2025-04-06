@@ -19,39 +19,41 @@ export default function NutritionSummary({
   ): { percentage: number; status: 'low' | 'optimal' | 'high' } => {
     if (!('min' in constraintRange) && !('max' in constraintRange))
       return { percentage: 100, status: 'optimal' };
-
+    const ipsiron = 0.01;
+    const excessSafetyMargin = 0.2;
     if ('min' in constraintRange && !('max' in constraintRange)) {
       const percentage = (value / constraintRange.min) * 100;
-      if (percentage < 100) return { percentage, status: 'low' };
-      if (percentage > 150) return { percentage, status: 'high' };
+      if (value < constraintRange.min * (1 + ipsiron))
+        return { percentage, status: 'low' };
       return { percentage, status: 'optimal' };
     }
 
     if (!('min' in constraintRange) && 'max' in constraintRange) {
       const percentage = (value / constraintRange.max) * 100;
-      if (percentage > 100) return { percentage, status: 'high' };
+      if (value > constraintRange.max * (1 - excessSafetyMargin))
+        return { percentage, status: 'high' };
       return { percentage, status: 'optimal' };
     }
 
     // min と max の両方がある場合
     if ('min' in constraintRange && 'max' in constraintRange) {
-      if (value < constraintRange.min) {
+      if (value < constraintRange.min * (1 + ipsiron)) {
         return {
           percentage: (value / constraintRange.min) * 100,
           status: 'low',
         };
       }
-      if (value > constraintRange.max) {
+      if (value > constraintRange.max * (1 - excessSafetyMargin)) {
         return {
           percentage: (value / constraintRange.max) * 100,
           status: 'high',
         };
       }
       // 範囲内の場合、最小値からの達成率を計算
-      const range = constraintRange.max - constraintRange.min;
-      const position = value - constraintRange.min;
-      const percentage = (position / range) * 50 + 50; // 50-100%の範囲にマッピング
-      return { percentage, status: 'optimal' };
+      return {
+        percentage: (value / constraintRange.min) * 100,
+        status: 'optimal',
+      };
     }
     const _never: never = constraintRange;
     console.error(`constraintRange is ${_never}`);
@@ -130,10 +132,15 @@ export default function NutritionSummary({
                 <span className="text-sm font-medium text-gray-700">
                   {value.toFixed(0)}
                   {unit}
-                  {'min' in targetValue && ` / ${targetValue.min}${unit}`}
+                  {'min' in targetValue &&
+                    ` / ${targetValue.min.toLocaleString('ja-JP', {
+                      maximumFractionDigits: 0,
+                    })} ${unit}`}
                   {'max' in targetValue &&
                     !('min' in targetValue) &&
-                    ` / ${targetValue.max}${unit}`}
+                    ` / ${targetValue.max.toLocaleString('ja-JP', {
+                      maximumFractionDigits: 0,
+                    })} ${unit}`}
                 </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2.5">
@@ -152,7 +159,7 @@ export default function NutritionSummary({
                 {achievement.status === 'optimal'
                   ? '最適'
                   : achievement.status === 'low'
-                    ? '不足気味'
+                    ? '目標量を満たすが余裕はない'
                     : '過剰気味'}
               </span>
             </div>

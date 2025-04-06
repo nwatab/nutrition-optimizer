@@ -21,7 +21,7 @@ export default function NutritionCategoryCharts({
     {
       id: 'macros',
       name: 'マクロ栄養素',
-      keys: ['protein', 'fat', 'carbohydrates', 'fiber'],
+      keys: ['calories', 'protein', 'fat', 'carbohydrates', 'fiber'],
     },
     {
       id: 'vitamins',
@@ -147,34 +147,39 @@ export default function NutritionCategoryCharts({
     molybdenum: 'μg',
   };
 
-  // 達成率を計算する関数
+  /**
+   * 達成率を計算する関数
+   * @param value 実際の栄養素の値
+   * @param constraintRange 制約の範囲
+   * @returns 達成率 (%)
+   */
   const calculateAchievement = (
     value: number,
-    targetRange: MinMaxRange
+    constraintRange: MinMaxRange
   ): number | null => {
     // 両方の値がない場合はnullとする
-    if (!('min' in targetRange) && !('max' in targetRange)) return null;
+    if (!('min' in constraintRange) && !('max' in constraintRange)) return null;
 
     // 下限のみある場合（最低摂取量を満たすべき栄養素）
-    if ('min' in targetRange && !('max' in targetRange)) {
-      return (value / targetRange.min) * 100;
+    if ('min' in constraintRange && !('max' in constraintRange)) {
+      return (value / constraintRange.min) * 100;
     }
 
     // 上限のみある場合（摂りすぎに注意すべき栄養素）
-    if (!('min' in targetRange && 'max' in targetRange)) {
-      return (value / targetRange.max) * 100;
+    if (!('min' in constraintRange && 'max' in constraintRange)) {
+      return (value / constraintRange.max) * 100;
     }
 
     // 両方ある場合（適正範囲のある栄養素）
-    if ('min' in targetRange && 'max' in targetRange) {
-      if (value < targetRange.min) {
+    if ('min' in constraintRange && 'max' in constraintRange) {
+      if (value < constraintRange.min) {
         // 下限未満の場合は達成率を下限に対する割合で表す
-        return (value / targetRange.min) * 100;
+        return (value / constraintRange.min) * 100;
       }
       // 範囲内なら100%
       return 100;
     }
-    const _never: never = targetRange;
+    const _never: never = constraintRange;
     console.error(_never);
 
     return null; // デフォルト
@@ -220,9 +225,9 @@ export default function NutritionCategoryCharts({
             <p className="text-sm text-gray-600">
               {value.toFixed(2)} {nutrientUnits[key]}
               {'min' in targetValue &&
-                ` / 目標: ${targetValue.min}${nutrientUnits[key]}`}
+                ` / 目標: ${targetValue.min.toFixed(1)}${nutrientUnits[key]}`}
               {'max' in targetValue &&
-                ` (上限: ${targetValue.max}${nutrientUnits[key]})`}
+                ` (上限: ${targetValue.max.toFixed(1)}${nutrientUnits[key]})`}
             </p>
           </div>
           <div className="text-sm font-medium">
