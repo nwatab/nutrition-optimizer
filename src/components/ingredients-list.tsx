@@ -93,21 +93,21 @@ export default function IngredientsList({
                   ) : (
                     <Link
                       href={ingredient.url}
-                      className="text-sm font-medium text-emerald-600 hover:text-emerald-800 hover:underline inline-flex items-center gap-1"
+                      className="text-sm font-medium text-emerald-600 hover:text-emerald-800 hover:underline inline"
                       target="_blank"
                     >
                       {ingredient.productName}
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
+                        width="12"
+                        height="12"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        className="inline-block"
+                        className="inline-block ml-1 align-text-bottom"
                       >
                         <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                         <polyline points="15 3 21 3 21 9"></polyline>
@@ -156,7 +156,9 @@ export default function IngredientsList({
                   .toLocaleString('ja-JP', { maximumFractionDigits: 0 })}
               </td>
               <td className="px-4 py-3">
-                {ingredients.reduce((sum, ing) => sum + ing.cost, 0).toFixed(0)}
+                {ingredients
+                  .reduce((sum, ing) => sum + ing.cost, 0)
+                  .toLocaleString('ja-JP', { maximumFractionDigits: 0 })}
               </td>
               <td className="px-4 py-3">
                 {ingredients

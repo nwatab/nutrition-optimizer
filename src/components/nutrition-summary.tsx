@@ -130,10 +130,15 @@ export default function NutritionSummary({
                 <span className="text-sm font-medium text-gray-700">
                   {value.toFixed(0)}
                   {unit}
-                  {'min' in targetValue && ` / ${targetValue.min}${unit}`}
+                  {'min' in targetValue &&
+                    ` / ${targetValue.min.toLocaleString('ja-JP', {
+                      maximumFractionDigits: 0,
+                    })} ${unit}`}
                   {'max' in targetValue &&
                     !('min' in targetValue) &&
-                    ` / ${targetValue.max}${unit}`}
+                    ` / ${targetValue.max.toLocaleString('ja-JP', {
+                      maximumFractionDigits: 0,
+                    })} ${unit}`}
                 </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2.5">
