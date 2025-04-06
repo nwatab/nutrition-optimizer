@@ -5,7 +5,7 @@ import { NutritionTarget } from '@/types/nutrition';
  * [日本人の食事摂取基準（2025年版）の策定ポイント](https://www.mhlw.go.jp/content/12400000/000706_00000.pdf)
  */
 export const referenceDailyIntakes: NutritionTarget = {
-  calories: { min: 2750 * 0.7, max: 2750 * 1.3 }, // kcal
+  calories: { min: 2750 * 1, max: 2750 * 1.6 }, // kcal  // カロリー上限をもうけると最適解が出せない。食品目録を充実させる・・・？
   protein: { min: (2750 * 0.65) / 4 }, // g 65%エネルギー
   fat: { min: (2750 * 0.25) / 9 }, // g. 脂質単位gあたりのエネルギー = 9kcal/g.
   saturatedFattyAcids: { max: (2700 * 0.07) / 9 }, // 9kcal/g
