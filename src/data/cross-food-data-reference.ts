@@ -219,15 +219,36 @@ export const crossFoodReference: CrossFoodDataReference[] = [
     estatId: 1487, // キムチ
     shokuhinbangou: '06236',
   },
-
+  {
+    estatId: 1502, // りんご
+    shokuhinbangou: '07176',
+  },
+  {
+    estatId: 1511, // みかん
+    shokuhinbangou: '07027',
+  },
+  {
+    estatId: 1515, // オレンジ
+    shokuhinbangou: '07041',
+  },
   {
     estatId: 1594, // ナッツ
     shokuhinbangou: '04023',
+  },
+
+  {
+    estatId: 1601, // 食用油
+    estatMassGram: 900,
+    shokuhinbangou: '14008',
   },
   {
     estatId: 1631, // みそ
     estatMassGram: 750,
     shokuhinbangou: '17045',
+  },
+  {
+    estatId: 1902, // 緑茶
+    shokuhinbangou: '16033',
   },
   {
     estatId: 1983, // 豆乳

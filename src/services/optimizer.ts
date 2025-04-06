@@ -64,7 +64,8 @@ export function optimizeDiet(foods: FoodToOptimize[], target: NutritionTarget) {
         ...others,
       };
     })
-    .filter((food) => food !== null);
+    .filter((food) => food !== null)
+    .toSorted((a, b) => b.cost - a.cost);
 
   // オブジェクトの値を合計する汎用関数
   function mergeObjects<T extends Record<string, number>>(
