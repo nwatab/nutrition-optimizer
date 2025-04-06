@@ -21,7 +21,7 @@ export default function NutritionCategoryCharts({
     {
       id: 'macros',
       name: 'マクロ栄養素',
-      keys: ['protein', 'fat', 'carbohydrates', 'fiber'],
+      keys: ['calories', 'protein', 'fat', 'carbohydrates', 'fiber'],
     },
     {
       id: 'vitamins',
