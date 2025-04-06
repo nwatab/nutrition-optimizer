@@ -51,7 +51,10 @@ export default async function DietPage() {
           />
 
           {/* 食材リスト */}
-          <IngredientsList ingredients={breakdown} />
+          <IngredientsList
+            ingredients={breakdown}
+            referenceDailyIntakes={referenceDailyIntakes}
+          />
 
           {/* 栄養素カテゴリー別チャート */}
           <NutritionCategoryCharts

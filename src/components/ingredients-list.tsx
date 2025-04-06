@@ -1,64 +1,15 @@
 import { Card } from '@/components/ui/card';
-import type { FoodRequired, NutritionFactBase } from '@/types/nutrition';
+import type { FoodRequired, NutritionTarget } from '@/types/nutrition';
 import Link from 'next/link';
+import RequiredIngredientDetailCard from './required-ingredient-detail-card';
 
 export default function IngredientsList({
   ingredients,
+  referenceDailyIntakes,
 }: {
   ingredients: FoodRequired[];
+  referenceDailyIntakes: NutritionTarget;
 }) {
-  // 栄養素の単位を取得する関数
-  const getNutrientUnit = (key: keyof NutritionFactBase<number>): string => {
-    const vitaminUnits: Record<string, string> = {
-      vitaminA: 'μg',
-      vitaminD: 'μg',
-      vitaminE: 'mg',
-      vitaminK: 'μg',
-      vitaminB1: 'mg',
-      vitaminB2: 'mg',
-      vitaminB6: 'mg',
-      vitaminB12: 'μg',
-      vitaminC: 'mg',
-      niacin: 'mg',
-      folate: 'μg',
-      pantothenicAcid: 'mg',
-      biotin: 'μg',
-    };
-
-    const mineralUnits: Record<string, string> = {
-      potassium: 'mg',
-      calcium: 'mg',
-      magnesium: 'mg',
-      phosphorus: 'mg',
-      iron: 'mg',
-      zinc: 'mg',
-      copper: 'mg',
-      manganese: 'mg',
-      iodine: 'μg',
-      selenium: 'μg',
-      chromium: 'μg',
-      molybdenum: 'μg',
-    };
-
-    const macroUnits: Record<string, string> = {
-      calories: 'kcal',
-      protein: 'g',
-      fat: 'g',
-      carbohydrates: 'g',
-      fiber: 'g',
-      saturatedFattyAcids: 'g',
-      n6PolyunsaturatedFattyAcids: 'g',
-      n3PolyunsaturatedFattyAcids: 'g',
-      nacl: 'g',
-    };
-
-    if (key in vitaminUnits) return vitaminUnits[key];
-    if (key in mineralUnits) return mineralUnits[key];
-    if (key in macroUnits) return macroUnits[key];
-
-    return '';
-  };
-
   return (
     <Card className="p-6 backdrop-blur-sm bg-white/70 rounded-xl shadow-lg">
       <h2 className="text-2xl font-bold text-emerald-800 mb-4">
@@ -126,23 +77,42 @@ export default function IngredientsList({
                   </Link>
                 </td>
                 <td className="px-4 py-3">
-                  {(ingredient.hectoGrams * 100).toFixed(0)}
-                </td>
-                <td className="px-4 py-3">{ingredient.cost.toFixed(0)}</td>
-                <td className="px-4 py-3">
-                  {ingredient.nutritionFacts.calories.toFixed(0)}
+                  {(ingredient.hectoGrams * 100).toLocaleString('ja-JP', {
+                    maximumFractionDigits: 0,
+                  })}
                 </td>
                 <td className="px-4 py-3">
-                  {ingredient.nutritionFacts.protein.toFixed(0)}
+                  {ingredient.cost.toLocaleString('ja-JP', {
+                    maximumFractionDigits: 0,
+                  })}
                 </td>
                 <td className="px-4 py-3">
-                  {ingredient.nutritionFacts.fat.toFixed(0)}
+                  {ingredient.nutritionFacts.calories.toLocaleString('ja-JP', {
+                    maximumFractionDigits: 0,
+                  })}
                 </td>
                 <td className="px-4 py-3">
-                  {ingredient.nutritionFacts.carbohydrates.toFixed(0)}
+                  {ingredient.nutritionFacts.protein.toLocaleString('ja-JP', {
+                    maximumFractionDigits: 0,
+                  })}
                 </td>
                 <td className="px-4 py-3">
-                  {ingredient.nutritionFacts.fiber.toFixed(0)}
+                  {ingredient.nutritionFacts.fat.toLocaleString('ja-JP', {
+                    maximumFractionDigits: 0,
+                  })}
+                </td>
+                <td className="px-4 py-3">
+                  {ingredient.nutritionFacts.carbohydrates.toLocaleString(
+                    'ja-JP',
+                    {
+                      maximumFractionDigits: 0,
+                    }
+                  )}
+                </td>
+                <td className="px-4 py-3">
+                  {ingredient.nutritionFacts.fiber.toLocaleString('ja-JP', {
+                    maximumFractionDigits: 0,
+                  })}
                 </td>
               </tr>
             ))}
@@ -203,134 +173,11 @@ export default function IngredientsList({
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {ingredients.map((ingredient) => (
-            <div
-              key={`detail-${ingredient.id}`}
-              className="p-4 bg-white/80 rounded-lg shadow"
-            >
-              <h4 className="font-medium text-emerald-700 mb-2">
-                {ingredient.type === 'estat'
-                  ? ingredient.nameInEstat +
-                    ' (' +
-                    ingredient.nameInNutritionFacts +
-                    ')'
-                  : ingredient.type === 'manualPrice'
-                    ? ingredient.productName +
-                      ' (' +
-                      ingredient.nameInNutritionFacts +
-                      ')'
-                    : ingredient.productName}
-              </h4>
-              <p className="text-sm text-gray-500 mb-3">
-                {(ingredient.hectoGrams * 100).toFixed(0)}g /{' '}
-                {ingredient.cost.toFixed(0)}円
-              </p>
-
-              <div className="space-y-2">
-                <details className="group">
-                  <summary className="flex justify-between items-center font-medium cursor-pointer list-none">
-                    <span className="text-sm text-emerald-600">詳細</span>
-                    <span className="transition group-open:rotate-180">
-                      <svg
-                        fill="none"
-                        height="24"
-                        width="24"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        viewBox="0 0 24 24"
-                      >
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                      </svg>
-                    </span>
-                  </summary>
-                  <div className="text-xs mt-2 space-y-1">
-                    {/* ビタミン */}
-                    <div className="mt-3">
-                      <h5 className="text-xs font-semibold text-emerald-700 mb-1">
-                        ビタミン
-                      </h5>
-                      {Object.entries(ingredient.nutritionFacts)
-                        .filter(([key]) =>
-                          key.toLowerCase().includes('vitamin')
-                        )
-                        .map(([key, value]) => (
-                          <div key={key} className="flex justify-between">
-                            <span className="text-gray-600">{key}</span>
-                            <span className="font-medium">
-                              {value.toFixed(2)}{' '}
-                              {getNutrientUnit(
-                                key as keyof NutritionFactBase<number>
-                              )}
-                            </span>
-                          </div>
-                        ))}
-                    </div>
-
-                    {/* ミネラル */}
-                    <div className="mt-3">
-                      <h5 className="text-xs font-semibold text-emerald-700 mb-1">
-                        ミネラル
-                      </h5>
-                      {Object.entries(ingredient.nutritionFacts)
-                        .filter(([key]) =>
-                          [
-                            'potassium',
-                            'calcium',
-                            'magnesium',
-                            'phosphorus',
-                            'iron',
-                            'zinc',
-                            'copper',
-                            'manganese',
-                            'iodine',
-                            'selenium',
-                            'chromium',
-                            'molybdenum',
-                          ].includes(key)
-                        )
-                        .map(([key, value]) => (
-                          <div key={key} className="flex justify-between">
-                            <span className="text-gray-600">{key}</span>
-                            <span className="font-medium">
-                              {value.toFixed(2)}{' '}
-                              {getNutrientUnit(
-                                key as keyof NutritionFactBase<number>
-                              )}
-                            </span>
-                          </div>
-                        ))}
-                    </div>
-
-                    {/* 脂質詳細 */}
-                    <div className="mt-3">
-                      <h5 className="text-xs font-semibold text-emerald-700 mb-1">
-                        脂質詳細
-                      </h5>
-                      {Object.entries(ingredient.nutritionFacts)
-                        .filter(([key]) =>
-                          [
-                            'saturatedFattyAcids',
-                            'n6PolyunsaturatedFattyAcids',
-                            'n3PolyunsaturatedFattyAcids',
-                          ].includes(key)
-                        )
-                        .map(([key, value]) => (
-                          <div key={key} className="flex justify-between">
-                            <span className="text-gray-600">{key}</span>
-                            <span className="font-medium">
-                              {value.toFixed(2)}{' '}
-                              {getNutrientUnit(
-                                key as keyof NutritionFactBase<number>
-                              )}
-                            </span>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                </details>
-              </div>
-            </div>
+            <RequiredIngredientDetailCard
+              key={ingredient.id}
+              ingredient={ingredient}
+              referenceDailyIntakes={referenceDailyIntakes}
+            />
           ))}
         </div>
       </div>

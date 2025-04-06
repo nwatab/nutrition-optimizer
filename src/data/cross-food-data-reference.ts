@@ -235,6 +235,12 @@ export const crossFoodReference: CrossFoodDataReference[] = [
     estatId: 1594, // ナッツ
     shokuhinbangou: '04023',
   },
+
+  {
+    estatId: 1601, // 食用油
+    estatMassGram: 900,
+    shokuhinbangou: '14008',
+  },
   {
     estatId: 1631, // みそ
     estatMassGram: 750,

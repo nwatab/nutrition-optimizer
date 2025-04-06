@@ -154,4 +154,25 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
     shokuhinbangou: '17071',
     url: 'https://www.sbotodoke.com/shop/g/g09176',
   },
+  {
+    name: '中国産菌床栽培(おがくず栽培)のきくらげです。水洗い後に乾燥させ調理りしやすい大きさにそろえました。',
+    price: 171,
+    massGram: 30,
+    shokuhinbangou: '08004',
+    url: 'https://www.topvalu.net/items/detail/4901810446971/',
+  },
+  {
+    name: 'いりごま 白 大',
+    price: 203,
+    massGram: 140,
+    shokuhinbangou: '05018',
+    url: 'https://www.topvalu.net/items/detail/4902121113651/',
+  },
+  {
+    name: 'オーガニック香ばしく焼き上げた粒そろいのからつき落花生',
+    price: 279,
+    massGram: 200,
+    shokuhinbangou: '05035',
+    url: 'https://www.topvalu.net/items/detail/4549414453256/',
+  },
 ];
