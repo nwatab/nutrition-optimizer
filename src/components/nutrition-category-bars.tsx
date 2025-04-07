@@ -150,7 +150,10 @@ export default function NutritionCategoryBars({
               </div>
             </div>
             <div className="col-span-2 text-right text-sm text-gray-600">
-              {value.toFixed(item === 'calories' ? 0 : 1)} {unitMap[item]}
+              {value.toLocaleString('ja-JP', {
+                maximumFractionDigits: 0,
+              })}{' '}
+              {unitMap[item]}
             </div>
           </div>
         );

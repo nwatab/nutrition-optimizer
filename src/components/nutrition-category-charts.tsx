@@ -271,7 +271,9 @@ export default function NutritionCategoryCharts({
               <div
                 className={`w-3 h-3 mr-1 ${ingredientColors[index % ingredientColors.length]}`}
               ></div>
-              <span>
+              <span
+                className={`${contribution.percentage > 50 ? 'font-bold' : contribution.percentage > 10 ? 'font-normal' : 'font-thin'}`}
+              >
                 {contribution.name} ({Math.round(contribution.percentage)}%)
               </span>
             </div>

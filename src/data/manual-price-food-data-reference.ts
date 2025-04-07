@@ -155,7 +155,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
     url: 'https://www.sbotodoke.com/shop/g/g09176',
   },
   {
-    name: '中国産菌床栽培(おがくず栽培)のきくらげです。水洗い後に乾燥させ調理りしやすい大きさにそろえました。',
+    name: 'きくらげ 中国産菌床栽培(おがくず栽培)',
     price: 171,
     massGram: 30,
     shokuhinbangou: '08004',
