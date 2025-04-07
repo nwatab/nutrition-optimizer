@@ -44,7 +44,7 @@ export default function IngredientsList({
                   ) : (
                     <Link
                       href={ingredient.url}
-                      className="text-sm font-medium text-emerald-600 hover:text-emerald-800 hover:underline inline"
+                      className="text-normal font-medium text-emerald-600 hover:text-emerald-800 hover:underline inline"
                       target="_blank"
                     >
                       {ingredient.productName}
@@ -58,7 +58,7 @@ export default function IngredientsList({
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        className="inline-block ml-1 align-text-bottom"
+                        className="inline-block ml-1 align-text-top"
                       >
                         <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                         <polyline points="15 3 21 3 21 9"></polyline>
