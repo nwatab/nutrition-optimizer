@@ -1,8 +1,7 @@
 /**
  * 100gあたりの栄養価
  */
-
-export type NutritionTarget = NutritionFactBase<Range>;
+export type NutritionTarget = NutritionFactBase<ConstraintRange>;
 
 export type NutritionFactBase<T> = {
   calories: T;
@@ -53,19 +52,15 @@ export type NutritionFactBase<T> = {
   molybdenum: T;
 };
 
-type Range = MinMaxRange;
-
-export type MinMaxRange =
-  | {
-      min: number;
-      max: number;
-    }
-  | {
-      min: number;
-    }
-  | {
-      max: number;
-    };
+type EqualConstraint = { equal: number };
+type MinConstraint = { min: number };
+type MaxConstraint = { max: number };
+type MinMaxConstraint = { min: number; max: number };
+export type ConstraintRange =
+  | EqualConstraint
+  | MinConstraint
+  | MaxConstraint
+  | MinMaxConstraint;
 
 /**
  * NutritionFactsRaw は、89, 6.1, '(0)', '0.30', '2.0', 'Tr', '1.00' などの形式の生データを扱います。

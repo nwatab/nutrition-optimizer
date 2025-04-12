@@ -1,13 +1,13 @@
 import { Card } from '@/components/ui/card';
 import type {
   NutritionFactBase,
-  MinMaxRange,
   FoodRequired,
+  ConstraintRange,
 } from '@/types/nutrition';
 
 type NutritionCategoryChartsProps = {
   totalNutrition: NutritionFactBase<number>;
-  target: NutritionFactBase<MinMaxRange>;
+  target: NutritionFactBase<ConstraintRange>;
   breakdown: FoodRequired[];
 };
 
@@ -155,7 +155,7 @@ export default function NutritionCategoryCharts({
    */
   const calculateAchievement = (
     value: number,
-    constraintRange: MinMaxRange
+    constraintRange: ConstraintRange
   ): number | null => {
     // 両方の値がない場合はnullとする
     if (!('min' in constraintRange) && !('max' in constraintRange)) return null;
@@ -202,7 +202,7 @@ export default function NutritionCategoryCharts({
     const nutrientKey = key as keyof NutritionFactBase<number>;
     const value = totalNutrition[nutrientKey];
     const targetValue =
-      target[nutrientKey as keyof NutritionFactBase<MinMaxRange>];
+      target[nutrientKey as keyof NutritionFactBase<ConstraintRange>];
     const achievement = calculateAchievement(value, targetValue) ?? 0;
 
     // 各食材の寄与度を計算

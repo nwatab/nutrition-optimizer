@@ -1,10 +1,10 @@
-import type { NutritionFactBase, MinMaxRange } from '@/types/nutrition';
+import type { ConstraintRange, NutritionFactBase } from '@/types/nutrition';
 import { Card } from '@/components/ui/card';
 
 type NutritionSummaryProps = {
   totalCost: number;
   totalNutrition: NutritionFactBase<number>;
-  target: NutritionFactBase<MinMaxRange>;
+  target: NutritionFactBase<ConstraintRange>;
 };
 
 export default function NutritionSummary({
@@ -15,35 +15,53 @@ export default function NutritionSummary({
   // 栄養素の達成率を計算する関数
   const calculateAchievement = (
     value: number,
-    constraintRange: MinMaxRange
+    constraintRange: ConstraintRange
   ): { percentage: number; status: 'low' | 'optimal' | 'high' } => {
-    if (!('min' in constraintRange) && !('max' in constraintRange))
-      return { percentage: 100, status: 'optimal' };
+    if ('equal' in constraintRange) {
+      const percentage = (value / constraintRange.equal) * 100;
+      if (percentage > 110) {
+        return {
+          percentage,
+          status: 'high',
+        };
+      }
+      if (percentage < 90) {
+        return {
+          percentage,
+          status: 'low',
+        };
+      }
+
+      return {
+        percentage: percentage,
+        status: 'optimal',
+      };
+    }
     const ipsiron = 0.01;
     const excessSafetyMargin = 0.2;
     if ('min' in constraintRange && !('max' in constraintRange)) {
       const percentage = (value / constraintRange.min) * 100;
-      if (value < constraintRange.min * (1 + ipsiron))
+      if (value < constraintRange.min * (1 - ipsiron))
         return { percentage, status: 'low' };
       return { percentage, status: 'optimal' };
     }
 
     if (!('min' in constraintRange) && 'max' in constraintRange) {
       const percentage = (value / constraintRange.max) * 100;
-      if (value > constraintRange.max * (1 - excessSafetyMargin))
+      if (value > constraintRange.max * (1 + excessSafetyMargin))
         return { percentage, status: 'high' };
       return { percentage, status: 'optimal' };
     }
 
     // min と max の両方がある場合
     if ('min' in constraintRange && 'max' in constraintRange) {
-      if (value < constraintRange.min * (1 + ipsiron)) {
+      if (value < constraintRange.min * (1 - ipsiron)) {
         return {
           percentage: (value / constraintRange.min) * 100,
           status: 'low',
         };
       }
-      if (value > constraintRange.max * (1 - excessSafetyMargin)) {
+      if (value > constraintRange.max * (1 + excessSafetyMargin)) {
         return {
           percentage: (value / constraintRange.max) * 100,
           status: 'high',
@@ -90,7 +108,7 @@ export default function NutritionSummary({
             {keyNutrients.map(({ name, key, unit }) => {
               const achievement = calculateAchievement(
                 totalNutrition[key as keyof NutritionFactBase<number>],
-                target[key as keyof NutritionFactBase<MinMaxRange>]
+                target[key as keyof NutritionFactBase<ConstraintRange>]
               );
 
               return (
@@ -120,7 +138,7 @@ export default function NutritionSummary({
         {keyNutrients.map(({ name, key, unit }) => {
           const value = totalNutrition[key as keyof NutritionFactBase<number>];
           const targetValue =
-            target[key as keyof NutritionFactBase<MinMaxRange>];
+            target[key as keyof NutritionFactBase<ConstraintRange>];
           const achievement = calculateAchievement(value, targetValue);
 
           return (
