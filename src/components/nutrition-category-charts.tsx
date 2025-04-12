@@ -195,7 +195,6 @@ export default function NutritionCategoryCharts({
 
   // 食材ごとの色
   const ingredientColors = [
-    'bg-cyan-400',
     'bg-teal-400',
     'bg-emerald-400',
     'bg-green-400',
@@ -203,6 +202,7 @@ export default function NutritionCategoryCharts({
     'bg-yellow-400',
     'bg-amber-400',
     'bg-orange-400',
+    'bg-cyan-400',
   ];
 
   // 栄養素データを表示する関数
@@ -231,7 +231,10 @@ export default function NutritionCategoryCharts({
               {nutrientNames[key] || key}
             </h3>
             <p className="text-sm text-gray-600">
-              {value.toFixed(2)} {nutrientUnits[key]}
+              {value.toLocaleString('ja-JP', {
+                maximumFractionDigits: 1,
+              })}
+              {nutrientUnits[key]}
               {'min' in targetValue &&
                 ` / 目標: ${targetValue.min.toFixed(1)}${nutrientUnits[key]}`}
               {'max' in targetValue &&
@@ -259,14 +262,16 @@ export default function NutritionCategoryCharts({
 
         {/* 食材ごとの寄与度 */}
         <div className="flex h-8 w-full rounded-md overflow-hidden">
-          {contributions.map((contribution, index) => (
-            <div
-              key={`${key}-${index}`}
-              className={`${ingredientColors[index % ingredientColors.length]} h-full`}
-              style={{ width: `${contribution.percentage}%` }}
-              title={`${contribution.name}: ${contribution.value}${nutrientUnits[key]} (${Math.round(contribution.percentage)}%)`}
-            ></div>
-          ))}
+          {contributions
+            .sort((a, b) => b.percentage - a.percentage)
+            .map((contribution, index) => (
+              <div
+                key={`${key}-${index}`}
+                className={`${ingredientColors[index % ingredientColors.length]} h-full`}
+                style={{ width: `${contribution.percentage}%` }}
+                title={`${contribution.name}: ${contribution.value}${nutrientUnits[key]} (${Math.round(contribution.percentage)}%)`}
+              ></div>
+            ))}
         </div>
 
         {/* 凡例 */}
