@@ -1,6 +1,6 @@
 import type {
+  ConstraintRange,
   FoodRequired,
-  MinMaxRange,
   NutritionFactBase,
   NutritionTarget,
 } from '@/types/nutrition';
@@ -58,7 +58,7 @@ const getNutrientUnit = (key: keyof NutritionFactBase<number>): string => {
 
 const calculatePercentage = (
   value: number,
-  reference: MinMaxRange | undefined
+  reference: ConstraintRange | undefined
 ): { percentage: string; value: number } => {
   if (!reference || !('min' in reference)) {
     return { percentage: '-', value: 0 };
