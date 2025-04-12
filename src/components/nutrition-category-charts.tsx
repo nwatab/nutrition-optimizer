@@ -163,7 +163,9 @@ export default function NutritionCategoryCharts({
     value: number,
     constraintRange: ConstraintRange
   ): number | null => {
-    // 両方の値がない場合はnullとする
+    if ('equal' in constraintRange) {
+      return (value / constraintRange.equal) * 100;
+    }
     if (!('min' in constraintRange) && !('max' in constraintRange)) return null;
 
     // 下限のみある場合（最低摂取量を満たすべき栄養素）
