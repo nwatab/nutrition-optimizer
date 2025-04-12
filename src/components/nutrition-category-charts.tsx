@@ -17,6 +17,12 @@ export default function NutritionCategoryCharts({
   breakdown,
 }: NutritionCategoryChartsProps) {
   // 栄養素カテゴリー
+
+  // 以下で分けたい
+  //   　ビタミン（脂溶性ビタミン）［1.5MB］別ウィンドウで開く
+  // 　　ビタミン（水溶性ビタミン）［1.4MB］別ウィンドウで開く
+  // 　　ミネラル（多量ミネラル）［1.3MB］別ウィンドウで開く
+  // 　　ミネラル（微量ミネラル）［1.5MB］別ウィンドウで開く
   const categories = [
     {
       id: 'macros',
@@ -263,21 +269,24 @@ export default function NutritionCategoryCharts({
 
         {/* 凡例 */}
         <div className="flex flex-wrap gap-x-4 gap-y-2 mt-2">
-          {contributions.map((contribution, index) => (
-            <div
-              key={`legend-${key}-${index}`}
-              className="flex items-center text-xs"
-            >
+          {contributions
+            .filter((contr) => contr.percentage > 0.5)
+            .sort((a, b) => b.percentage - a.percentage)
+            .map((contribution, index) => (
               <div
-                className={`w-3 h-3 mr-1 ${ingredientColors[index % ingredientColors.length]}`}
-              ></div>
-              <span
-                className={`${contribution.percentage > 50 ? 'font-bold' : contribution.percentage > 10 ? 'font-normal' : 'font-thin'}`}
+                key={`legend-${key}-${index}`}
+                className="flex items-center text-xs"
               >
-                {contribution.name} ({Math.round(contribution.percentage)}%)
-              </span>
-            </div>
-          ))}
+                <div
+                  className={`w-3 h-3 mr-1 ${ingredientColors[index % ingredientColors.length]}`}
+                ></div>
+                <span
+                  className={`${contribution.percentage > 50 ? 'font-bold' : contribution.percentage > 10 ? 'font-normal' : 'font-thin'}`}
+                >
+                  {contribution.name} ({Math.round(contribution.percentage)}%)
+                </span>
+              </div>
+            ))}
         </div>
       </div>
     );
