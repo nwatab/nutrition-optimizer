@@ -29,14 +29,16 @@ export default function NutritionCategoryCharts({
       name: 'マクロ栄養素',
       keys: ['calories', 'protein', 'fat', 'carbohydrates', 'fiber'],
     },
+
     {
-      id: 'vitamins',
-      name: 'ビタミン',
+      id: 'fat-soluble-vitamins',
+      name: '脂溶性ビタミン',
+      keys: ['vitaminA', 'vitaminD', 'vitaminE', 'vitaminK'],
+    },
+    {
+      id: 'water-soluble-vitamins',
+      name: '水溶性ビタミン',
       keys: [
-        'vitaminA',
-        'vitaminD',
-        'vitaminE',
-        'vitaminK',
         'vitaminB1',
         'vitaminB2',
         'vitaminB6',
@@ -49,13 +51,14 @@ export default function NutritionCategoryCharts({
       ],
     },
     {
-      id: 'minerals',
-      name: 'ミネラル',
+      id: 'macro-minerals',
+      name: '多量ミネラル',
+      keys: ['potassium', 'calcium', 'magnesium', 'phosphorus', 'nacl'],
+    },
+    {
+      id: 'trace-minerals',
+      name: '微量ミネラル',
       keys: [
-        'potassium',
-        'calcium',
-        'magnesium',
-        'phosphorus',
         'iron',
         'zinc',
         'copper',
