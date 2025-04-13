@@ -122,7 +122,7 @@ export default function NutritionSummary({
                   {name}
                 </span>
                 <span className="flex-grow"></span>
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-sm font-medium text-gray-700 mr-1">
                   {value.toLocaleString('ja-JP', { maximumFractionDigits: 0 })}
                   {unit}
                 </span>
