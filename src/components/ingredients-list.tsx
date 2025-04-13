@@ -287,7 +287,7 @@ export default function IngredientsList({
                 <span>
                   {ingredients
                     .reduce((sum, ing) => sum + ing.hectoGrams * 100, 0)
-                    .toLocaleString('ja-JP')}
+                    .toLocaleString('ja-JP', { maximumFractionDigits: 0 })}
                   g
                 </span>
               </div>
@@ -296,7 +296,7 @@ export default function IngredientsList({
                 <span>
                   {ingredients
                     .reduce((sum, ing) => sum + ing.cost, 0)
-                    .toLocaleString('ja-JP')}
+                    .toLocaleString('ja-JP', { maximumFractionDigits: 0 })}
                   円
                 </span>
               </div>
@@ -305,7 +305,7 @@ export default function IngredientsList({
                 <span>
                   {ingredients
                     .reduce((sum, ing) => sum + ing.nutritionFacts.calories, 0)
-                    .toLocaleString('ja-JP')}
+                    .toLocaleString('ja-JP', { maximumFractionDigits: 0 })}
                   kcal
                 </span>
               </div>
@@ -314,7 +314,7 @@ export default function IngredientsList({
                 <span>
                   {ingredients
                     .reduce((sum, ing) => sum + ing.nutritionFacts.protein, 0)
-                    .toLocaleString('ja-JP')}
+                    .toLocaleString('ja-JP', { maximumFractionDigits: 0 })}
                   g
                 </span>
               </div>
@@ -323,7 +323,7 @@ export default function IngredientsList({
                 <span>
                   {ingredients
                     .reduce((sum, ing) => sum + ing.nutritionFacts.fat, 0)
-                    .toLocaleString('ja-JP')}
+                    .toLocaleString('ja-JP', { maximumFractionDigits: 0 })}
                   g
                 </span>
               </div>
@@ -335,7 +335,7 @@ export default function IngredientsList({
                       (sum, ing) => sum + ing.nutritionFacts.carbohydrates,
                       0
                     )
-                    .toLocaleString('ja-JP')}
+                    .toLocaleString('ja-JP', { maximumFractionDigits: 0 })}
                   g
                 </span>
               </div>
@@ -344,7 +344,7 @@ export default function IngredientsList({
                 <span>
                   {ingredients
                     .reduce((sum, ing) => sum + ing.nutritionFacts.fiber, 0)
-                    .toLocaleString('ja-JP')}
+                    .toLocaleString('ja-JP', { maximumFractionDigits: 0 })}
                   g
                 </span>
               </div>
