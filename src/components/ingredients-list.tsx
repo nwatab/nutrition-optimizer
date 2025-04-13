@@ -84,7 +84,7 @@ export default function IngredientsList({
                         ) : (
                           <Link
                             href={ingredient.url}
-                            className="group text-normal font-medium text-emerald-600 hover:text-emerald-800 hover:underline inline-flex relative w-full"
+                            className="group text-sm font-medium text-emerald-600 hover:text-emerald-800 hover:underline inline-flex relative w-full"
                             target="_blank"
                           >
                             <span className="line-clamp-2 pr-1">
