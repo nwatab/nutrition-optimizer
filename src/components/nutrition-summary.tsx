@@ -98,39 +98,13 @@ export default function NutritionSummary({
         <div>
           <p className="text-lg font-medium text-gray-700">総コスト</p>
           <p className="text-3xl font-bold text-emerald-700">
-            {totalCost.toLocaleString('ja-JP', { maximumFractionDigits: 0 })}円
+            {totalCost.toLocaleString('ja-JP', { maximumFractionDigits: 0 })}
+            <span className="text-sm ml-2">円/日</span>
           </p>
         </div>
 
-        <div className="mt-4 md:mt-0">
+        <div className="mt-6 md:mt-0">
           <p className="text-lg font-medium text-gray-700">1日あたりの摂取量</p>
-          <div className="flex gap-2 flex-wrap">
-            {keyNutrients.map(({ name, key, unit }) => {
-              const achievement = calculateAchievement(
-                totalNutrition[key as keyof NutritionFactBase<number>],
-                target[key as keyof NutritionFactBase<ConstraintRange>]
-              );
-
-              return (
-                <div
-                  key={key}
-                  className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    achievement.status === 'optimal'
-                      ? 'bg-emerald-100 text-emerald-800'
-                      : achievement.status === 'low'
-                        ? 'bg-amber-100 text-amber-800'
-                        : 'bg-rose-100 text-rose-800'
-                  }`}
-                >
-                  {name}:{' '}
-                  {totalNutrition[
-                    key as keyof NutritionFactBase<number>
-                  ].toFixed(0)}
-                  {unit}
-                </div>
-              );
-            })}
-          </div>
         </div>
       </div>
 
@@ -143,20 +117,31 @@ export default function NutritionSummary({
 
           return (
             <div key={key} className="relative">
-              <div className="flex justify-between mb-1">
+              <div className="flex items-end mb-1">
                 <span className="text-sm font-medium text-gray-700">
                   {name}
                 </span>
+                <span className="flex-grow"></span>
                 <span className="text-sm font-medium text-gray-700">
-                  {value.toFixed(0)}
+                  {value.toLocaleString('ja-JP', { maximumFractionDigits: 0 })}
                   {unit}
+                </span>
+                <span className="text-xs">
                   {'min' in targetValue &&
+                    !('max' in targetValue) &&
                     ` / ${targetValue.min.toLocaleString('ja-JP', {
                       maximumFractionDigits: 0,
                     })} ${unit}`}
-                  {'max' in targetValue &&
-                    !('min' in targetValue) &&
+                  {!('min' in targetValue) &&
+                    'max' in targetValue &&
                     ` / ${targetValue.max.toLocaleString('ja-JP', {
+                      maximumFractionDigits: 0,
+                    })} ${unit}`}
+                  {'min' in targetValue &&
+                    'max' in targetValue &&
+                    ` / ${targetValue.min.toLocaleString('ja-JP', {
+                      maximumFractionDigits: 0,
+                    })} - ${targetValue.max.toLocaleString('ja-JP', {
                       maximumFractionDigits: 0,
                     })} ${unit}`}
                 </span>
