@@ -1,4 +1,5 @@
 import IngredientsList from '@/components/ingredients-list';
+import IngredientsListDetail from '@/components/ingredients-list-detail';
 import NutritionCategoryCharts from '@/components/nutrition-category-charts';
 import NutritionSummary from '@/components/nutrition-summary';
 
@@ -51,11 +52,11 @@ export default async function DietPage() {
           />
 
           {/* 食材リスト */}
-          <IngredientsList
+          <IngredientsList ingredients={breakdown} />
+          <IngredientsListDetail
             ingredients={breakdown}
             referenceDailyIntakes={referenceDailyIntakes}
           />
-
           {/* 栄養素カテゴリー別チャート */}
           <NutritionCategoryCharts
             totalNutrition={totalNutritionFacts}
