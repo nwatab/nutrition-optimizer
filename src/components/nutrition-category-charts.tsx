@@ -165,11 +165,10 @@ export default function NutritionCategoryCharts({
   const calculateAchievement = (
     value: number,
     constraintRange: ConstraintRange
-  ): number | null => {
+  ): number => {
     if ('equal' in constraintRange) {
       return (value / constraintRange.equal) * 100;
     }
-    if (!('min' in constraintRange) && !('max' in constraintRange)) return null;
 
     // 下限のみある場合（最低摂取量を満たすべき栄養素）
     if ('min' in constraintRange && !('max' in constraintRange)) {
@@ -178,7 +177,10 @@ export default function NutritionCategoryCharts({
 
     // 上限のみある場合（摂りすぎに注意すべき栄養素）
     if (!('min' in constraintRange && 'max' in constraintRange)) {
-      return (value / constraintRange.max) * 100;
+      if (value < constraintRange.max) {
+        return 100;
+      }
+      return (constraintRange.max / value) * 100; // 逆数とする
     }
 
     // 両方ある場合（適正範囲のある栄養素）
@@ -191,9 +193,8 @@ export default function NutritionCategoryCharts({
       return 100;
     }
     const _never: never = constraintRange;
-    console.error(_never);
 
-    return null; // デフォルト
+    throw new Error(`Unexpected constraintRange:`, _never);
   };
 
   // 食材ごとの色
@@ -214,7 +215,7 @@ export default function NutritionCategoryCharts({
     const value = totalNutrition[nutrientKey];
     const targetValue =
       target[nutrientKey as keyof NutritionFactBase<ConstraintRange>];
-    const achievement = calculateAchievement(value, targetValue) ?? 0;
+    const achievement = calculateAchievement(value, targetValue);
 
     // 各食材の寄与度を計算
     const contributions = breakdown.map((food) => {
