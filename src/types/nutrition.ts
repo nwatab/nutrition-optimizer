@@ -1,55 +1,59 @@
 /**
  * 100gあたりの栄養価
  */
-export type NutritionTarget = NutritionFactBase<ConstraintRange>;
-
-export type NutritionFactBase<T> = {
-  calories: T;
-  protein: T;
-  fat: T;
-  fiber: T;
-  vitaminB6: T;
-  vitaminB12: T;
-  vitaminC: T;
-  saturatedFattyAcids: T;
-  n6PolyunsaturatedFattyAcids: T;
-  n3PolyunsaturatedFattyAcids: T;
+export type NutritionTarget = NutritionFactBase<
+  EqualConstraint,
+  MinConstraint,
+  MaxConstraint,
+  MinMaxConstraint
+>;
+export type NutritionFactBase<E, Min = E, Max = E, MinMax = E> = {
+  calories: E;
+  protein: MinMax;
+  fat: MinMax;
+  saturatedFattyAcids: Max;
+  n6PolyunsaturatedFattyAcids: Min;
+  n3PolyunsaturatedFattyAcids: Min;
   /**
    * 利用可能炭水化物（質量計）
    */
-  carbohydrates: T;
+  carbohydrates: MinMax;
+  fiber: Min;
   /**
    * レチノール活性当量
    */
-  vitaminA: T;
-  vitaminD: T;
+  vitaminA: MinMax;
+  vitaminD: MinMax;
   /**
    * α-トコフェロール
    */
-  vitaminE: T;
-  vitaminK: T;
-  vitaminB1: T;
-  vitaminB2: T;
-  niacin: T;
-  folate: T;
-  pantothenicAcid: T;
-  biotin: T;
-  nacl: T;
-  potassium: T;
-  calcium: T;
-  magnesium: T;
-  phosphorus: T;
-  iron: T;
-  zinc: T;
-  copper: T;
+  vitaminE: MinMax;
+  vitaminK: Min;
+  vitaminB1: Min;
+  vitaminB2: Min;
+  vitaminB6: Min;
+  vitaminB12: Min;
+  niacin: Min;
+  folate: MinMax;
+  pantothenicAcid: Min;
+  biotin: Min;
+  vitaminC: Min;
+  nacl: MinMax;
+  potassium: MinMax;
+  calcium: MinMax;
+  magnesium: Min;
+  phosphorus: MinMax;
+  iron: Min;
+  zinc: MinMax;
+  copper: MinMax;
   /**
    * マンガン
    */
-  manganese: T;
-  iodine: T;
-  selenium: T;
-  chromium: T;
-  molybdenum: T;
+  manganese: MinMax;
+  iodine: MinMax;
+  selenium: MinMax;
+  chromium: MinMax;
+  molybdenum: MinMax;
 };
 
 type EqualConstraint = { equal: number };
