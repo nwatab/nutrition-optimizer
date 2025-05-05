@@ -4,11 +4,16 @@ import NutritionCategoryCharts from '@/components/nutrition-category-charts';
 import NutritionSummary from '@/components/nutrition-summary';
 
 import ThemeImage from '@/components/theme-image';
-import { loadFoodData, optimizeDiet, referenceDailyIntakes } from '@/services';
+import {
+  loadFoodData,
+  optimizeDiet,
+  getReferenceDailyIntakes,
+} from '@/services';
 import Link from 'next/link';
 
 export default async function DietPage() {
   const foods = await loadFoodData();
+  const referenceDailyIntakes = getReferenceDailyIntakes('male', 30, 60, 2750);
   const { totalCost, totalNutritionFacts, breakdown } = optimizeDiet(
     foods,
     referenceDailyIntakes

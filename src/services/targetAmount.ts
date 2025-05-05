@@ -4,10 +4,16 @@ import { NutritionTarget } from '@/types/nutrition';
  * [「日本人の食事摂取基準（2025年版）」策定検討会報告書](https://www.mhlw.go.jp/stf/newpage_44138.html)
  * [日本人の食事摂取基準（2025年版）の策定ポイント](https://www.mhlw.go.jp/content/12400000/000706_00000.pdf)
  */
-export const referenceDailyIntakes: NutritionTarget = {
-  calories: { equal: 2750 }, // kcal
-  protein: { min: (2750 * 0.13) / 4, max: (2750 * 0.2) / 4 }, // g 13-20%エネルギー 目標。耐容上の指定なし。
-  fat: { min: (2750 * 0.2) / 9, max: (2750 * 0.3) / 9 }, // g. 脂質単位gあたりのエネルギー = 9kcal/g.
+
+export const getReferenceDailyIntakes = (
+  sex: 'male' | 'female',
+  age: number,
+  weight: number,
+  dailyCalory: number = 2750
+): NutritionTarget => ({
+  calories: { equal: dailyCalory }, // kcal
+  protein: { min: (dailyCalory * 0.13) / 4, max: (dailyCalory * 0.2) / 4 }, // g 13-20%エネルギー 目標。耐容上の指定なし。
+  fat: { min: (dailyCalory * 0.2) / 9, max: (dailyCalory * 0.3) / 9 }, // g. 脂質単位gあたりのエネルギー = 9kcal/g.
   saturatedFattyAcids: { max: (2700 * 0.07) / 9 }, // 9kcal/g
   n6PolyunsaturatedFattyAcids: { min: 11 }, // g
   n3PolyunsaturatedFattyAcids: { min: 2.2 }, // g
@@ -39,4 +45,4 @@ export const referenceDailyIntakes: NutritionTarget = {
   selenium: { min: 35, max: 450 }, // μg
   chromium: { min: 10, max: 500 }, // μg
   molybdenum: { min: 30, max: 600 }, // μg
-};
+});
