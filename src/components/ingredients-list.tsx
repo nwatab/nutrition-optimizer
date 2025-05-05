@@ -27,19 +27,19 @@ export default function IngredientsList({
                   </th>
                   <th
                     scope="col"
-                    className="px-4 py-3 text-left text-xs font-medium text-emerald-700 uppercase tracking-wider whitespace-nowrap hidden sm:table-cell"
+                    className="px-4 py-3 text-left text-xs font-medium text-emerald-700 uppercase tracking-wider whitespace-nowrap sm:table-cell hidden"
                   >
                     重量 (g)
                   </th>
                   <th
                     scope="col"
-                    className="px-4 py-3 text-left text-xs font-medium text-emerald-700 uppercase tracking-wider whitespace-nowrap hidden md:table-cell"
+                    className="px-4 py-3 text-left text-xs font-medium text-emerald-700 uppercase tracking-wider whitespace-nowrap md:table-cell hidden"
                   >
                     コスト (円)
                   </th>
                   <th
                     scope="col"
-                    className="px-4 py-3 text-left text-xs font-medium text-emerald-700 uppercase tracking-wider whitespace-nowrap"
+                    className="px-4 py-3 text-left text-xs font-medium text-emerald-700 uppercase tracking-wider whitespace-nowrap lg:table-cell hidden"
                   >
                     カロリー
                   </th>
@@ -73,7 +73,9 @@ export default function IngredientsList({
                 {ingredients.map((ingredient, index) => (
                   <tr
                     key={ingredient.id}
-                    className={`${index % 2 === 0 ? 'bg-white/50' : 'bg-emerald-50/50'} hover:bg-emerald-50`}
+                    className={`${
+                      index % 2 === 0 ? 'bg-white/50' : 'bg-emerald-50/50'
+                    } hover:bg-emerald-50`}
                   >
                     <td className="px-4 py-3">
                       <div className="flex flex-col gap-1">
@@ -117,17 +119,17 @@ export default function IngredientsList({
                         </Link>
                       </div>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap hidden sm:table-cell">
+                    <td className="px-4 py-3 whitespace-nowrap sm:table-cell hidden">
                       {(ingredient.hectoGrams * 100).toLocaleString('ja-JP', {
                         maximumFractionDigits: 0,
                       })}
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap hidden md:table-cell">
+                    <td className="px-4 py-3 whitespace-nowrap md:table-cell hidden">
                       {ingredient.cost.toLocaleString('ja-JP', {
                         maximumFractionDigits: 0,
                       })}
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap lg:table-cell hidden">
                       {ingredient.nutritionFacts.calories.toLocaleString(
                         'ja-JP',
                         {
@@ -179,7 +181,7 @@ export default function IngredientsList({
                       .reduce((sum, ing) => sum + ing.cost, 0)
                       .toLocaleString('ja-JP', { maximumFractionDigits: 0 })}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap hidden lg:table-cell">
                     {ingredients
                       .reduce(
                         (sum, ing) => sum + ing.nutritionFacts.calories,
