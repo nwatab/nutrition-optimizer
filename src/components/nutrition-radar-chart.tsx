@@ -1,19 +1,58 @@
-import type { NutritionFactBase } from '@/types/nutrition';
+import type { NutritionFactBase, NutritionTarget } from '@/types/nutrition';
 
-// SSGページなので、クライアントサイドでのみ実行されるチャートのプレースホルダー
 export default function NutritionRadarChart({
   nutritionFacts,
+  referenceDailyIntakes,
 }: {
   nutritionFacts: NutritionFactBase<number>;
+  referenceDailyIntakes: NutritionTarget;
 }) {
-  // 主要な栄養素を選択
-  const keyNutrients = [
-    { key: 'protein', name: 'タンパク質', max: 30 },
-    { key: 'vitaminC', name: 'ビタミンC', max: 100 },
-    { key: 'calcium', name: 'カルシウム', max: 800 },
-    { key: 'iron', name: '鉄分', max: 10 },
-    { key: 'fiber', name: '食物繊維', max: 20 },
-    { key: 'vitaminA', name: 'ビタミンA', max: 900 },
+  const keyNutrients: {
+    key: keyof NutritionFactBase<number>;
+    name: string;
+    dailyIntake: number;
+  }[] = [
+    {
+      key: 'calories',
+      name: 'カロリー',
+      dailyIntake: referenceDailyIntakes.calories.equal,
+    },
+    {
+      key: 'carbohydrates',
+      name: '炭水化物',
+      dailyIntake: referenceDailyIntakes.carbohydrates.min,
+    },
+    {
+      key: 'protein',
+      name: 'タンパク質',
+      dailyIntake: referenceDailyIntakes.protein.min,
+    },
+    {
+      key: 'fat',
+      name: '脂質',
+      dailyIntake: referenceDailyIntakes.fat.min,
+    },
+    {
+      key: 'vitaminC',
+      name: 'ビタミンC',
+      dailyIntake: referenceDailyIntakes.vitaminC.min,
+    },
+    {
+      key: 'calcium',
+      name: 'カルシウム',
+      dailyIntake: referenceDailyIntakes.calcium.min,
+    },
+    { key: 'iron', name: '鉄分', dailyIntake: referenceDailyIntakes.iron.min },
+    {
+      key: 'fiber',
+      name: '食物繊維',
+      dailyIntake: referenceDailyIntakes.fiber.min,
+    },
+    {
+      key: 'vitaminA',
+      name: 'ビタミンA',
+      dailyIntake: referenceDailyIntakes.vitaminA.min,
+    },
   ];
 
   return (
@@ -24,7 +63,10 @@ export default function NutritionRadarChart({
           {keyNutrients.map((nutrient) => {
             const value =
               nutritionFacts[nutrient.key as keyof NutritionFactBase<number>];
-            const percentage = Math.min((value / nutrient.max) * 100, 100);
+            const percentage = Math.min(
+              (value / nutrient.dailyIntake) * 100,
+              100
+            );
 
             return (
               <div key={nutrient.key} className="text-left">
@@ -33,7 +75,10 @@ export default function NutritionRadarChart({
                     {nutrient.name}
                   </span>
                   <span className="text-sm font-medium text-gray-700">
-                    {value.toFixed(1)} / {nutrient.max}
+                    {value.toFixed(1)} /{' '}
+                    {nutrient.dailyIntake.toLocaleString('ja-JP', {
+                      maximumFractionDigits: 1,
+                    })}
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2.5">

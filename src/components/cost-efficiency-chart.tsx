@@ -1,20 +1,46 @@
-import type { NutritionFactBase } from '@/types/nutrition';
+import type { NutritionFactBase, NutritionTarget } from '@/types/nutrition';
 
 type CostEfficiencyChartProps = {
   nutritionPer100Yen: NutritionFactBase<number>;
-  cost: number;
+  referenceDailyIntakes: NutritionTarget;
 };
 
 export default function CostEfficiencyChart({
   nutritionPer100Yen,
+  referenceDailyIntakes,
 }: CostEfficiencyChartProps) {
   // コスト効率の高い栄養素を選択
-  const keyNutrients = [
-    { key: 'protein', name: 'タンパク質 (g)', benchmark: 10 },
-    { key: 'calories', name: 'カロリー (kcal)', benchmark: 200 },
-    { key: 'vitaminC', name: 'ビタミンC (mg)', benchmark: 30 },
-    { key: 'calcium', name: 'カルシウム (mg)', benchmark: 200 },
-    { key: 'iron', name: '鉄分 (mg)', benchmark: 3 },
+
+  const keyNutrients: {
+    key: keyof NutritionTarget;
+    name: string;
+    reference: number;
+  }[] = [
+    {
+      key: 'protein',
+      name: 'タンパク質 (g)',
+      reference: referenceDailyIntakes.protein.min,
+    },
+    {
+      key: 'calories',
+      name: 'カロリー (kcal)',
+      reference: referenceDailyIntakes.calories.equal,
+    },
+    {
+      key: 'vitaminC',
+      name: 'ビタミンC (mg)',
+      reference: referenceDailyIntakes.vitaminC.min,
+    },
+    {
+      key: 'calcium',
+      name: 'カルシウム (mg)',
+      reference: referenceDailyIntakes.calcium.min,
+    },
+    {
+      key: 'iron',
+      name: '鉄分 (mg)',
+      reference: referenceDailyIntakes.iron.min,
+    },
   ];
 
   return (
@@ -26,7 +52,7 @@ export default function CostEfficiencyChart({
         {keyNutrients.map((nutrient) => {
           const value =
             nutritionPer100Yen[nutrient.key as keyof NutritionFactBase<number>];
-          const percentage = (value / nutrient.benchmark) * 100;
+          const percentage = (value / nutrient.reference) * 100;
 
           return (
             <div key={nutrient.key}>
@@ -46,14 +72,18 @@ export default function CostEfficiencyChart({
               </div>
               <div className="flex justify-between text-xs text-gray-500 mt-1">
                 <span>0</span>
-                <span>{nutrient.benchmark}</span>
+                <span>
+                  {nutrient.reference.toLocaleString('ja-JP', {
+                    maximumFractionDigits: 1,
+                  })}
+                </span>
               </div>
             </div>
           );
         })}
       </div>
       <p className="text-xs text-gray-500 mt-4">
-        * 基準値は一般的な食品の平均値を元に設定
+        * 基準値は一般的な成人が1日に必要な目安量
       </p>
     </div>
   );

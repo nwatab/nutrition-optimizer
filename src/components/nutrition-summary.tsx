@@ -1,10 +1,14 @@
-import type { ConstraintRange, NutritionFactBase } from '@/types/nutrition';
+import type {
+  ConstraintRange,
+  NutritionFactBase,
+  NutritionTarget,
+} from '@/types/nutrition';
 import { Card } from '@/components/ui/card';
 
 type NutritionSummaryProps = {
   totalCost: number;
   totalNutrition: NutritionFactBase<number>;
-  target: NutritionFactBase<ConstraintRange>;
+  target: NutritionTarget;
 };
 
 export default function NutritionSummary({
@@ -12,7 +16,6 @@ export default function NutritionSummary({
   totalNutrition,
   target,
 }: NutritionSummaryProps) {
-  // 栄養素の達成率を計算する関数
   const calculateAchievement = (
     value: number,
     constraintRange: ConstraintRange

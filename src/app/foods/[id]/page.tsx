@@ -4,7 +4,7 @@ import NutritionFactsTable from '@/components/nutrition-facts-table';
 import NutritionRadarChart from '@/components/nutrition-radar-chart';
 import CostEfficiencyChart from '@/components/cost-efficiency-chart';
 import NutritionCategoryBars from '@/components/nutrition-category-bars';
-import { loadFoodData } from '@/services';
+import { getReferenceDailyIntakes, loadFoodData } from '@/services';
 
 export const generateStaticParams = async () => {
   const foods = await loadFoodData();
@@ -18,6 +18,7 @@ export default async function FoodPage({
 }) {
   const { id } = await params;
   const foods = await loadFoodData();
+  const referenceDailyIntakes = getReferenceDailyIntakes('male', 30, 60, 2750);
   const food = foods.find((food) => food.id === id);
 
   if (!food) {
@@ -174,7 +175,10 @@ export default async function FoodPage({
                 栄養バランス
               </h2>
               <div className="h-80">
-                <NutritionRadarChart nutritionFacts={food.nutritionFacts} />
+                <NutritionRadarChart
+                  nutritionFacts={food.nutritionFacts}
+                  referenceDailyIntakes={referenceDailyIntakes}
+                />
               </div>
             </Card>
 
@@ -185,7 +189,7 @@ export default async function FoodPage({
               <div className="h-80">
                 <CostEfficiencyChart
                   nutritionPer100Yen={nutritionPer100Yen}
-                  cost={food.cost}
+                  referenceDailyIntakes={referenceDailyIntakes}
                 />
               </div>
             </Card>
