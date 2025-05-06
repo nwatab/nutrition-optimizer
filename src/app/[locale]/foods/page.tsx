@@ -3,16 +3,16 @@ import { Card, CardContent } from '@/components/ui/card';
 import { appConfig, type Locale } from '@/config';
 
 export async function generateStaticParams() {
-  return appConfig.i18n;
+  return appConfig.i18n.map((locale) => ({ locale }));
 }
 
 // 食品一覧ページ
 export default async function FoodListPage({
-  params,
+  params: paramsPromise,
 }: {
   params: Promise<{ locale: Locale }>;
 }) {
-  console.log(params);
+  const params = await paramsPromise;
   // 実際の実装では、すべての食品データを取得する
   const foods = [
     { id: '1', name: '鶏肉（むね、皮なし）', cost: 100 },
@@ -33,7 +33,7 @@ export default async function FoodListPage({
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {foods.map((food) => (
-            <Link key={food.id} href={`/food/${food.id}`}>
+            <Link key={food.id} href={`${params.locale}/food/${food.id}`}>
               <Card className="h-full transition-all hover:shadow-md hover:border-emerald-300">
                 <CardContent className="p-6">
                   <h2 className="text-xl font-semibold text-emerald-800 mb-2">

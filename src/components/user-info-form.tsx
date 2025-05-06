@@ -1,9 +1,13 @@
 'use client';
 
 import { Locale } from '@/config';
+import { enUS, jaJP } from '@/locales';
+import { capitalize } from '@/utils';
 import { useRouter } from 'next/navigation';
+
 export default function UserInfoForm({ locale }: { locale: Locale }) {
   const router = useRouter();
+  const messages = locale === 'ja-JP' ? jaJP : enUS;
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -22,7 +26,7 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
           htmlFor="sex"
           className="block text-sm font-medium text-gray-700 mb-1"
         >
-          Biological Sex
+          {capitalize(messages['biological sex'])}
         </label>
         <select
           id="sex"
@@ -32,10 +36,10 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
           defaultValue=""
         >
           <option value="" disabled>
-            Select your sex
+            {capitalize(messages['select your sex'])}
           </option>
-          <option value="male">Male</option>
-          <option value="female">Female</option>
+          <option value="male">{capitalize(messages['male'])}</option>
+          <option value="female">{capitalize(messages['female'])}</option>
         </select>
       </div>
 
@@ -55,7 +59,7 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
           defaultValue=""
         >
           <option value="" disabled>
-            Select your weight
+            {messages['select your weight']}
           </option>
           {Array.from({ length: 12 }, (_, i) => 40 + i * 5).map((w) => (
             <option key={w} value={String(w)}>
@@ -71,7 +75,7 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
           htmlFor="pal"
           className="block text-sm font-medium text-gray-700 mb-1"
         >
-          Physical Activity Level
+          {capitalize(messages['physical activity level'])}
         </label>
         <select
           id="pal"
@@ -81,14 +85,38 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
           defaultValue=""
         >
           <option value="" disabled>
-            Select your activity level
+            {messages['select your activity level']}
           </option>
-          <option value="low">Low (Sedentary lifestyle)</option>
-          <option value="normal">Normal (Moderate activity)</option>
-          <option value="high">High (Very active)</option>
+          <option value="low">
+            {messages['low']} (
+            {
+              messages[
+                'When most of your daily life is spent sitting and your activities are predominantly static.'
+              ]
+            }
+            )
+          </option>
+          <option value="normal">
+            {messages['normal']} (
+            {
+              messages[
+                'Your work is mainly sedentary, but you also include any of the following: moving around or standing at work (e.g. serving), commuting, shopping, housework, or light sports.'
+              ]
+            }
+            )
+          </option>
+          <option value="high">
+            {messages['high']} (
+            {
+              messages[
+                'You have a job involving a lot of movement or standing, or you maintain an active exercise habit in your leisure time (e.g. regular sports).'
+              ]
+            }
+            )
+          </option>
         </select>
         <p className="mt-1 text-xs text-gray-500">
-          This helps us calculate your daily calorie needs
+          {messages['This helps us calculate your daily calorie needs.']}
         </p>
       </div>
 
@@ -97,7 +125,7 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
         type="submit"
         className="w-full py-2 px-4 bg-emerald-600 text-white font-medium rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
       >
-        Calculate My Nutrition Plan
+        {messages['Calculate My Nutrition Plan']}
       </button>
     </form>
   );

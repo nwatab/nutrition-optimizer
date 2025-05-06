@@ -6,12 +6,14 @@ import NutritionSummary from '@/components/nutrition-summary';
 import ThemeImage from '@/components/theme-image';
 import { appConfig } from '@/config';
 import type { Locale } from '@/config';
+import { enUS, jaJP } from '@/locales';
 import {
   loadFoodData,
   optimizeDiet,
   getReferenceDailyIntakes,
   getDailyCaloryGoal,
 } from '@/services';
+
 import Link from 'next/link';
 
 export async function generateStaticParams() {
@@ -37,7 +39,7 @@ export async function generateStaticParams() {
 }
 
 export default async function RecommendationPage({
-  params,
+  params: paramsPromise,
 }: {
   params: Promise<{
     sex: 'male' | 'female';
@@ -47,21 +49,22 @@ export default async function RecommendationPage({
   }>;
 }) {
   const foods = await loadFoodData();
-  const pathParams = await params;
+  const params = await paramsPromise;
   const dailyCalory = getDailyCaloryGoal(
-    parseInt(pathParams.weight, 10),
-    pathParams.pal_category
+    parseInt(params.weight, 10),
+    params.pal_category
   );
   const referenceDailyIntakes = getReferenceDailyIntakes(
-    pathParams.sex,
+    params.sex,
     0,
-    parseInt(pathParams.weight, 10),
+    parseInt(params.weight, 10),
     dailyCalory
   );
   const { totalCost, totalNutritionFacts, breakdown } = optimizeDiet(
     foods,
     referenceDailyIntakes
   );
+  const messages = params.locale === 'ja-JP' ? jaJP : enUS;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50 p-4 md:p-8">
@@ -84,11 +87,16 @@ export default async function RecommendationPage({
             </Link>
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-emerald-800 mb-2">
-            栄養最適化の結果
+            {messages.Recommendations}
           </h1>
           <p className="text-emerald-600">
-            栄養バランスを最適化し、コストを最小限に抑えた食材の組み合わせです。対象:
-            男性, 30代, 運動量普通, Vegan
+            {
+              messages[
+                'This is the result of calculation of your diet for cost and nutrition'
+              ]
+            }
+            : {messages.male}, {messages['physical activity level']}{' '}
+            {messages['normal']}
           </p>
         </header>
 
