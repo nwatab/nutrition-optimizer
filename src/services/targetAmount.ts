@@ -1,10 +1,19 @@
 import { NutritionTarget } from '@/types/nutrition';
+
+export const getDailyCaloryGoal = (
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  weight: number,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  palCategory: 'low' | 'normal' | 'high'
+) => {
+  // ToDo
+  return 2750;
+};
 /**
  * 日本人の食事摂取基準。単位はいずれも /日 がつく。
  * [「日本人の食事摂取基準（2025年版）」策定検討会報告書](https://www.mhlw.go.jp/stf/newpage_44138.html)
  * [日本人の食事摂取基準（2025年版）の策定ポイント](https://www.mhlw.go.jp/content/12400000/000706_00000.pdf)
  */
-
 export const getReferenceDailyIntakes = (
   sex: 'male' | 'female',
   age: number,

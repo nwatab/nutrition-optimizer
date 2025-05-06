@@ -1,73 +1,26 @@
-import IngredientsList from '@/components/ingredients-list';
-import IngredientsListDetail from '@/components/ingredients-list-detail';
-import NutritionCategoryCharts from '@/components/nutrition-category-charts';
-import NutritionSummary from '@/components/nutrition-summary';
+import UserInfoForm from '@/components/user-info-form';
+import { Leaf } from 'lucide-react';
 
-import ThemeImage from '@/components/theme-image';
-import {
-  loadFoodData,
-  optimizeDiet,
-  getReferenceDailyIntakes,
-} from '@/services';
-import Link from 'next/link';
-
-export default async function DietPage() {
-  const foods = await loadFoodData();
-  const referenceDailyIntakes = getReferenceDailyIntakes('male', 30, 60, 2750);
-  const { totalCost, totalNutritionFacts, breakdown } = optimizeDiet(
-    foods,
-    referenceDailyIntakes
-  );
-
+export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
-        <header className="mb-8 text-center relative">
-          <div className="absolute right-0 top-0">
-            <Link
-              href="https://github.com/nwatab/nutrition-optimizer"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 p-2 rounded-lg hover:bg-emerald-100 transition-colors"
-            >
-              <ThemeImage
-                srcLight="/github-mark.svg"
-                srcDark="/github-mark-white.svg"
-                alt="GitHub"
-                width={24}
-                height={24}
-              />
-            </Link>
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-emerald-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-white rounded-lg shadow-lg overflow-hidden">
+        {/* Card Header */}
+        <div className="text-center px-6 py-8">
+          <div className="mx-auto bg-emerald-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+            <Leaf className="h-6 w-6 text-emerald-600" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-emerald-800 mb-2">
-            栄養最適化の結果
+          <h1 className="text-2xl font-bold text-emerald-800 mb-2">
+            Vegan Food Planner
           </h1>
-          <p className="text-emerald-600">
-            栄養バランスを最適化し、コストを最小限に抑えた食材の組み合わせです。対象:
-            男性, 30代, 運動量普通, Vegan
+          <p className="text-gray-600">
+            Tell us about yourself to get personalized nutrition targets
           </p>
-        </header>
+        </div>
 
-        <div className="grid gap-8">
-          {/* 総合サマリー */}
-          <NutritionSummary
-            totalCost={totalCost}
-            totalNutrition={totalNutritionFacts}
-            target={referenceDailyIntakes}
-          />
-
-          {/* 食材リスト */}
-          <IngredientsList ingredients={breakdown} />
-          <IngredientsListDetail
-            ingredients={breakdown}
-            referenceDailyIntakes={referenceDailyIntakes}
-          />
-          {/* 栄養素カテゴリー別チャート */}
-          <NutritionCategoryCharts
-            totalNutrition={totalNutritionFacts}
-            target={referenceDailyIntakes}
-            breakdown={breakdown}
-          />
+        {/* Card Content / Form */}
+        <div className="px-6 pb-8">
+          <UserInfoForm />
         </div>
       </div>
     </div>
