@@ -1,8 +1,18 @@
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
+import { appConfig, type Locale } from '@/config';
+
+export async function generateStaticParams() {
+  return appConfig.i18n;
+}
 
 // 食品一覧ページ
-export default async function FoodListPage() {
+export default async function FoodListPage({
+  params,
+}: {
+  params: Promise<{ locale: Locale }>;
+}) {
+  console.log(params);
   // 実際の実装では、すべての食品データを取得する
   const foods = [
     { id: '1', name: '鶏肉（むね、皮なし）', cost: 100 },

@@ -1,7 +1,8 @@
 'use client';
 
+import { Locale } from '@/config';
 import { useRouter } from 'next/navigation';
-export default function UserInfoForm() {
+export default function UserInfoForm({ locale }: { locale: Locale }) {
   const router = useRouter();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -10,7 +11,7 @@ export default function UserInfoForm() {
     const sex = form.sex.value;
     const weight = form.weight.value;
     const pal = form.pal.value;
-    router.push(`/recommendations/${sex}/${weight}/${pal}`);
+    router.push(`/${locale}/recommendations/${sex}/${weight}/${pal}`);
   };
 
   return (

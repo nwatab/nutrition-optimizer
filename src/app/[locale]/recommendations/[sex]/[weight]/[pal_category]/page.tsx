@@ -4,6 +4,8 @@ import NutritionCategoryCharts from '@/components/nutrition-category-charts';
 import NutritionSummary from '@/components/nutrition-summary';
 
 import ThemeImage from '@/components/theme-image';
+import { appConfig } from '@/config';
+import type { Locale } from '@/config';
 import {
   loadFoodData,
   optimizeDiet,
@@ -11,16 +13,23 @@ import {
   getDailyCaloryGoal,
 } from '@/services';
 import Link from 'next/link';
+
 export async function generateStaticParams() {
   const sexes = ['male', 'female'] as const;
-  const weights = Array.from({ length: 1 }, (_, i) => 50 + i * 5).map((i) =>
-    String(i)
-  ); // [50,55,…,95]
+
+  const weights = ['50', '55'] as const; // [50,55,…,95]
   const palCategories = ['low', 'normal', 'high'] as const;
 
   const filters = sexes.flatMap((sex) =>
     weights.flatMap((weight) =>
-      palCategories.map((pal_category) => ({ sex, weight, pal_category }))
+      palCategories.flatMap((pal_category) =>
+        appConfig.i18n.flatMap((locale) => ({
+          sex,
+          weight,
+          pal_category,
+          locale,
+        }))
+      )
     )
   );
 
@@ -34,6 +43,7 @@ export default async function RecommendationPage({
     sex: 'male' | 'female';
     weight: string;
     pal_category: 'low' | 'normal' | 'high';
+    locale: Locale;
   }>;
 }) {
   const foods = await loadFoodData();
