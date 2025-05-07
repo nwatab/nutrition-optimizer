@@ -49,7 +49,7 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
           htmlFor="weight"
           className="block text-sm font-medium text-gray-700 mb-1"
         >
-          Weight (kg)
+          {capitalize(messages['weight'])} (kg)
         </label>
         <select
           id="weight"
@@ -115,7 +115,7 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
             )
           </option>
         </select>
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-4 text-xs text-gray-500">
           {messages['This helps us calculate your daily calorie needs.']}
         </p>
       </div>

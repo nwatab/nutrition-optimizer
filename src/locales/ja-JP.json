@@ -10,12 +10,13 @@
   "high": "高い",
   "Tell us about yourself to get personalized nutrition targets": "パーソナライズされた最適な食材リストを計算するために、以下の情報を教えてください。",
   "biological sex": "性別",
+  "weight": "体重",
   "select your sex": "性別を選択してください",
   "select your weight": "体重を選択してください",
   "select your activity level": "身体活動レベルを選択してください",
   "When most of your daily life is spent sitting and your activities are predominantly static.": "生活の大部分が座位で、静的な活動が中心の場合。",
   "Your work is mainly sedentary, but you also include any of the following: moving around or standing at work (e.g. serving), commuting, shopping, housework, or light sports.": "座位中心の仕事だが、職場内での移動や立位での作業・接客等、あるいは通勤・買物・家事、軽いスポーツ等のいずれかを含む場合。",
   "You have a job involving a lot of movement or standing, or you maintain an active exercise habit in your leisure time (e.g. regular sports).": "移動や立位の多い仕事への従事者。あるいは、スポーツなど余暇における活発な運動習慣をもっている場合。",
-  "This helps us calculate your daily calorie needs.": "以上の情報に基づき、1日に必要な食材の組み合わせを計算します",
+  "This helps us calculate your daily calorie needs.": "以上の情報に基づき、1日に必要な食材の組み合わせを計算します。",
   "Calculate My Nutrition Plan": "計算"
 }
