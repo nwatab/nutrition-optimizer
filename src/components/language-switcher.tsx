@@ -29,6 +29,10 @@ export const LanguageSwitch: React.FC<LanguageSwitchProps> = ({
     <select
       value={locale}
       onChange={(e) => {
+        if (pathname === '/') {
+          router.push(`/${e.target.value}`);
+          return;
+        }
         router.push(pathname.replace(`/${locale}`, `/${e.target.value}`));
       }}
       aria-label="Select language"
