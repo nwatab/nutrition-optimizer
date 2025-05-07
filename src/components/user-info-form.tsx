@@ -2,7 +2,7 @@
 
 import { Locale } from '@/config';
 import { enUS, jaJP } from '@/locales';
-import { capitalize } from '@/utils';
+import { capitalize, toTitleCase } from '@/utils';
 import { useRouter } from 'next/navigation';
 
 export default function UserInfoForm({ locale }: { locale: Locale }) {
@@ -26,7 +26,7 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
           htmlFor="sex"
           className="block text-sm font-medium text-gray-700 mb-1"
         >
-          {capitalize(messages['biological sex'])}
+          {toTitleCase(messages['biological sex'])}
         </label>
         <select
           id="sex"
@@ -36,7 +36,7 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
           defaultValue=""
         >
           <option value="" disabled>
-            {capitalize(messages['select your sex'])}
+            {toTitleCase(messages['select your sex'])}
           </option>
           <option value="male">{capitalize(messages['male'])}</option>
           <option value="female">{capitalize(messages['female'])}</option>
@@ -49,7 +49,7 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
           htmlFor="weight"
           className="block text-sm font-medium text-gray-700 mb-1"
         >
-          {capitalize(messages['weight'])} (kg)
+          {toTitleCase(messages['body weight'])} (kg)
         </label>
         <select
           id="weight"
@@ -75,7 +75,7 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
           htmlFor="pal"
           className="block text-sm font-medium text-gray-700 mb-1"
         >
-          {capitalize(messages['physical activity level'])}
+          {toTitleCase(messages['physical activity level'])}
         </label>
         <select
           id="pal"

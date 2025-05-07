@@ -1,85 +1,15 @@
+import { unitMap } from '@/lib/unitmap';
+import type { Message } from '@/locales';
 import type { NutritionFactBase } from '@/types/nutrition';
+import { toTitleCase } from '@/utils';
 
 type NutritionCategoryBarsProps = {
   nutritionFacts: NutritionFactBase<number>;
   items: Array<keyof NutritionFactBase<number>>;
-};
-
-// 栄養素の日本語名マッピング
-const nameMap: Record<keyof NutritionFactBase<number>, string> = {
-  calories: 'カロリー',
-  protein: 'タンパク質',
-  fat: '脂質',
-  carbohydrates: '炭水化物',
-  fiber: '食物繊維',
-  vitaminA: 'ビタミンA',
-  vitaminD: 'ビタミンD',
-  vitaminE: 'ビタミンE',
-  vitaminK: 'ビタミンK',
-  vitaminB1: 'ビタミンB1',
-  vitaminB2: 'ビタミンB2',
-  vitaminB6: 'ビタミンB6',
-  vitaminB12: 'ビタミンB12',
-  vitaminC: 'ビタミンC',
-  niacin: 'ナイアシン',
-  folate: '葉酸',
-  pantothenicAcid: 'パントテン酸',
-  biotin: 'ビオチン',
-  saturatedFattyAcids: '飽和脂肪酸',
-  n6PolyunsaturatedFattyAcids: 'n-6系多価不飽和脂肪酸',
-  n3PolyunsaturatedFattyAcids: 'n-3系多価不飽和脂肪酸',
-  nacl: '食塩相当量',
-  potassium: 'カリウム',
-  calcium: 'カルシウム',
-  magnesium: 'マグネシウム',
-  phosphorus: 'リン',
-  iron: '鉄',
-  zinc: '亜鉛',
-  copper: '銅',
-  manganese: 'マンガン',
-  iodine: 'ヨウ素',
-  selenium: 'セレン',
-  chromium: 'クロム',
-  molybdenum: 'モリブデン',
+  messages: Message;
 };
 
 // 栄養素の単位マッピング
-const unitMap: Record<keyof NutritionFactBase<number>, string> = {
-  calories: 'kcal',
-  protein: 'g',
-  fat: 'g',
-  carbohydrates: 'g',
-  fiber: 'g',
-  vitaminA: 'μg',
-  vitaminD: 'μg',
-  vitaminE: 'mg',
-  vitaminK: 'μg',
-  vitaminB1: 'mg',
-  vitaminB2: 'mg',
-  vitaminB6: 'mg',
-  vitaminB12: 'μg',
-  vitaminC: 'mg',
-  niacin: 'mg',
-  folate: 'μg',
-  pantothenicAcid: 'mg',
-  biotin: 'μg',
-  saturatedFattyAcids: 'g',
-  n6PolyunsaturatedFattyAcids: 'g',
-  n3PolyunsaturatedFattyAcids: 'g',
-  nacl: 'g',
-  potassium: 'mg',
-  calcium: 'mg',
-  magnesium: 'mg',
-  phosphorus: 'mg',
-  iron: 'mg',
-  zinc: 'mg',
-  copper: 'mg',
-  manganese: 'mg',
-  iodine: 'μg',
-  selenium: 'μg',
-  chromium: 'μg',
-  molybdenum: 'μg',
-};
 
 // 栄養素の基準値マッピング（一般的な1日の推奨摂取量の目安）
 const benchmarkMap: Record<keyof NutritionFactBase<number>, number> = {
@@ -122,6 +52,7 @@ const benchmarkMap: Record<keyof NutritionFactBase<number>, number> = {
 export default function NutritionCategoryBars({
   nutritionFacts,
   items,
+  messages,
 }: NutritionCategoryBarsProps) {
   // 最大値を計算して相対的なバーの長さを決定
   const maxValue = Math.max(
@@ -139,7 +70,7 @@ export default function NutritionCategoryBars({
         return (
           <div key={item} className="grid grid-cols-12 gap-2 items-center">
             <div className="col-span-3 text-sm font-medium text-gray-700">
-              {nameMap[item]}
+              {toTitleCase(messages[item])}
             </div>
             <div className="col-span-7">
               <div className="w-full bg-gray-200 rounded-full h-2.5">
@@ -159,7 +90,7 @@ export default function NutritionCategoryBars({
         );
       })}
       <div className="text-xs text-gray-500 mt-2">
-        * バーの長さは各カテゴリー内での相対値を表しています
+        * {messages['The bar length indicates relative score']}
       </div>
     </div>
   );

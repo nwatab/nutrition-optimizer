@@ -2,10 +2,15 @@ import { Locale } from '@/config';
 import { Leaf } from 'lucide-react';
 
 import UserInfoForm from './user-info-form';
-import { enUS, jaJP } from '@/locales';
+import { Message } from '@/locales';
 
-export function TopPage({ locale }: { locale: Locale }) {
-  const messages = locale === 'ja-JP' ? jaJP : enUS;
+export function TopPage({
+  locale,
+  messages,
+}: {
+  locale: Locale;
+  messages: Message;
+}) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-emerald-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-lg shadow-lg overflow-hidden">

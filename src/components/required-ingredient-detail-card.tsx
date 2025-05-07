@@ -1,60 +1,11 @@
+import { getNutrientUnit } from '@/lib/unitmap';
+import type { Message } from '@/locales';
 import type {
   ConstraintRange,
   FoodRequired,
   NutritionFactBase,
   NutritionTarget,
 } from '@/types/nutrition';
-
-const getNutrientUnit = (key: keyof NutritionFactBase<number>): string => {
-  const vitaminUnits: Record<string, string> = {
-    vitaminA: 'μg',
-    vitaminD: 'μg',
-    vitaminE: 'mg',
-    vitaminK: 'μg',
-    vitaminB1: 'mg',
-    vitaminB2: 'mg',
-    vitaminB6: 'mg',
-    vitaminB12: 'μg',
-    vitaminC: 'mg',
-    niacin: 'mg',
-    folate: 'μg',
-    pantothenicAcid: 'mg',
-    biotin: 'μg',
-  };
-
-  const mineralUnits: Record<string, string> = {
-    potassium: 'mg',
-    calcium: 'mg',
-    magnesium: 'mg',
-    phosphorus: 'mg',
-    iron: 'mg',
-    zinc: 'mg',
-    copper: 'mg',
-    manganese: 'mg',
-    iodine: 'μg',
-    selenium: 'μg',
-    chromium: 'μg',
-    molybdenum: 'μg',
-  };
-
-  const macroUnits: Record<string, string> = {
-    calories: 'kcal',
-    protein: 'g',
-    fat: 'g',
-    carbohydrates: 'g',
-    fiber: 'g',
-    saturatedFattyAcids: 'g',
-    n6PolyunsaturatedFattyAcids: 'g',
-    n3PolyunsaturatedFattyAcids: 'g',
-    nacl: 'g',
-  };
-
-  if (key in vitaminUnits) return vitaminUnits[key];
-  if (key in mineralUnits) return mineralUnits[key];
-  if (key in macroUnits) return macroUnits[key];
-
-  return '';
-};
 
 const calculatePercentage = (
   value: number,
@@ -74,9 +25,11 @@ const calculatePercentage = (
 export default function RequiredIngredientDetailCard({
   ingredient,
   referenceDailyIntakes,
+  messages,
 }: {
   ingredient: FoodRequired;
   referenceDailyIntakes: NutritionTarget;
+  messages: Message;
 }) {
   const renderNutrientRow = (key: string, value: number) => {
     const nutrientKey = key as keyof NutritionFactBase<number>;
@@ -130,13 +83,14 @@ export default function RequiredIngredientDetailCard({
       </h4>
       <p className="text-sm text-gray-500 mb-3">
         {(ingredient.hectoGrams * 100).toFixed(0)}g /{' '}
-        {ingredient.cost.toFixed(0)}円
+        {ingredient.cost.toFixed(0)}
+        {messages.yen}
       </p>
 
       <div className="space-y-2">
         <details className="group">
           <summary className="flex justify-between items-center font-medium cursor-pointer list-none">
-            <span className="text-sm text-emerald-600">詳細</span>
+            <span className="text-sm text-emerald-600">{messages.details}</span>
             <span className="transition group-open:rotate-180">
               <svg
                 fill="none"
@@ -156,7 +110,7 @@ export default function RequiredIngredientDetailCard({
             {/* 主要栄養素 */}
             <div className="mt-4">
               <h5 className="text-xs font-semibold text-emerald-700 mb-1">
-                主要栄養素
+                {messages.macronutrients}
               </h5>
               {Object.entries(ingredient.nutritionFacts)
                 .filter(([key]) =>
@@ -184,7 +138,7 @@ export default function RequiredIngredientDetailCard({
             {/* ビタミン */}
             <div className="mt-4">
               <h5 className="text-xs font-semibold text-emerald-700 mb-1">
-                ビタミン
+                {messages.vitamins}
               </h5>
               {Object.entries(ingredient.nutritionFacts)
                 .filter(([key]) => key.toLowerCase().includes('vitamin'))
@@ -213,7 +167,7 @@ export default function RequiredIngredientDetailCard({
             {/* ミネラル */}
             <div className="mt-4">
               <h5 className="text-xs font-semibold text-emerald-700 mb-1">
-                ミネラル
+                {messages.minerals}
               </h5>
               {Object.entries(ingredient.nutritionFacts)
                 .filter(([key]) =>
@@ -260,7 +214,7 @@ export default function RequiredIngredientDetailCard({
             {/* 脂質詳細 */}
             <div className="mt-4">
               <h5 className="text-xs font-semibold text-emerald-700 mb-1">
-                脂質詳細
+                {messages['fatty acids']}
               </h5>
               {Object.entries(ingredient.nutritionFacts)
                 .filter(([key]) =>

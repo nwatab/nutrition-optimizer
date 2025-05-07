@@ -4,17 +4,21 @@ import type {
   NutritionTarget,
 } from '@/types/nutrition';
 import { Card } from '@/components/ui/card';
+import { toTitleCase } from '@/utils';
+import { Message } from '@/locales';
 
 type NutritionSummaryProps = {
   totalCost: number;
   totalNutrition: NutritionFactBase<number>;
   target: NutritionTarget;
+  messages: Message;
 };
 
 export default function NutritionSummary({
   totalCost,
   totalNutrition,
   target,
+  messages,
 }: NutritionSummaryProps) {
   const calculateAchievement = (
     value: number,
@@ -84,30 +88,36 @@ export default function NutritionSummary({
 
   // 主要な栄養素の達成状況
   const keyNutrients = [
-    { name: 'カロリー', key: 'calories', unit: 'kcal' },
-    { name: 'タンパク質', key: 'protein', unit: 'g' },
-    { name: '脂質', key: 'fat', unit: 'g' },
-    { name: '炭水化物', key: 'carbohydrates', unit: 'g' },
-    { name: '食物繊維', key: 'fiber', unit: 'g' },
+    { name: messages['calories'], key: 'calories', unit: 'kcal' },
+    { name: messages.protein, key: 'protein', unit: 'g' },
+    { name: messages.fat, key: 'fat', unit: 'g' },
+    { name: messages.carbohydrates, key: 'carbohydrates', unit: 'g' },
+    { name: messages.fiber, key: 'fiber', unit: 'g' },
   ] as const;
 
   return (
     <Card className="p-6 backdrop-blur-sm bg-white/70 rounded-xl shadow-lg">
       <h2 className="text-2xl font-bold text-emerald-800 mb-4">
-        栄養摂取サマリー
+        {toTitleCase(messages['nutrition summary'])}
       </h2>
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
-          <p className="text-lg font-medium text-gray-700">総コスト</p>
+          <p className="text-lg font-medium text-gray-700">
+            {toTitleCase(messages['food total cost'])}
+          </p>
           <p className="text-3xl font-bold text-emerald-700">
             {totalCost.toLocaleString('ja-JP', { maximumFractionDigits: 0 })}
-            <span className="text-sm ml-2">円/日</span>
+            <span className="text-sm ml-2">
+              {messages.yen}/{messages.day}
+            </span>
           </p>
         </div>
 
         <div className="mt-6 md:mt-0">
-          <p className="text-lg font-medium text-gray-700">1日あたりの摂取量</p>
+          <p className="text-lg font-medium text-gray-700">
+            {messages['daily intake']}
+          </p>
         </div>
       </div>
 
@@ -163,7 +173,7 @@ export default function NutritionSummary({
               </div>
               <span className="text-xs text-gray-500 mt-1 block">
                 {achievement.status === 'optimal'
-                  ? '最適'
+                  ? messages['optimal']
                   : achievement.status === 'low'
                     ? '目標量を満たすが余裕はない'
                     : '過剰気味'}

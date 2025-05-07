@@ -3,7 +3,6 @@ import IngredientsListDetail from '@/components/ingredients-list-detail';
 import NutritionCategoryCharts from '@/components/nutrition-category-charts';
 import NutritionSummary from '@/components/nutrition-summary';
 
-import ThemeImage from '@/components/theme-image';
 import { appConfig } from '@/config';
 import type { Locale } from '@/config';
 import { enUS, jaJP } from '@/locales';
@@ -13,8 +12,6 @@ import {
   getReferenceDailyIntakes,
   getDailyCaloryGoal,
 } from '@/services';
-
-import Link from 'next/link';
 
 export async function generateStaticParams() {
   const sexes = ['male', 'female'] as const;
@@ -90,13 +87,15 @@ export default async function RecommendationPage({
             totalCost={totalCost}
             totalNutrition={totalNutritionFacts}
             target={referenceDailyIntakes}
+            messages={messages}
           />
 
           {/* 食材リスト */}
-          <IngredientsList ingredients={breakdown} />
+          <IngredientsList ingredients={breakdown} messages={messages} />
           <IngredientsListDetail
             ingredients={breakdown}
             referenceDailyIntakes={referenceDailyIntakes}
+            messages={messages}
           />
           {/* 栄養素カテゴリー別チャート */}
           <NutritionCategoryCharts

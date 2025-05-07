@@ -1,3 +1,4 @@
+import { unitMap } from '@/lib/unitmap';
 import type { NutritionFactBase } from '@/types/nutrition';
 
 type NutritionFactsTableProps = {
@@ -5,42 +6,6 @@ type NutritionFactsTableProps = {
 };
 
 // 栄養素の単位マッピング
-const unitMap: Record<keyof NutritionFactBase<number>, string> = {
-  calories: 'kcal',
-  protein: 'g',
-  fat: 'g',
-  carbohydrates: 'g',
-  fiber: 'g',
-  vitaminA: 'μg',
-  vitaminD: 'μg',
-  vitaminE: 'mg',
-  vitaminK: 'μg',
-  vitaminB1: 'mg',
-  vitaminB2: 'mg',
-  vitaminB6: 'mg',
-  vitaminB12: 'μg',
-  vitaminC: 'mg',
-  niacin: 'mg',
-  folate: 'μg',
-  pantothenicAcid: 'mg',
-  biotin: 'μg',
-  saturatedFattyAcids: 'g',
-  n6PolyunsaturatedFattyAcids: 'g',
-  n3PolyunsaturatedFattyAcids: 'g',
-  nacl: 'g',
-  potassium: 'mg',
-  calcium: 'mg',
-  magnesium: 'mg',
-  phosphorus: 'mg',
-  iron: 'mg',
-  zinc: 'mg',
-  copper: 'mg',
-  manganese: 'mg',
-  iodine: 'μg',
-  selenium: 'μg',
-  chromium: 'μg',
-  molybdenum: 'μg',
-};
 
 // 栄養素の日本語名マッピング
 const nameMap: Record<keyof NutritionFactBase<number>, string> = {

@@ -1,4 +1,6 @@
 import { Card } from '@/components/ui/card';
+import { unitMap } from '@/lib/unitmap';
+import type { Message } from '@/locales';
 import type {
   NutritionFactBase,
   FoodRequired,
@@ -9,35 +11,30 @@ type NutritionCategoryChartsProps = {
   totalNutrition: NutritionFactBase<number>;
   target: NutritionFactBase<ConstraintRange>;
   breakdown: FoodRequired[];
+  messages: Message;
 };
 
 export default function NutritionCategoryCharts({
   totalNutrition,
   target,
   breakdown,
+  messages,
 }: NutritionCategoryChartsProps) {
-  // 栄養素カテゴリー
-
-  // 以下で分けたい
-  //   　ビタミン（脂溶性ビタミン）［1.5MB］別ウィンドウで開く
-  // 　　ビタミン（水溶性ビタミン）［1.4MB］別ウィンドウで開く
-  // 　　ミネラル（多量ミネラル）［1.3MB］別ウィンドウで開く
-  // 　　ミネラル（微量ミネラル）［1.5MB］別ウィンドウで開く
   const categories = [
     {
       id: 'macros',
-      name: 'マクロ栄養素',
+      name: messages['macronutrients'],
       keys: ['calories', 'protein', 'fat', 'carbohydrates', 'fiber'],
     },
 
     {
       id: 'fat-soluble-vitamins',
-      name: '脂溶性ビタミン',
+      name: messages['fat-soluble vitamins'],
       keys: ['vitaminA', 'vitaminD', 'vitaminE', 'vitaminK'],
     },
     {
       id: 'water-soluble-vitamins',
-      name: '水溶性ビタミン',
+      name: messages['water-soluble vitamins'],
       keys: [
         'vitaminB1',
         'vitaminB2',
@@ -52,12 +49,12 @@ export default function NutritionCategoryCharts({
     },
     {
       id: 'macro-minerals',
-      name: '多量ミネラル',
+      name: messages['macro-minerals'],
       keys: ['potassium', 'calcium', 'magnesium', 'phosphorus', 'nacl'],
     },
     {
       id: 'trace-minerals',
-      name: '微量ミネラル',
+      name: messages['micro-minerals'],
       keys: [
         'iron',
         'zinc',
@@ -71,90 +68,14 @@ export default function NutritionCategoryCharts({
     },
     {
       id: 'fats',
-      name: '脂質詳細',
+      name: messages['fatty acids'],
       keys: [
         'saturatedFattyAcids',
         'n6PolyunsaturatedFattyAcids',
         'n3PolyunsaturatedFattyAcids',
       ],
     },
-  ];
-
-  // 栄養素の日本語名
-  const nutrientNames: Record<string, string> = {
-    calories: 'カロリー',
-    protein: 'タンパク質',
-    fat: '脂質',
-    fiber: '食物繊維',
-    vitaminB6: 'ビタミンB6',
-    vitaminB12: 'ビタミンB12',
-    vitaminC: 'ビタミンC',
-    saturatedFattyAcids: '飽和脂肪酸',
-    n6PolyunsaturatedFattyAcids: 'n-6系多価不飽和脂肪酸',
-    n3PolyunsaturatedFattyAcids: 'n-3系多価不飽和脂肪酸',
-    carbohydrates: '炭水化物',
-    vitaminA: 'ビタミンA',
-    vitaminD: 'ビタミンD',
-    vitaminE: 'ビタミンE',
-    vitaminK: 'ビタミンK',
-    vitaminB1: 'ビタミンB1',
-    vitaminB2: 'ビタミンB2',
-    niacin: 'ナイアシン',
-    folate: '葉酸',
-    pantothenicAcid: 'パントテン酸',
-    biotin: 'ビオチン',
-    nacl: '食塩相当量',
-    potassium: 'カリウム',
-    calcium: 'カルシウム',
-    magnesium: 'マグネシウム',
-    phosphorus: 'リン',
-    iron: '鉄',
-    zinc: '亜鉛',
-    copper: '銅',
-    manganese: 'マンガン',
-    iodine: 'ヨウ素',
-    selenium: 'セレン',
-    chromium: 'クロム',
-    molybdenum: 'モリブデン',
-  };
-
-  // 栄養素の単位
-  const nutrientUnits: Record<string, string> = {
-    calories: 'kcal',
-    protein: 'g',
-    fat: 'g',
-    fiber: 'g',
-    vitaminB6: 'mg',
-    vitaminB12: 'μg',
-    vitaminC: 'mg',
-    saturatedFattyAcids: 'g',
-    n6PolyunsaturatedFattyAcids: 'g',
-    n3PolyunsaturatedFattyAcids: 'g',
-    carbohydrates: 'g',
-    vitaminA: 'μg',
-    vitaminD: 'μg',
-    vitaminE: 'mg',
-    vitaminK: 'μg',
-    vitaminB1: 'mg',
-    vitaminB2: 'mg',
-    niacin: 'mg',
-    folate: 'μg',
-    pantothenicAcid: 'mg',
-    biotin: 'μg',
-    nacl: 'g',
-    potassium: 'mg',
-    calcium: 'mg',
-    magnesium: 'mg',
-    phosphorus: 'mg',
-    iron: 'mg',
-    zinc: 'mg',
-    copper: 'mg',
-    manganese: 'mg',
-    iodine: 'μg',
-    selenium: 'μg',
-    chromium: 'μg',
-    molybdenum: 'μg',
-  };
+  ] as const;
 
   /**
    * 達成率を計算する関数
@@ -210,7 +131,7 @@ export default function NutritionCategoryCharts({
   ];
 
   // 栄養素データを表示する関数
-  const renderNutrientData = (key: string) => {
+  const renderNutrientData = (key: keyof NutritionFactBase<number>) => {
     const nutrientKey = key as keyof NutritionFactBase<number>;
     const value = totalNutrition[nutrientKey];
     const targetValue =
@@ -232,25 +153,25 @@ export default function NutritionCategoryCharts({
         <div className="flex justify-between items-end">
           <div>
             <h3 className="text-lg font-medium text-emerald-800">
-              {nutrientNames[key] || key}
+              {messages[key] || key}
             </h3>
             <p className="text-sm text-gray-600">
               {value.toLocaleString('ja-JP', {
                 maximumFractionDigits: 1,
               })}
-              {nutrientUnits[key]}
+              {unitMap[key]}
               {'min' in targetValue &&
-                ` / 目標: ${targetValue.min.toFixed(1)}${nutrientUnits[key]}`}
+                ` / 目標: ${targetValue.min.toFixed(1)}${unitMap[key]}`}
               {'max' in targetValue &&
-                ` (上限: ${targetValue.max.toFixed(1)}${nutrientUnits[key]})`}
+                ` (上限: ${targetValue.max.toFixed(1)}${unitMap[key]})`}
             </p>
           </div>
           <div className="text-sm font-medium">
-            達成率: {Math.round(achievement)}%
+            {messages['achievement rate']}: {Math.round(achievement)}%
           </div>
         </div>
 
-        {/* 達成率バー */}
+        {/* {messages['achievement rate']}バー */}
         <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
           <div
             className={`h-2.5 rounded-full ${
@@ -273,7 +194,7 @@ export default function NutritionCategoryCharts({
                 key={`${key}-${index}`}
                 className={`${ingredientColors[index % ingredientColors.length]} h-full`}
                 style={{ width: `${contribution.percentage}%` }}
-                title={`${contribution.name}: ${contribution.value}${nutrientUnits[key]} (${Math.round(contribution.percentage)}%)`}
+                title={`${contribution.name}: ${contribution.value}${unitMap[key]} (${Math.round(contribution.percentage)}%)`}
               ></div>
             ))}
         </div>
@@ -306,7 +227,7 @@ export default function NutritionCategoryCharts({
   return (
     <Card className="p-6 backdrop-blur-sm bg-white/70 rounded-xl shadow-lg">
       <h2 className="text-2xl font-bold text-emerald-800 mb-4">
-        栄養素カテゴリー分析
+        {messages['nutrition categorical analysis']}
       </h2>
       <div className="flex flex-wrap gap-2 mb-6">
         {categories.map((category) => (

@@ -1,16 +1,20 @@
 import { Card } from '@/components/ui/card';
+import type { Message } from '@/locales';
 import type { FoodRequired } from '@/types/nutrition';
+import { capitalize, toTitleCase } from '@/utils';
 import Link from 'next/link';
 
 export default function IngredientsList({
   ingredients,
+  messages,
 }: {
   ingredients: FoodRequired[];
+  messages: Message;
 }) {
   return (
     <Card className="p-6 backdrop-blur-sm bg-white/70 rounded-xl shadow-lg">
       <h2 className="text-2xl font-bold text-emerald-800 mb-4">
-        最適化された食材リスト
+        {messages['Optimized list of food']}
       </h2>
 
       <div className="relative overflow-x-auto sm:rounded-lg">
@@ -23,49 +27,49 @@ export default function IngredientsList({
                     scope="col"
                     className="px-4 py-3 text-left text-xs font-medium text-emerald-700 uppercase tracking-wider whitespace-nowrap rounded-tl-lg"
                   >
-                    食材名
+                    {toTitleCase(messages['food name'])}
                   </th>
                   <th
                     scope="col"
                     className="px-4 py-3 text-left text-xs font-medium text-emerald-700 uppercase tracking-wider whitespace-nowrap sm:table-cell hidden"
                   >
-                    重量 (g)
+                    {toTitleCase(messages['food weight'])} (g)
                   </th>
                   <th
                     scope="col"
                     className="px-4 py-3 text-left text-xs font-medium text-emerald-700 uppercase tracking-wider whitespace-nowrap md:table-cell hidden"
                   >
-                    コスト (円)
+                    {messages['food cost']} ({messages['yen']})
                   </th>
                   <th
                     scope="col"
                     className="px-4 py-3 text-left text-xs font-medium text-emerald-700 uppercase tracking-wider whitespace-nowrap lg:table-cell hidden"
                   >
-                    カロリー
+                    {messages['calories']}
                   </th>
                   <th
                     scope="col"
                     className="px-4 py-3 text-left text-xs font-medium text-emerald-700 uppercase tracking-wider whitespace-nowrap hidden lg:table-cell"
                   >
-                    タンパク質
+                    {messages['protein']}
                   </th>
                   <th
                     scope="col"
                     className="px-4 py-3 text-left text-xs font-medium text-emerald-700 uppercase tracking-wider whitespace-nowrap hidden lg:table-cell"
                   >
-                    脂質
+                    {messages['fat']}
                   </th>
                   <th
                     scope="col"
                     className="px-4 py-3 text-left text-xs font-medium text-emerald-700 uppercase tracking-wider whitespace-nowrap hidden xl:table-cell"
                   >
-                    炭水化物
+                    {messages['carbohydrates']}
                   </th>
                   <th
                     scope="col"
                     className="px-4 py-3 text-left text-xs font-medium text-emerald-700 uppercase tracking-wider whitespace-nowrap hidden xl:table-cell rounded-tr-lg"
                   >
-                    食物繊維
+                    {messages['fiber']}
                   </th>
                 </tr>
               </thead>
@@ -115,7 +119,7 @@ export default function IngredientsList({
                           {ingredient.type === 'estat' ||
                           ingredient.type === 'manualPrice'
                             ? ingredient.nameInNutritionFacts
-                            : '栄養成分へ'}
+                            : capitalize(messages['to nutition factors'])}
                         </Link>
                       </div>
                     </td>
@@ -169,7 +173,7 @@ export default function IngredientsList({
               <tfoot>
                 <tr className="font-semibold text-emerald-800 bg-emerald-100/70">
                   <td className="px-4 py-3 whitespace-nowrap rounded-bl-lg">
-                    合計
+                    {capitalize(messages['total'])}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap hidden sm:table-cell">
                     {ingredients

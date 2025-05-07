@@ -9,7 +9,7 @@ export default function CostEfficiencyChart({
   nutritionPer100Yen,
   referenceDailyIntakes,
 }: CostEfficiencyChartProps) {
-  // コスト効率の高い栄養素を選択
+  // ToDo: コスト効率の高い栄養素を選択
 
   const keyNutrients: {
     key: keyof NutritionTarget;
