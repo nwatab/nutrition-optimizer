@@ -10,7 +10,7 @@ export function TopPage({ locale }: { locale: Locale }) {
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-emerald-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-lg shadow-lg overflow-hidden">
         {/* Card Header */}
-        <div className="text-center px-6 py-8">
+        <header className="text-center px-6 py-8">
           <div className="mx-auto bg-emerald-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
             <Leaf className="h-6 w-6 text-emerald-600" />
           </div>
@@ -24,7 +24,7 @@ export function TopPage({ locale }: { locale: Locale }) {
               ]
             }
           </p>
-        </div>
+        </header>
 
         {/* Card Content / Form */}
         <div className="px-6 pb-8">
