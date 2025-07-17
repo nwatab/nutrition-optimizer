@@ -15,19 +15,26 @@ import {
 
 export async function generateStaticParams() {
   const sexes = ['male', 'female'] as const;
-
-  const weights = ['50', '55'] as const; // [50,55,…,95]
+  const weights = ['50', '55', '60', '65', '70'] as const;
+  const heights = ['150', '160', '170'] as const;
+  const ages = ['25', '35', '45'] as const;
   const palCategories = ['low', 'normal', 'high'] as const;
 
   const filters = sexes.flatMap((sex) =>
     weights.flatMap((weight) =>
-      palCategories.flatMap((pal_category) =>
-        appConfig.i18n.flatMap((locale) => ({
-          sex,
-          weight,
-          pal_category,
-          locale,
-        }))
+      heights.flatMap((height) =>
+        ages.flatMap((age) =>
+          palCategories.flatMap((pal_category) =>
+            appConfig.i18n.flatMap((locale) => ({
+              sex,
+              weight,
+              height,
+              age,
+              pal_category,
+              locale,
+            }))
+          )
+        )
       )
     )
   );
@@ -41,6 +48,8 @@ export default async function RecommendationPage({
   params: Promise<{
     sex: 'male' | 'female';
     weight: string;
+    height: string;
+    age: string;
     pal_category: 'low' | 'normal' | 'high';
     locale: Locale;
   }>;
@@ -48,12 +57,14 @@ export default async function RecommendationPage({
   const foods = await loadFoodData();
   const params = await paramsPromise;
   const dailyCalory = getDailyCaloryGoal(
+    params.sex,
+    parseInt(params.age, 10),
     parseInt(params.weight, 10),
     params.pal_category
   );
   const referenceDailyIntakes = getReferenceDailyIntakes(
     params.sex,
-    0,
+    parseInt(params.age, 10),
     parseInt(params.weight, 10),
     dailyCalory
   );
@@ -76,13 +87,12 @@ export default async function RecommendationPage({
                 'This is the result of calculation of your diet for cost and nutrition'
               ]
             }
-            : {messages.male}, {messages['physical activity level']}{' '}
-            {messages['normal']}
+            : {messages[params.sex]}, {params.weight}kg, {params.height}cm, {params.age}{messages['years old']}, {messages['physical activity level']}{' '}
+            {messages[params.pal_category]} ({dailyCalory} kcal/日)
           </p>
         </header>
 
         <div className="grid gap-8">
-          {/* 総合サマリー */}
           <NutritionSummary
             totalCost={totalCost}
             totalNutrition={totalNutritionFacts}
@@ -90,18 +100,17 @@ export default async function RecommendationPage({
             messages={messages}
           />
 
-          {/* 食材リスト */}
           <IngredientsList ingredients={breakdown} messages={messages} />
           <IngredientsListDetail
             ingredients={breakdown}
             referenceDailyIntakes={referenceDailyIntakes}
             messages={messages}
           />
-          {/* 栄養素カテゴリー別チャート */}
           <NutritionCategoryCharts
             totalNutrition={totalNutritionFacts}
             target={referenceDailyIntakes}
             breakdown={breakdown}
+            messages={messages}
           />
         </div>
       </div>

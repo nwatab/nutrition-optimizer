@@ -1,5 +1,4 @@
 'use client';
-
 import { Locale } from '@/config';
 import { enUS, jaJP } from '@/locales';
 import { capitalize, toTitleCase } from '@/utils';
@@ -14,8 +13,10 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
     const form = e.currentTarget;
     const sex = form.sex.value;
     const weight = form.weight.value;
+    const height = form.height.value;
+    const age = form.age.value;
     const pal = form.pal.value;
-    router.push(`/${locale}/recommendations/${sex}/${weight}/${pal}`);
+    router.push(`/${locale}/recommendations/${sex}/${weight}/${height}/${age}/${pal}`);
   };
 
   return (
@@ -64,6 +65,58 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
           {Array.from({ length: 12 }, (_, i) => 40 + i * 5).map((w) => (
             <option key={w} value={String(w)}>
               {w} kg
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Height */}
+      <div>
+        <label
+          htmlFor="height"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          {toTitleCase(messages['height'])} (cm)
+        </label>
+        <select
+          id="height"
+          name="height"
+          required
+          className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-emerald-500 focus:border-emerald-500"
+          defaultValue=""
+        >
+          <option value="" disabled>
+            {toTitleCase(messages['select your height'])}
+          </option>
+          {Array.from({ length: 61 }, (_, i) => i + 140).map((height) => (
+            <option key={height} value={height}>
+              {height}cm
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Age */}
+      <div>
+        <label
+          htmlFor="age"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          {toTitleCase(messages['age'])}
+        </label>
+        <select
+          id="age"
+          name="age"
+          required
+          className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-emerald-500 focus:border-emerald-500"
+          defaultValue=""
+        >
+          <option value="" disabled>
+            {toTitleCase(messages['select your age'])}
+          </option>
+          {Array.from({ length: 83 }, (_, i) => i + 18).map((age) => (
+            <option key={age} value={age}>
+              {age}{messages['years old']}
             </option>
           ))}
         </select>
