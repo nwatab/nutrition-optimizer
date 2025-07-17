@@ -8,12 +8,12 @@ import { getReferenceDailyIntakes, loadFoodData } from '@/services';
 import { appConfig, Locale } from '@/config';
 import { enUS, jaJP } from '@/locales';
 
-export const generateStaticParams = async () => {
+export async function generateStaticParams() {
   const foods = await loadFoodData();
-  return foods.map((food) =>
+  return foods.flatMap((food) =>
     appConfig.i18n.map((locale) => ({ id: food.id, locale }))
   );
-};
+}
 
 export default async function FoodPage({
   params,
