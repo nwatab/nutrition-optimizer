@@ -59,10 +59,10 @@ export const getReferenceDailyIntakes = (
   calories: { equal: dailyCalory }, // kcal
   protein: { min: (dailyCalory * 0.13) / 4, max: (dailyCalory * 0.2) / 4 }, // g 13-20%エネルギー 目標。耐容上の指定なし。
   fat: { min: (dailyCalory * 0.2) / 9, max: (dailyCalory * 0.3) / 9 }, // g. 脂質単位gあたりのエネルギー = 9kcal/g.
-  saturatedFattyAcids: { max: (2700 * 0.07) / 9 }, // 9kcal/g
+  saturatedFattyAcids: { max: (dailyCalory * 0.07) / 9 }, // 9kcal/g
   n6PolyunsaturatedFattyAcids: { min: 11 }, // g
   n3PolyunsaturatedFattyAcids: { min: 2.2 }, // g
-  carbohydrates: { min: (2700 * 0.5) / 4, max: (2700 * 0.65) / 4 }, // 4kcal/g
+  carbohydrates: { min: (dailyCalory * 0.5) / 4, max: (dailyCalory * 0.65) / 4 }, // 4kcal/g
   fiber: { min: 29 }, // g • 少なくとも1日当たり25～29gの食物繊維の摂取が、様々な生活習慣病のリスク低下に寄与すると報告されているが、食物繊維摂取量と生活習慣病リスクとの間に明らかな閾値は存在しない。WHOのガイドラインなどを踏まえて、少なくとも1日当たり25gの食物繊維を摂取した方が良いと
   vitaminA: { min: 900, max: 2700 }, // μg
   vitaminD: { min: 9, max: 100 }, // μg
