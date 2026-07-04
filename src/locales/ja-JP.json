@@ -149,5 +149,20 @@
   "raw": "生",
   "as is": "そのまま",
   "compare page description": "選んだ栄養軸すべてで密度が高く、全コスト軸（円・CO2e・土地・水）で負荷が低い食材だけが「支配する」。矢印のない組（有機 vs 慣行など）は比較不能。",
-  "compare methodology note": "環境負荷は Poore & Nemecek (2018) の食材カテゴリ別世界平均値で、原産地差は未補正。コストは (円, CO2e, 土地, 水) のベクトルで、Pareto 表示では比較不能な組を保持する。残留農薬の健康影響は数値化せず「未評価」として扱う。"
+  "compare methodology note": "環境負荷は Poore & Nemecek (2018) の食材カテゴリ別世界平均値で、原産地差は未補正。コストは (円, CO2e, 土地, 水) のベクトルで、Pareto 表示では比較不能な組を保持する。残留農薬の健康影響は数値化せず「未評価」として扱う。",
+  "My plan": "おすすめ献立",
+  "Food database": "食品DB",
+  "Compare": "比較",
+  "Why these foods? See the rationale on the Hasse diagram": "なぜこの食材？根拠を Pareto 比較（Hasse図）で見る",
+  "Position in the cost-nutrition trade-off": "コスト・栄養トレードオフ上の位置",
+  "Foods that dominate this food": "この食材を支配する食材",
+  "Foods this food dominates": "この食材が支配する食材",
+  "On the Pareto front (not dominated by any food)": "Pareto フロント上（どの食材にも支配されない）",
+  "Incomparable with {count} foods (trade-off relations)": "{count} 食材とは比較不能（トレードオフ関係）",
+  "domination axes note": "軸: 可食部100gあたりの栄養密度（たんぱく質・食物繊維・ビタミンC）× コスト（円・CO2e・土地・水）。支配 = 全軸で同等以上かつ少なくとも1軸で厳密に良い。",
+  "See in the full Hasse diagram": "Hasse 図全体で見る",
+  "Highlighting {count} foods": "ハイライト中: {count} 食材",
+  "(none)": "なし",
+  "hasse orientation note": "上にある食材ほど優位。線は「上の食材が下の食材を支配する（全軸で同等以上・少なくとも1軸で厳密に良い）」ことを表し、線で結ばれていない組は比較不能。ノードをクリックすると食品詳細へ。",
+  "and {count} more": "ほか {count} 件"
 }

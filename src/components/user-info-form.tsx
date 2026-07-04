@@ -8,7 +8,9 @@ import {
   isChildSegment,
   palCategoriesFor,
   statusesFor,
+  PROFILE_STORAGE_KEY,
   type StatusSegment,
+  type StoredProfile,
 } from '@/config';
 import { type Sex } from '@/data';
 import { enUS, jaJP } from '@/locales';
@@ -50,6 +52,19 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
     const pal = palOptions.length === 1 ? palOptions[0] : form.pal.value;
     // 小児は参照体重を用いるため体重入力を使わず、静的生成と同じトークンを送る。
     const weight = isChild ? CHILD_WEIGHT_SEGMENT : form.weight.value;
+    // ナビの「おすすめ献立」が前回のページへ直接飛べるよう保存する
+    try {
+      const profile: StoredProfile = {
+        sex: sex as StoredProfile['sex'],
+        age,
+        weight,
+        pal,
+        status: effectiveStatus,
+      };
+      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
+    } catch {
+      // localStorage が使えない環境では保存を諦める
+    }
     router.push(
       `/${locale}/recommendations/${sex}/${age}/${weight}/${pal}/${effectiveStatus}`
     );

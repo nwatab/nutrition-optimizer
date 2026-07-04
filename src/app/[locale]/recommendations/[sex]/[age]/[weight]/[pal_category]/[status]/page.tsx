@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import IngredientsList from '@/components/ingredients-list';
 import IngredientsListDetail from '@/components/ingredients-list-detail';
 import NutritionCategoryCharts from '@/components/nutrition-category-charts';
@@ -131,6 +133,18 @@ export default async function RecommendationPage({
             messages={messages}
             locale={params.locale}
           />
+          {/* 選定根拠への導線: 選ばれた食材を Hasse 図上でハイライトする */}
+          <p className="-mt-4 text-center">
+            <Link
+              href={`/${params.locale}/compare?highlight=${breakdown
+                .map((ingredient) => encodeURIComponent(ingredient.id))
+                .join(',')}`}
+              className="text-sm text-emerald-700 underline hover:text-emerald-900"
+            >
+              {messages['Why these foods? See the rationale on the Hasse diagram']}{' '}
+              →
+            </Link>
+          </p>
           <IngredientsListDetail
             ingredients={breakdown}
             referenceDailyIntakes={referenceDailyIntakes}

@@ -15,6 +15,16 @@ import type { CompareNode, CostVector } from '@/services/environment';
 export const COST_AXES = ['yen', 'co2eKg', 'landM2', 'waterL'] as const;
 export type CostAxis = (typeof COST_AXES)[number];
 
+/**
+ * 比較 UI のデフォルト栄養軸。compare ページの初期選択と、
+ * 食品詳細ページの局所支配関係ビューで共有する。
+ */
+export const DEFAULT_COMPARE_NUTRIENT_KEYS: NutrientKey[] = [
+  'protein',
+  'fiber',
+  'vitaminC',
+];
+
 export const dominates = (
   x: CompareNode,
   y: CompareNode,

@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { Card } from '@/components/ui/card';
+import FoodDominationCard from '@/components/food-domination-card';
 import NutritionFactsTable from '@/components/nutrition-facts-table';
 import NutritionRadarChart from '@/components/nutrition-radar-chart';
 import CostEfficiencyChart from '@/components/cost-efficiency-chart';
@@ -178,6 +179,14 @@ export default async function FoodPage({
               </div>
             </div>
           </Card>
+
+          {/* コスト・栄養トレードオフ上の位置（局所半順序） */}
+          <FoodDominationCard
+            food={food}
+            foods={foods}
+            messages={messages}
+            locale={locale}
+          />
 
           {/* 栄養素レーダーチャートとコスト効率 */}
           <div className="grid md:grid-cols-2 gap-8">
