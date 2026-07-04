@@ -9,8 +9,9 @@ import { enUS, jaJP } from '@/locales';
 import {
   loadFoodData,
   optimizeDiet,
-  getReferenceDailyIntakes,
+  buildTarget,
   getDailyCaloryGoal,
+  toAgeBand,
 } from '@/services';
 
 export async function generateStaticParams() {
@@ -20,26 +21,31 @@ export async function generateStaticParams() {
   const ages = ['25', '35', '45'] as const;
   const palCategories = ['low', 'normal', 'high'] as const;
 
-  const filters = sexes.flatMap((sex) =>
+  return sexes.flatMap((sex) =>
     weights.flatMap((weight) =>
       heights.flatMap((height) =>
         ages.flatMap((age) =>
           palCategories.flatMap((pal_category) =>
-            appConfig.i18n.flatMap((locale) => ({
-              sex,
-              weight,
-              height,
-              age,
-              pal_category,
-              locale,
-            }))
+            // 月経ありは女性のみ生成する（男性では鉄の下限に影響しない）。
+            (sex === 'female'
+              ? (['none', 'present'] as const)
+              : (['none'] as const)
+            ).flatMap((menstruation) =>
+              appConfig.i18n.flatMap((locale) => ({
+                sex,
+                weight,
+                height,
+                age,
+                pal_category,
+                menstruation,
+                locale,
+              }))
+            )
           )
         )
       )
     )
   );
-
-  return filters;
 }
 
 export default async function RecommendationPage({
@@ -51,23 +57,29 @@ export default async function RecommendationPage({
     height: string;
     age: string;
     pal_category: 'low' | 'normal' | 'high';
+    menstruation: 'none' | 'present';
     locale: Locale;
   }>;
 }) {
   const foods = await loadFoodData();
   const params = await paramsPromise;
+
+  const age = parseInt(params.age, 10);
+  const weightKg = parseInt(params.weight, 10);
   const dailyCalory = getDailyCaloryGoal(
     params.sex,
-    parseInt(params.age, 10),
-    parseInt(params.weight, 10),
+    age,
+    weightKg,
     params.pal_category
   );
-  const referenceDailyIntakes = getReferenceDailyIntakes(
-    params.sex,
-    parseInt(params.age, 10),
-    parseInt(params.weight, 10),
-    dailyCalory
-  );
+  const referenceDailyIntakes = buildTarget({
+    ageBand: toAgeBand(age),
+    sex: params.sex,
+    weightKg,
+    pal: params.pal_category,
+    menstruation: params.menstruation === 'present',
+  });
+
   const { totalCost, totalNutritionFacts, breakdown } = optimizeDiet(
     foods,
     referenceDailyIntakes
@@ -87,7 +99,13 @@ export default async function RecommendationPage({
                 'This is the result of calculation of your diet for cost and nutrition'
               ]
             }
-            : {messages[params.sex]}, {params.weight}kg, {params.height}cm, {params.age}{messages['years old']}, {messages['physical activity level']}{' '}
+            : {messages[params.sex]}, {params.weight}kg, {params.height}cm,{' '}
+            {params.age}
+            {messages['years old']}
+            {params.menstruation === 'present'
+              ? `, ${messages['menstruating']}`
+              : ''}
+            , {messages['physical activity level']}{' '}
             {messages[params.pal_category]} ({dailyCalory} kcal/日)
           </p>
         </header>
