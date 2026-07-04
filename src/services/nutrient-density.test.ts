@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { NutritionFactBase } from '@/types/nutrition';
 import {
   density,
+  inq,
   PER_KCAL_MIN_CALORIES,
   type Basis,
   type FoodDensitySource,
@@ -173,5 +174,42 @@ describe('density', () => {
       'oil',
       'konnyaku',
     ]);
+  });
+});
+
+describe('inq', () => {
+  // 30〜49歳男性・60kg・ふつう相当の丸め値
+  const dailyEnergy = 2400;
+
+  it('充足率の比: (栄養素/1日量) ÷ (カロリー/1日エネルギー)', () => {
+    // ブロッコリー: カロリー充足率 37/2400、ビタミンC 充足率 140/100
+    expect(inq(broccoli.nutritionFacts, 'vitaminC', 100, dailyEnergy)).toBeCloseTo(
+      140 / 100 / (37 / 2400)
+    );
+  });
+
+  it('1 = カロリーに見合った量（比例配分で過不足なし）', () => {
+    // エネルギー比率と栄養素比率が同じ食材は INQ = 1
+    const balanced = makeNutritionFacts({ calories: 240, protein: 6.5 });
+    expect(inq(balanced, 'protein', 65, dailyEnergy)).toBeCloseTo(1);
+  });
+
+  it('高カロリー低栄養（油）は 1 未満、低カロリー高栄養（ブロッコリー）は 1 超', () => {
+    expect(inq(oil.nutritionFacts, 'protein', 65, dailyEnergy)).toBe(0);
+    expect(
+      inq(broccoli.nutritionFacts, 'protein', 65, dailyEnergy)!
+    ).toBeGreaterThan(1);
+    expect(
+      inq(soybean.nutritionFacts, 'vitaminC', 100, dailyEnergy)!
+    ).toBeLessThan(1);
+  });
+
+  it('エネルギー源にならない食材（こんにゃく等）は undefined', () => {
+    expect(inq(konnyaku.nutritionFacts, 'fiber', 21, dailyEnergy)).toBeUndefined();
+  });
+
+  it('1日量やエネルギーが 0 以下なら undefined', () => {
+    expect(inq(broccoli.nutritionFacts, 'vitaminC', 0, dailyEnergy)).toBeUndefined();
+    expect(inq(broccoli.nutritionFacts, 'vitaminC', 100, 0)).toBeUndefined();
   });
 });

@@ -49,3 +49,27 @@ export const density = (
     }
   }
 };
+
+/**
+ * INQ（Index of Nutritional Quality）＝ 栄養素の充足率 ÷ エネルギーの充足率。
+ * 「この食材だけで1日のエネルギー dailyEnergyKcal を摂ったとき、その栄養素は
+ * 1日量 dailyAmount の何倍になるか」。1 = カロリーに見合った量。
+ * 比の比なので、体格・活動量の個人差は %DRI 表示よりも相殺される。
+ *
+ * dailyAmount に下限（min）を渡せば「充足倍率」、上限（食塩の目標量上限など）を
+ * 渡せば 1 超過が「この食材だけでは上限を超える」という警告の意味になる。
+ *
+ * エネルギー源にならない食材（calories ≤ PER_KCAL_MIN_CALORIES）では
+ * 仮定自体が成立しないため undefined。
+ */
+export const inq = (
+  nutritionFacts: NutritionFactBase<number>,
+  nutrientKey: keyof NutritionFactBase<number>,
+  dailyAmount: number,
+  dailyEnergyKcal: number
+): number | undefined => {
+  const { calories } = nutritionFacts;
+  if (calories <= PER_KCAL_MIN_CALORIES) return undefined;
+  if (dailyAmount <= 0 || dailyEnergyKcal <= 0) return undefined;
+  return nutritionFacts[nutrientKey] / dailyAmount / (calories / dailyEnergyKcal);
+};
