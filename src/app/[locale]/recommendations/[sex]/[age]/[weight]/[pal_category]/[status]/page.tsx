@@ -6,8 +6,10 @@ import NutritionSummary from '@/components/nutrition-summary';
 import {
   appConfig,
   AGE_SEGMENTS,
+  CHILD_WEIGHT_SEGMENT,
   WEIGHT_OPTIONS_KG,
   isChildSegment,
+  palCategoriesFor,
   statusesFor,
   type StatusSegment,
 } from '@/config';
@@ -38,9 +40,9 @@ export async function generateStaticParams() {
       const ageBand = AGE_SEGMENTS[age];
       // 小児は参照体重を用いるため体重を掛け合わせない（区分ごとに1トークン）。
       const weights = isChildSegment(age)
-        ? [String(Math.round(childReferenceWeight[ageBand]!.male))]
+        ? [CHILD_WEIGHT_SEGMENT]
         : WEIGHT_OPTIONS_KG.map(String);
-      const palCategories: PalCategory[] = ['low', 'normal', 'high'];
+      const palCategories = palCategoriesFor(age);
       return weights.flatMap((weight) =>
         palCategories.flatMap((pal_category) =>
           statusesFor(sex, ageBand).flatMap((status) =>

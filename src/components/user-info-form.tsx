@@ -3,12 +3,14 @@
 import {
   Locale,
   AGE_SEGMENTS,
+  CHILD_WEIGHT_SEGMENT,
   WEIGHT_OPTIONS_KG,
   isChildSegment,
+  palCategoriesFor,
   statusesFor,
   type StatusSegment,
 } from '@/config';
-import { childReferenceWeight, type Sex } from '@/data';
+import { type Sex } from '@/data';
 import { enUS, jaJP } from '@/locales';
 import { capitalize, toTitleCase } from '@/utils';
 import { useRouter } from 'next/navigation';
@@ -39,15 +41,15 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
     [sex, ageBand]
   );
   const effectiveStatus = statusOptions.includes(status) ? status : 'none';
+  const palOptions = palCategoriesFor(age);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
-    const pal = form.pal.value;
+    // 1〜5歳は PAL が「ふつう」のみのため選択させず、静的生成と同じトークンを送る。
+    const pal = palOptions.length === 1 ? palOptions[0] : form.pal.value;
     // 小児は参照体重を用いるため体重入力を使わず、静的生成と同じトークンを送る。
-    const weight = isChild
-      ? String(Math.round(childReferenceWeight[ageBand]!.male))
-      : form.weight.value;
+    const weight = isChild ? CHILD_WEIGHT_SEGMENT : form.weight.value;
     router.push(
       `/${locale}/recommendations/${sex}/${age}/${weight}/${pal}/${effectiveStatus}`
     );
@@ -156,56 +158,58 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
         </div>
       )}
 
-      {/* Physical Activity Level */}
-      <div>
-        <label
-          htmlFor="pal"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          {toTitleCase(messages['physical activity level'])}
-        </label>
-        <select
-          id="pal"
-          name="pal"
-          required
-          className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-emerald-500 focus:border-emerald-500"
-          defaultValue=""
-        >
-          <option value="" disabled>
-            {messages['select your activity level']}
-          </option>
-          <option value="low">
-            {messages['low']} (
-            {
-              messages[
-                'When most of your daily life is spent sitting and your activities are predominantly static.'
-              ]
-            }
-            )
-          </option>
-          <option value="normal">
-            {messages['normal']} (
-            {
-              messages[
-                'Your work is mainly sedentary, but you also include any of the following: moving around or standing at work (e.g. serving), commuting, shopping, housework, or light sports.'
-              ]
-            }
-            )
-          </option>
-          <option value="high">
-            {messages['high']} (
-            {
-              messages[
-                'You have a job involving a lot of movement or standing, or you maintain an active exercise habit in your leisure time (e.g. regular sports).'
-              ]
-            }
-            )
-          </option>
-        </select>
-        <p className="mt-4 text-xs text-gray-500">
-          {messages['This helps us calculate your daily calorie needs.']}
-        </p>
-      </div>
+      {/* Physical Activity Level (hidden for ages 1-5; only 'normal' is defined) */}
+      {palOptions.length > 1 && (
+        <div>
+          <label
+            htmlFor="pal"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            {toTitleCase(messages['physical activity level'])}
+          </label>
+          <select
+            id="pal"
+            name="pal"
+            required
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-emerald-500 focus:border-emerald-500"
+            defaultValue=""
+          >
+            <option value="" disabled>
+              {messages['select your activity level']}
+            </option>
+            <option value="low">
+              {messages['low']} (
+              {
+                messages[
+                  'When most of your daily life is spent sitting and your activities are predominantly static.'
+                ]
+              }
+              )
+            </option>
+            <option value="normal">
+              {messages['normal']} (
+              {
+                messages[
+                  'Your work is mainly sedentary, but you also include any of the following: moving around or standing at work (e.g. serving), commuting, shopping, housework, or light sports.'
+                ]
+              }
+              )
+            </option>
+            <option value="high">
+              {messages['high']} (
+              {
+                messages[
+                  'You have a job involving a lot of movement or standing, or you maintain an active exercise habit in your leisure time (e.g. regular sports).'
+                ]
+              }
+              )
+            </option>
+          </select>
+          <p className="mt-4 text-xs text-gray-500">
+            {messages['This helps us calculate your daily calorie needs.']}
+          </p>
+        </div>
+      )}
 
       {/* Submit Button */}
       <button
