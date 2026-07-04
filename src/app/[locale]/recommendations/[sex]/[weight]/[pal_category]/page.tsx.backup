@@ -102,6 +102,7 @@ export default async function RecommendationPage({
             totalNutrition={totalNutritionFacts}
             target={referenceDailyIntakes}
             breakdown={breakdown}
+            messages={messages}
           />
         </div>
       </div>
