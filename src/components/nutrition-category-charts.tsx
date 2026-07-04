@@ -1,4 +1,5 @@
 import { Card } from '@/components/ui/card';
+import type { Locale } from '@/config';
 import { unitMap } from '@/lib/unitmap';
 import type { Message } from '@/locales';
 import type {
@@ -6,12 +7,14 @@ import type {
   FoodRequired,
   ConstraintRange,
 } from '@/types/nutrition';
+import { foodDisplayName } from '@/utils';
 
 type NutritionCategoryChartsProps = {
   totalNutrition: NutritionFactBase<number>;
   target: NutritionFactBase<ConstraintRange>;
   breakdown: FoodRequired[];
   messages: Message;
+  locale: Locale;
 };
 
 export default function NutritionCategoryCharts({
@@ -19,6 +22,7 @@ export default function NutritionCategoryCharts({
   target,
   breakdown,
   messages,
+  locale,
 }: NutritionCategoryChartsProps) {
   const categories = [
     {
@@ -142,7 +146,7 @@ export default function NutritionCategoryCharts({
     const contributions = breakdown.map((food) => {
       const nutrientValue = food.nutritionFacts[nutrientKey] || 0;
       return {
-        name: food.type === 'estat' ? food.nameInEstat : food.productName,
+        name: foodDisplayName(food, locale),
         value: nutrientValue,
         percentage: value > 0 ? (nutrientValue / value) * 100 : 0,
       };
@@ -161,9 +165,9 @@ export default function NutritionCategoryCharts({
               })}
               {unitMap[key]}
               {'min' in targetValue &&
-                ` / 目標: ${targetValue.min.toFixed(1)}${unitMap[key]}`}
+                ` / ${messages.target}: ${targetValue.min.toFixed(1)}${unitMap[key]}`}
               {'max' in targetValue &&
-                ` (上限: ${targetValue.max.toFixed(1)}${unitMap[key]})`}
+                ` (${messages['upper limit']}: ${targetValue.max.toFixed(1)}${unitMap[key]})`}
             </p>
           </div>
           <div className="text-sm font-medium">

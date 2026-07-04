@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 
 import { Card, CardContent } from '@/components/ui/card';
+import type { Locale } from '@/config';
 import type { Message } from '@/locales';
 import type { NutrientKey } from '@/services/diagnose';
 import {
@@ -57,10 +58,10 @@ const NUTRIENT_KEYS: NutrientKey[] = [
 const MIN_AXES = 2;
 const MAX_AXES = 5;
 
-const BASIS_LABELS: Record<Basis, string> = {
-  per100g: '可食部100gあたり',
-  perYen: '1円あたり',
-  perKcal: '1kcalあたり',
+const BASIS_LABELS: Record<Basis, keyof Message> = {
+  per100g: 'per 100 g edible portion',
+  perYen: 'per 1 yen',
+  perKcal: 'per 1 kcal',
 };
 
 /** Hasse 図の層。支配する側が上（層0 = どこからも支配されない）。 */
@@ -146,16 +147,20 @@ const HasseDiagram = ({
   const tooltip = (node: CompareNode): string =>
     [
       node.label,
-      `摂取形態: ${node.intakeForm} / 流通: 小売 / ${node.productionMethod === 'organic' ? '有機' : '慣行'}`,
+      `${messages['intake form']}: ${messages[node.intakeForm]} / ${messages.distribution}: ${messages.retail} / ${node.productionMethod === 'organic' ? messages.organic : messages.conventional}`,
       ...nutrientKeys.map(
         (key) => `${messages[key]}: ${node.nutrientDensity[key].toPrecision(3)}`
       ),
-      `円: ${node.costVector.yen.toPrecision(3)}`,
+      `${messages.yen}: ${node.costVector.yen.toPrecision(3)}`,
       `CO2e: ${node.costVector.co2eKg.toPrecision(3)} kg`,
-      `土地: ${node.costVector.landM2.toPrecision(3)} m²`,
-      `水: ${node.costVector.waterL.toPrecision(3)} L`,
+      `${messages.land}: ${node.costVector.landM2.toPrecision(3)} m²`,
+      `${messages.water}: ${node.costVector.waterL.toPrecision(3)} L`,
       ...(node.pesticideResidue
-        ? ['残留農薬: あり（健康影響 未評価）']
+        ? [
+            messages[
+              'pesticide residue: present (health impact not assessed)'
+            ],
+          ]
         : []),
     ].join('\n');
 
@@ -204,9 +209,11 @@ const HasseDiagram = ({
                 {organic ? ' 🌱' : ''}
               </text>
               <text x={6} y={27} fontSize={9} fill="#475569">
-                {node.intakeForm}
-                {dominated ? '・被支配' : ''}
-                {node.pesticideResidue ? '・残留農薬(未評価)' : ''}
+                {messages[node.intakeForm]}
+                {dominated ? ` / ${messages.dominated}` : ''}
+                {node.pesticideResidue
+                  ? ` / ${messages['pesticide residue (not assessed)']}`
+                  : ''}
               </text>
             </g>
           );
@@ -219,9 +226,11 @@ const HasseDiagram = ({
 const ScalarizedRanking = ({
   nodes,
   weights,
+  messages,
 }: {
   nodes: CompareNode[];
   weights: ScalarizationWeights;
+  messages: Message;
 }) => {
   const ranking = useMemo(
     () => rankByScalarizedCost(nodes, weights),
@@ -232,12 +241,20 @@ const ScalarizedRanking = ({
       <thead>
         <tr className="text-left text-emerald-800 border-b border-emerald-200">
           <th className="py-2 pr-2">#</th>
-          <th className="py-2 pr-2">食材</th>
-          <th className="py-2 pr-2 text-right">総コスト [円]</th>
-          <th className="py-2 pr-2 text-right">円</th>
-          <th className="py-2 pr-2 text-right">CO2e分 [円]</th>
-          <th className="py-2 pr-2 text-right">土地分 [円]</th>
-          <th className="py-2 pr-2 text-right">水分 [円]</th>
+          <th className="py-2 pr-2">{messages['food name']}</th>
+          <th className="py-2 pr-2 text-right">
+            {messages['total cost [yen]']}
+          </th>
+          <th className="py-2 pr-2 text-right">{messages.yen}</th>
+          <th className="py-2 pr-2 text-right">
+            {messages['CO2e share [yen]']}
+          </th>
+          <th className="py-2 pr-2 text-right">
+            {messages['land share [yen]']}
+          </th>
+          <th className="py-2 pr-2 text-right">
+            {messages['water share [yen]']}
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -248,12 +265,16 @@ const ScalarizedRanking = ({
               {truncate(node.label, 24)}
               {node.productionMethod === 'organic' && (
                 <span className="ml-1 rounded bg-green-100 px-1 text-xs text-green-700">
-                  有機
+                  {messages.organic}
                 </span>
               )}
               {node.pesticideResidue && (
                 <span className="ml-1 rounded bg-amber-100 px-1 text-xs text-amber-700">
-                  残留農薬: あり（健康影響 未評価）
+                  {
+                    messages[
+                      'pesticide residue: present (health impact not assessed)'
+                    ]
+                  }
                 </span>
               )}
             </td>
@@ -282,9 +303,11 @@ const ScalarizedRanking = ({
 export default function FoodComparison({
   foods,
   messages,
+  locale,
 }: {
   foods: FoodToOptimize[];
   messages: Message;
+  locale: Locale;
 }) {
   const [basis, setBasis] = useState<Basis>('per100g');
   const [mode, setMode] = useState<'pareto' | 'scalarized'>('pareto');
@@ -305,9 +328,9 @@ export default function FoodComparison({
   const nodes = useMemo(
     () =>
       foods
-        .map((food) => toCompareNode(food, basis))
+        .map((food) => toCompareNode(food, basis, locale))
         .filter((node): node is CompareNode => node !== null),
-    [foods, basis]
+    [foods, basis, locale]
   );
 
   const toggleNutrientKey = (key: NutrientKey) =>
@@ -337,12 +360,14 @@ export default function FoodComparison({
                       : 'text-emerald-700'
                   }`}
                 >
-                  {m === 'pareto' ? 'Pareto（Hasse図）' : 'スカラー化'}
+                  {m === 'pareto'
+                    ? messages['Pareto (Hasse diagram)']
+                    : messages.scalarized}
                 </button>
               ))}
             </div>
             <label className="text-sm text-emerald-800">
-              分母:{' '}
+              {messages.denominator}:{' '}
               <select
                 value={basis}
                 onChange={(event) => setBasis(event.target.value as Basis)}
@@ -350,19 +375,24 @@ export default function FoodComparison({
               >
                 {(Object.keys(BASIS_LABELS) as Basis[]).map((b) => (
                   <option key={b} value={b}>
-                    {BASIS_LABELS[b]}
+                    {messages[BASIS_LABELS[b]]}
                   </option>
                 ))}
               </select>
             </label>
             <span className="text-xs text-gray-500">
-              対象 {nodes.length} ノード（この分母で密度が定義できない食材は除外）
+              {messages[
+                '{count} nodes (foods without a defined density on this basis are excluded)'
+              ].replace('{count}', String(nodes.length))}
             </span>
           </div>
 
           <fieldset>
             <legend className="text-sm font-medium text-emerald-800 mb-2">
-              栄養軸（{MIN_AXES}〜{MAX_AXES}個選択・現在 {nutrientKeys.length}個）
+              {messages['nutrient axes (select {min}-{max}, currently {count})']
+                .replace('{min}', String(MIN_AXES))
+                .replace('{max}', String(MAX_AXES))
+                .replace('{count}', String(nutrientKeys.length))}
             </legend>
             <div className="flex flex-wrap gap-x-4 gap-y-1">
               {NUTRIENT_KEYS.map((key) => {
@@ -393,9 +423,9 @@ export default function FoodComparison({
             <div className="grid gap-2 md:grid-cols-3">
               {(
                 [
-                  ['yenPerKgCo2e', 'p_co2 [円/kg-CO2e]', 100],
-                  ['yenPerM2Land', 'p_land [円/m²]', 20],
-                  ['yenPerLWater', 'p_water [円/L]', 1],
+                  ['yenPerKgCo2e', `p_co2 [${messages.yen}/kg-CO2e]`, 100],
+                  ['yenPerM2Land', `p_land [${messages.yen}/m²]`, 20],
+                  ['yenPerLWater', `p_water [${messages.yen}/L]`, 1],
                 ] as const
               ).map(([field, label, max]) => (
                 <label key={field} className="text-sm text-gray-700">
@@ -430,13 +460,14 @@ export default function FoodComparison({
               messages={messages}
             />
           ) : (
-            <ScalarizedRanking nodes={nodes} weights={weights} />
+            <ScalarizedRanking
+              nodes={nodes}
+              weights={weights}
+              messages={messages}
+            />
           )}
           <p className="mt-4 text-xs text-gray-500">
-            環境負荷は Poore & Nemecek (2018)
-            の食材カテゴリ別世界平均値で、原産地差は未補正。コストは (円,
-            CO2e, 土地, 水) のベクトルで、Pareto
-            表示では比較不能な組を保持する。残留農薬の健康影響は数値化せず「未評価」として扱う。
+            {messages['compare methodology note']}
           </p>
         </CardContent>
       </Card>

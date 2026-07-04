@@ -175,8 +175,8 @@ export default function NutritionSummary({
                 {achievement.status === 'optimal'
                   ? messages['optimal']
                   : achievement.status === 'low'
-                    ? '目標量を満たすが余裕はない'
-                    : '過剰気味'}
+                    ? messages['meets the target with little margin']
+                    : messages['slightly excessive']}
               </span>
             </div>
           );

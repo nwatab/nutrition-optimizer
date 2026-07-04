@@ -7,6 +7,7 @@ import NutritionCategoryBars from '@/components/nutrition-category-bars';
 import { getReferenceDailyIntakes, loadFoodData } from '@/services';
 import { appConfig, Locale } from '@/config';
 import { enUS, jaJP } from '@/locales';
+import { foodDisplayName, foodNutritionFactsName } from '@/utils';
 
 export async function generateStaticParams() {
   const foods = await loadFoodData();
@@ -32,9 +33,12 @@ export default async function FoodPage({
 
   // 主要栄養素カテゴリー
   const categories = [
-    { name: 'マクロ栄養素', items: ['protein', 'fat', 'carbohydrates'] },
     {
-      name: 'ビタミン',
+      name: messages.macronutrients,
+      items: ['protein', 'fat', 'carbohydrates'],
+    },
+    {
+      name: messages.vitamins,
       items: [
         'vitaminA',
         'vitaminB1',
@@ -48,11 +52,11 @@ export default async function FoodPage({
       ],
     },
     {
-      name: 'ミネラル',
+      name: messages.minerals,
       items: ['calcium', 'iron', 'potassium', 'magnesium', 'zinc'],
     },
     {
-      name: '脂肪酸',
+      name: messages['fatty acids'],
       items: [
         'saturatedFattyAcids',
         'n6PolyunsaturatedFattyAcids',
@@ -75,9 +79,8 @@ export default async function FoodPage({
       <div className="container mx-auto px-4 py-8">
         <header className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-emerald-800 mb-2">
-            {'nameInNutritionFacts' in food
-              ? food.nameInNutritionFacts
-              : food.productName}
+            {foodNutritionFactsName(food, locale) ??
+              foodDisplayName(food, locale)}
           </h1>
           <p className="text-emerald-600">
             {'shokuhinbangou' in food ? (
@@ -87,7 +90,7 @@ export default async function FoodPage({
                 rel="noopener noreferrer"
                 className="font-medium text-emerald-600 hover:text-emerald-800 hover:underline"
               >
-                食品番号:{food.shokuhinbangou}
+                {messages['Food item number']}:{food.shokuhinbangou}
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="12"
@@ -108,8 +111,9 @@ export default async function FoodPage({
             ) : (
               ''
             )}{' '}
-            • 可食部100gあたり{' '}
-            {food.cost.toLocaleString('ja-JP', { maximumFractionDigits: 1 })}円
+            • {messages['per 100 g edible portion']}{' '}
+            {food.cost.toLocaleString(locale, { maximumFractionDigits: 1 })}
+            {messages.yen}
           </p>
         </header>
 
@@ -119,29 +123,31 @@ export default async function FoodPage({
             <div className="flex flex-col gap-6">
               <div>
                 <h2 className="text-2xl font-bold text-emerald-800 mb-4">
-                  栄養価概要
+                  {messages['Nutrition overview']}
                 </h2>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500">カロリー</p>
+                    <p className="text-sm text-gray-500">{messages.calories}</p>
                     <p className="text-2xl font-bold text-emerald-700">
                       {food.nutritionFacts.calories.toFixed(0)} kcal
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">タンパク質</p>
+                    <p className="text-sm text-gray-500">{messages.protein}</p>
                     <p className="text-2xl font-bold text-emerald-700">
                       {food.nutritionFacts.protein.toFixed(1)} g
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">脂質</p>
+                    <p className="text-sm text-gray-500">{messages.fat}</p>
                     <p className="text-2xl font-bold text-emerald-700">
                       {food.nutritionFacts.fat.toFixed(1)} g
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">炭水化物</p>
+                    <p className="text-sm text-gray-500">
+                      {messages.carbohydrates}
+                    </p>
                     <p className="text-2xl font-bold text-emerald-700">
                       {food.nutritionFacts.carbohydrates.toFixed(1)} g
                     </p>
@@ -150,20 +156,20 @@ export default async function FoodPage({
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-emerald-800 mb-4">
-                  コスト効率
+                  {messages['Cost efficiency']}
                 </h2>
                 <p className="text-sm text-gray-600 mb-2">
-                  100円あたりの主要栄養素
+                  {messages['Key nutrients per 100 yen']}
                 </p>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500">カロリー</p>
+                    <p className="text-sm text-gray-500">{messages.calories}</p>
                     <p className="text-2xl font-bold text-emerald-700">
                       {nutritionPer100Yen.calories.toFixed(0)} kcal
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">タンパク質</p>
+                    <p className="text-sm text-gray-500">{messages.protein}</p>
                     <p className="text-2xl font-bold text-emerald-700">
                       {nutritionPer100Yen.protein.toFixed(1)} g
                     </p>
@@ -177,25 +183,27 @@ export default async function FoodPage({
           <div className="grid md:grid-cols-2 gap-8">
             <Card className="p-6 backdrop-blur-sm bg-white/70 rounded-xl shadow-lg">
               <h2 className="text-2xl font-bold text-emerald-800 mb-4">
-                栄養バランス
+                {messages['Nutrition balance']}
               </h2>
               <div className="h-80">
                 <NutritionRadarChart
                   nutritionFacts={food.nutritionFacts}
                   referenceDailyIntakes={referenceDailyIntakes}
+                  messages={messages}
                 />
               </div>
             </Card>
 
             <Card className="p-6 backdrop-blur-sm bg-white/70 rounded-xl shadow-lg">
               <h2 className="text-2xl font-bold text-emerald-800 mb-4">
-                コスト効率
+                {messages['Cost efficiency']}
               </h2>
               <div className="h-80">
                 <CostEfficiencyChart
                   nutritionFacts={food.nutritionFacts}
                   cost={food.cost}
                   referenceDailyIntakes={referenceDailyIntakes}
+                  messages={messages}
                 />
               </div>
             </Card>
@@ -204,7 +212,7 @@ export default async function FoodPage({
           {/* 栄養素カテゴリー別バー */}
           <Card className="p-6 backdrop-blur-sm bg-white/70 rounded-xl shadow-lg">
             <h2 className="text-2xl font-bold text-emerald-800 mb-4">
-              栄養素カテゴリー
+              {messages['Nutrient categories']}
             </h2>
             <div className="space-y-6">
               {categories.map((category) => (
@@ -227,9 +235,12 @@ export default async function FoodPage({
           {/* 詳細な栄養成分表 */}
           <Card className="p-6 backdrop-blur-sm bg-white/70 rounded-xl shadow-lg">
             <h2 className="text-2xl font-bold text-emerald-800 mb-4">
-              栄養成分詳細 (100gあたり)
+              {messages['Nutrition facts (per 100 g)']}
             </h2>
-            <NutritionFactsTable nutritionFacts={food.nutritionFacts} />
+            <NutritionFactsTable
+              nutritionFacts={food.nutritionFacts}
+              messages={messages}
+            />
           </Card>
         </div>
       </div>

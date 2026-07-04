@@ -3,60 +3,65 @@ import IngredientsListDetail from '@/components/ingredients-list-detail';
 import NutritionCategoryCharts from '@/components/nutrition-category-charts';
 import NutritionSummary from '@/components/nutrition-summary';
 
-import { appConfig } from '@/config';
+import { appConfig, AGE_SEGMENTS, WEIGHT_OPTIONS_KG } from '@/config';
 import type { Locale } from '@/config';
+import { PalCategory, Sex } from '@/data';
 import { enUS, jaJP } from '@/locales';
-import {
-  loadFoodData,
-  optimizeDiet,
-  getReferenceDailyIntakes,
-  getDailyCaloryGoal,
-} from '@/services';
+import { loadFoodData, optimizeDiet, buildTarget } from '@/services';
 
 export async function generateStaticParams() {
   const sexes = ['male', 'female'] as const;
-
-  const weights = ['50', '55'] as const; // [50,55,…,95]
+  const ages = Object.keys(AGE_SEGMENTS);
+  const weights = WEIGHT_OPTIONS_KG.map(String);
   const palCategories = ['low', 'normal', 'high'] as const;
 
-  const filters = sexes.flatMap((sex) =>
-    weights.flatMap((weight) =>
-      palCategories.flatMap((pal_category) =>
-        appConfig.i18n.flatMap((locale) => ({
-          sex,
-          weight,
-          pal_category,
-          locale,
-        }))
+  return sexes.flatMap((sex) =>
+    ages.flatMap((age) =>
+      weights.flatMap((weight) =>
+        palCategories.flatMap((pal_category) =>
+          // 月経ありは女性のみ生成する（男性では鉄の下限に影響しない）。
+          (sex === 'female'
+            ? (['none', 'present'] as const)
+            : (['none'] as const)
+          ).flatMap((menstruation) =>
+            appConfig.i18n.flatMap((locale) => ({
+              sex,
+              age,
+              weight,
+              pal_category,
+              menstruation,
+              locale,
+            }))
+          )
+        )
       )
     )
   );
-
-  return filters;
 }
 
 export default async function RecommendationPage({
   params: paramsPromise,
 }: {
   params: Promise<{
-    sex: 'male' | 'female';
+    sex: Sex;
+    age: string;
     weight: string;
-    pal_category: 'low' | 'normal' | 'high';
+    pal_category: PalCategory;
+    menstruation: 'none' | 'present';
     locale: Locale;
   }>;
 }) {
   const foods = await loadFoodData();
   const params = await paramsPromise;
-  const dailyCalory = getDailyCaloryGoal(
-    parseInt(params.weight, 10),
-    params.pal_category
-  );
-  const referenceDailyIntakes = getReferenceDailyIntakes(
-    params.sex,
-    0,
-    parseInt(params.weight, 10),
-    dailyCalory
-  );
+
+  const referenceDailyIntakes = buildTarget({
+    ageBand: AGE_SEGMENTS[params.age] ?? '30-49',
+    sex: params.sex,
+    weightKg: parseInt(params.weight, 10),
+    pal: params.pal_category,
+    menstruation: params.menstruation === 'present',
+  });
+
   const { totalCost, totalNutritionFacts, breakdown } = optimizeDiet(
     foods,
     referenceDailyIntakes
@@ -76,8 +81,8 @@ export default async function RecommendationPage({
                 'This is the result of calculation of your diet for cost and nutrition'
               ]
             }
-            : {messages.male}, {messages['physical activity level']}{' '}
-            {messages['normal']}
+            : {messages[params.sex]}, {messages['physical activity level']}{' '}
+            {messages[params.pal_category]}
           </p>
         </header>
 
@@ -91,11 +96,16 @@ export default async function RecommendationPage({
           />
 
           {/* 食材リスト */}
-          <IngredientsList ingredients={breakdown} messages={messages} />
+          <IngredientsList
+            ingredients={breakdown}
+            messages={messages}
+            locale={params.locale}
+          />
           <IngredientsListDetail
             ingredients={breakdown}
             referenceDailyIntakes={referenceDailyIntakes}
             messages={messages}
+            locale={params.locale}
           />
           {/* 栄養素カテゴリー別チャート */}
           <NutritionCategoryCharts
@@ -103,6 +113,7 @@ export default async function RecommendationPage({
             target={referenceDailyIntakes}
             breakdown={breakdown}
             messages={messages}
+            locale={params.locale}
           />
         </div>
       </div>

@@ -12,6 +12,8 @@ import type {
   NutritionFactBase,
   ProductionMethod,
 } from '@/types/nutrition';
+import type { Locale } from '@/config';
+import { foodDisplayName } from '@/utils';
 
 /**
  * 食材を Poore & Nemecek (2018) の環境負荷カテゴリへ対応付ける。
@@ -106,14 +108,25 @@ export const productionMethodOf = (food: FoodToOptimize): ProductionMethod =>
     ? 'organic'
     : 'conventional';
 
-const intakeFormKeywords = ['ゆで', '焼き', '乾', '生'] as const;
+export type IntakeForm = 'boiled' | 'roasted' | 'dried' | 'raw' | 'as is';
+
+// 判定は日本語の成分表名称に対して行い、表示用のキーを返す（UI 側で翻訳する）。
+const intakeFormKeywords: [string, IntakeForm][] = [
+  ['ゆで', 'boiled'],
+  ['焼き', 'roasted'],
+  ['乾', 'dried'],
+  ['生', 'raw'],
+];
 
 /**
  * 摂取形態。日本食品標準成分表の名称（「ゆで」「生」「乾」等）から推定する。
  */
-export const intakeFormOf = (food: FoodToOptimize): string => {
+export const intakeFormOf = (food: FoodToOptimize): IntakeForm => {
   const name = food.type === 'manual' ? food.productName : food.nameInNutritionFacts;
-  return intakeFormKeywords.find((keyword) => name.includes(keyword)) ?? 'そのまま';
+  return (
+    intakeFormKeywords.find(([keyword]) => name.includes(keyword))?.[1] ??
+    'as is'
+  );
 };
 
 /**
@@ -135,7 +148,7 @@ export type CompareNode = {
   id: string;
   label: string;
   foodId: string;
-  intakeForm: string;
+  intakeForm: IntakeForm;
   /** 現状の価格データはすべて小売価格 */
   distributionStage: 'retail';
   productionMethod: ProductionMethod;
@@ -173,7 +186,8 @@ const basisDenominatorPer100g = (
  */
 export const toCompareNode = (
   food: FoodToOptimize,
-  basis: Basis
+  basis: Basis,
+  locale: Locale = 'ja-JP'
 ): CompareNode | null => {
   const denominator = basisDenominatorPer100g(food, basis);
   if (denominator === undefined) return null;
@@ -197,7 +211,7 @@ export const toCompareNode = (
 
   return {
     id: food.id,
-    label: displayNameOf(food),
+    label: foodDisplayName(food, locale),
     foodId: food.id,
     intakeForm: intakeFormOf(food),
     distributionStage: 'retail',

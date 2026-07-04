@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import type { Message } from '@/locales';
 import type { NutritionFactBase, NutritionTarget } from '@/types/nutrition';
 import { density, type Basis } from '@/services/nutrient-density';
 
@@ -14,12 +15,13 @@ type CostEfficiencyChartProps = {
    */
   cost: number;
   referenceDailyIntakes: NutritionTarget;
+  messages: Message;
 };
 
 const basisOptions: {
   basis: Basis;
-  label: string;
-  description: string;
+  label: keyof Message;
+  description: keyof Message;
   /**
    * density は per100g / 1円あたり / 1kcalあたり を返すため、
    * 表示単位（100円・100kcal）に合わせて掛ける係数
@@ -28,20 +30,20 @@ const basisOptions: {
 }[] = [
   {
     basis: 'perYen',
-    label: '100円あたり',
-    description: '100円あたりの栄養素量（基準値に対する割合）',
+    label: 'per 100 yen',
+    description: 'Nutrients per 100 yen relative to daily reference',
     displayScale: 100,
   },
   {
     basis: 'per100g',
-    label: '100gあたり',
-    description: '可食部100gあたりの栄養素量（基準値に対する割合）',
+    label: 'per 100 g',
+    description: 'Nutrients per 100 g relative to daily reference',
     displayScale: 1,
   },
   {
     basis: 'perKcal',
-    label: '100kcalあたり',
-    description: '100kcalあたりの栄養素量（基準値に対する割合）',
+    label: 'per 100 kcal',
+    description: 'Nutrients per 100 kcal relative to daily reference',
     displayScale: 100,
   },
 ];
@@ -50,6 +52,7 @@ export default function CostEfficiencyChart({
   nutritionFacts,
   cost,
   referenceDailyIntakes,
+  messages,
 }: CostEfficiencyChartProps) {
   const [basis, setBasis] = useState<Basis>('perYen');
   // ToDo: コスト効率の高い栄養素を選択
@@ -61,27 +64,27 @@ export default function CostEfficiencyChart({
   }[] = [
     {
       key: 'protein',
-      name: 'タンパク質 (g)',
+      name: `${messages.protein} (g)`,
       reference: referenceDailyIntakes.protein.min,
     },
     {
       key: 'calories',
-      name: 'カロリー (kcal)',
+      name: `${messages.calories} (kcal)`,
       reference: referenceDailyIntakes.calories.equal,
     },
     {
       key: 'vitaminC',
-      name: 'ビタミンC (mg)',
+      name: `${messages.vitaminC} (mg)`,
       reference: referenceDailyIntakes.vitaminC.min,
     },
     {
       key: 'calcium',
-      name: 'カルシウム (mg)',
+      name: `${messages.calcium} (mg)`,
       reference: referenceDailyIntakes.calcium.min,
     },
     {
       key: 'iron',
-      name: '鉄分 (mg)',
+      name: `${messages.iron} (mg)`,
       reference: referenceDailyIntakes.iron.min,
     },
   ];
@@ -91,7 +94,11 @@ export default function CostEfficiencyChart({
 
   return (
     <div className="w-full h-full">
-      <div className="flex gap-2 mb-2" role="group" aria-label="コスト分母">
+      <div
+        className="flex gap-2 mb-2"
+        role="group"
+        aria-label={messages['cost basis']}
+      >
         {basisOptions.map((option) => (
           <button
             key={option.basis}
@@ -103,11 +110,13 @@ export default function CostEfficiencyChart({
                 : 'bg-white text-gray-600 border-gray-300 hover:border-emerald-400'
             }`}
           >
-            {option.label}
+            {messages[option.label]}
           </button>
         ))}
       </div>
-      <p className="text-sm text-gray-600 mb-4">{selectedOption.description}</p>
+      <p className="text-sm text-gray-600 mb-4">
+        {messages[selectedOption.description]}
+      </p>
       <div className="space-y-6">
         {keyNutrients.map((nutrient) => {
           const densityValue = density(
@@ -125,7 +134,11 @@ export default function CostEfficiencyChart({
                   <span className="text-sm text-gray-400">—</span>
                 </div>
                 <p className="text-xs text-gray-400">
-                  カロリーが微小のため、この分母では比較できません
+                  {
+                    messages[
+                      'Calories are negligible, so this basis is not comparable'
+                    ]
+                  }
                 </p>
               </div>
             );
@@ -162,7 +175,7 @@ export default function CostEfficiencyChart({
         })}
       </div>
       <p className="text-xs text-gray-500 mt-4">
-        * 基準値は一般的な成人が1日に必要な目安量
+        {messages['* Reference values are daily requirements for a typical adult']}
       </p>
     </div>
   );

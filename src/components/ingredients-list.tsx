@@ -1,15 +1,23 @@
 import { Card } from '@/components/ui/card';
+import type { Locale } from '@/config';
 import type { Message } from '@/locales';
 import type { FoodRequired } from '@/types/nutrition';
-import { capitalize, toTitleCase } from '@/utils';
+import {
+  capitalize,
+  foodDisplayName,
+  foodNutritionFactsName,
+  toTitleCase,
+} from '@/utils';
 import Link from 'next/link';
 
 export default function IngredientsList({
   ingredients,
   messages,
+  locale,
 }: {
   ingredients: FoodRequired[];
   messages: Message;
+  locale: Locale;
 }) {
   return (
     <Card className="p-6 backdrop-blur-sm bg-white/70 rounded-xl shadow-lg">
@@ -85,7 +93,7 @@ export default function IngredientsList({
                       <div className="flex flex-col gap-1">
                         {ingredient.type === 'estat' ? (
                           <span className="text-sm font-normal text-emerald-600 line-clamp-2 break-words">
-                            {ingredient.nameInEstat}
+                            {foodDisplayName(ingredient, locale)}
                           </span>
                         ) : (
                           <Link
@@ -94,7 +102,7 @@ export default function IngredientsList({
                             target="_blank"
                           >
                             <span className="line-clamp-2 pr-1">
-                              {ingredient.productName}
+                              {foodDisplayName(ingredient, locale)}
                             </span>
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -116,10 +124,8 @@ export default function IngredientsList({
                           href={`/foods/${ingredient.id}`}
                           className="text-xs font-medium text-emerald-600 hover:text-emerald-800 hover:underline break-words"
                         >
-                          {ingredient.type === 'estat' ||
-                          ingredient.type === 'manualPrice'
-                            ? ingredient.nameInNutritionFacts
-                            : capitalize(messages['to nutition factors'])}
+                          {foodNutritionFactsName(ingredient, locale) ??
+                            capitalize(messages['to nutition factors'])}
                         </Link>
                       </div>
                     </td>

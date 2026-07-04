@@ -7,5 +7,6 @@ export * from './optimizer';
 export * from './shadow-price';
 export * from './targetAmount';
 export * from './readNutriantFromExcel';
+export * from './readEnglishNameFromExcel';
 export * from './readPriceFromExcel';
 export * from './load-food-data';

@@ -22,17 +22,6 @@ export type BuildTargetParams = {
 };
 
 /**
- * 年齢（歳）を報告書の成人年齢帯に丸める。17歳以下は最小の成人区分に丸める（スコープ外の暫定）。
- */
-export const toAgeBand = (age: number): AgeBand => {
-  if (age < 30) return '18-29';
-  if (age < 50) return '30-49';
-  if (age < 65) return '50-64';
-  if (age < 75) return '65-74';
-  return '75+';
-};
-
-/**
  * 推定エネルギー必要量 EER（kcal/日）= 基礎代謝基準値 × 体重 × 身体活動レベル。
  * 体重に比例する。
  */
@@ -57,19 +46,6 @@ const gramsFromEnergyPercent = (
   percent: number,
   kcalPerGram: number
 ): number => (energyKcal * percent) / kcalPerGram;
-
-/**
- * 目標エネルギー（kcal/日）。EER = 基礎代謝基準値 × 体重 × PAL を丸めた値。
- */
-export const getDailyCaloryGoal = (
-  sex: Sex,
-  age: number,
-  weight: number,
-  palCategory: PalCategory
-): number =>
-  Math.round(
-    estimateEnergyRequirement(toAgeBand(age), sex, weight, palCategory)
-  );
 
 /**
  * buildTarget: 年齢帯・性別・体重・PAL・月経有無から NutritionTarget を組み立てる。
@@ -146,6 +122,27 @@ export const buildTarget = ({
     iron,
   };
 };
+
+/**
+ * 年齢（歳）を報告書の成人年齢帯に丸める。17歳以下は最小の成人区分に丸める（スコープ外の暫定）。
+ */
+export const toAgeBand = (age: number): AgeBand => {
+  if (age < 30) return '18-29';
+  if (age < 50) return '30-49';
+  if (age < 65) return '50-64';
+  if (age < 75) return '65-74';
+  return '75+';
+};
+
+/**
+ * 目標エネルギー（kcal/日）。EER と同一。
+ */
+export const getDailyCaloryGoal = (
+  weightKg: number,
+  palCategory: PalCategory,
+  ageBand: AgeBand = '30-49',
+  sex: Sex = 'male'
+): number => estimateEnergyRequirement(ageBand, sex, weightKg, palCategory);
 
 /**
  * 後方互換のための薄いラッパー。旧シグネチャ (sex, age, weight, _dailyCalory) を

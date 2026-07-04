@@ -1,4 +1,5 @@
 import { getNutrientUnit } from '@/lib/unitmap';
+import type { Locale } from '@/config';
 import type { Message } from '@/locales';
 import type {
   ConstraintRange,
@@ -6,6 +7,7 @@ import type {
   NutritionFactBase,
   NutritionTarget,
 } from '@/types/nutrition';
+import { foodDisplayName, foodNutritionFactsName } from '@/utils';
 
 const calculatePercentage = (
   value: number,
@@ -26,10 +28,12 @@ export default function RequiredIngredientDetailCard({
   ingredient,
   referenceDailyIntakes,
   messages,
+  locale,
 }: {
   ingredient: FoodRequired;
   referenceDailyIntakes: NutritionTarget;
   messages: Message;
+  locale: Locale;
 }) {
   const renderNutrientRow = (key: string, value: number) => {
     const nutrientKey = key as keyof NutritionFactBase<number>;
@@ -50,7 +54,7 @@ export default function RequiredIngredientDetailCard({
         key={key}
         className={`flex justify-between items-center ${rowClassName}`}
       >
-        <span className="text-gray-600">{key}</span>
+        <span className="text-gray-600">{messages[nutrientKey]}</span>
         <div className="flex space-x-3">
           <span>
             {value.toFixed(1)} {getNutrientUnit(nutrientKey)}
@@ -69,17 +73,9 @@ export default function RequiredIngredientDetailCard({
       className="p-4 bg-white/80 rounded-lg shadow"
     >
       <h4 className="font-medium text-emerald-700 mb-2">
-        {ingredient.type === 'estat'
-          ? ingredient.nameInEstat +
-            ' (' +
-            ingredient.nameInNutritionFacts +
-            ')'
-          : ingredient.type === 'manualPrice'
-            ? ingredient.productName +
-              ' (' +
-              ingredient.nameInNutritionFacts +
-              ')'
-            : ingredient.productName}
+        {foodDisplayName(ingredient, locale)}
+        {foodNutritionFactsName(ingredient, locale) &&
+          ` (${foodNutritionFactsName(ingredient, locale)})`}
       </h4>
       <p className="text-sm text-gray-500 mb-3">
         {(ingredient.hectoGrams * 100).toFixed(0)}g /{' '}

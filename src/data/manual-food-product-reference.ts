@@ -2,6 +2,10 @@ import { NutritionFactBase } from '@/types/nutrition';
 
 type FoodProductDataReference = {
   name: string;
+  /**
+   * 商品の英語表示名。原文が日本語の商品名のため手動で併記する。
+   */
+  nameEn: string;
   price: number;
   productMassGram: number;
   massForNutritionGram: number;
@@ -16,6 +20,7 @@ type FoodProductDataReference = {
 export const foodProductDataReferences: FoodProductDataReference[] = [
   {
     name: 'HEMP STYLE 有機 ヘンププロテイン パウダー 非加熱 オーガニック カナダ産 栄養管理士監修 1kg(1000g)',
+    nameEn: 'HEMP STYLE organic hemp protein powder, 1 kg (Canada)',
     price: 5500,
     productMassGram: 1000,
     massForNutritionGram: 20,
@@ -67,6 +72,7 @@ export const foodProductDataReferences: FoodProductDataReference[] = [
   },
   {
     name: '金芽ロウカット玄米 4kg（2kg×2袋） 【送料無料】',
+    nameEn: 'Kinmemai Low-Cut brown rice, 4 kg (2 kg × 2)',
     price: 3900 + 0,
     productMassGram: 4000,
     massForNutritionGram: 100,
@@ -113,6 +119,7 @@ export const foodProductDataReferences: FoodProductDataReference[] = [
   },
   {
     name: 'アリサン ニュートリショナルイースト',
+    nameEn: 'Alishan nutritional yeast, 400 g',
     price: 2380 + 0,
     productMassGram: 400,
     massForNutritionGram: 16,
@@ -157,6 +164,7 @@ export const foodProductDataReferences: FoodProductDataReference[] = [
   },
   {
     name: 'ダノンジャパン アルプロ オーツミルク 砂糖不使用 1000ml×6本 たっぷり食物繊維',
+    nameEn: 'Danone Alpro oat milk, unsweetened, 1 L × 6',
     price: 2634 + 0,
     productMassGram: 6000, // およそ
     massForNutritionGram: 100,
@@ -201,6 +209,7 @@ export const foodProductDataReferences: FoodProductDataReference[] = [
   },
   {
     name: '【送料込み】アーモンドミルク　砂糖不使用 (常温保存可能品) 1000ml <1ケース(6本入り)>',
+    nameEn: 'Almond milk, unsweetened, 1 L × 6',
     price: 2912 + 0,
     productMassGram: 6000, // およそ
     massForNutritionGram: 200,
@@ -246,6 +255,7 @@ export const foodProductDataReferences: FoodProductDataReference[] = [
   },
   {
     name: '前田家 無添加 ローストかぼちゃの種 無塩 無油 素焼き サクッと香ばしい コレステロールゼロ ヘルシー食材 パンプキンシード 食用 ハロウィン 送料無料 MAEDAYA 母の日',
+    nameEn: 'Maedaya roasted pumpkin seeds, unsalted, 500 g',
     price: 1380 + 0,
     productMassGram: 500,
     massForNutritionGram: 100,

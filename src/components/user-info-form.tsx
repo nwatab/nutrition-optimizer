@@ -1,5 +1,6 @@
 'use client';
-import { Locale } from '@/config';
+
+import { Locale, AGE_SEGMENTS, WEIGHT_OPTIONS_KG } from '@/config';
 import { enUS, jaJP } from '@/locales';
 import { capitalize, toTitleCase } from '@/utils';
 import { useRouter } from 'next/navigation';
@@ -12,14 +13,13 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
     e.preventDefault();
     const form = e.currentTarget;
     const sex = form.sex.value;
-    const weight = form.weight.value;
-    const height = form.height.value;
     const age = form.age.value;
+    const weight = form.weight.value;
     const pal = form.pal.value;
     const menstruation =
       sex === 'female' && form.menstruation.checked ? 'present' : 'none';
     router.push(
-      `/${locale}/recommendations/${sex}/${weight}/${height}/${age}/${pal}/${menstruation}`
+      `/${locale}/recommendations/${sex}/${age}/${weight}/${pal}/${menstruation}`
     );
   };
 
@@ -48,6 +48,42 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
         </select>
       </div>
 
+      {/* Age band */}
+      <div>
+        <label
+          htmlFor="age"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          {toTitleCase(messages['age'])}
+        </label>
+        <select
+          id="age"
+          name="age"
+          required
+          className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-emerald-500 focus:border-emerald-500"
+          defaultValue="30"
+        >
+          {Object.entries(AGE_SEGMENTS).map(([segment, band]) => (
+            <option key={segment} value={segment}>
+              {band.replace('-', '–')}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Menstruation (affects iron requirement for females) */}
+      <div className="flex items-center gap-2">
+        <input
+          id="menstruation"
+          name="menstruation"
+          type="checkbox"
+          className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+        />
+        <label htmlFor="menstruation" className="text-sm text-gray-700">
+          {messages['menstruating']}
+        </label>
+      </div>
+
       {/* Weight */}
       <div>
         <label
@@ -66,77 +102,12 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
           <option value="" disabled>
             {messages['select your weight']}
           </option>
-          {Array.from({ length: 12 }, (_, i) => 40 + i * 5).map((w) => (
+          {WEIGHT_OPTIONS_KG.map((w) => (
             <option key={w} value={String(w)}>
               {w} kg
             </option>
           ))}
         </select>
-      </div>
-
-      {/* Height */}
-      <div>
-        <label
-          htmlFor="height"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          {toTitleCase(messages['height'])} (cm)
-        </label>
-        <select
-          id="height"
-          name="height"
-          required
-          className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-emerald-500 focus:border-emerald-500"
-          defaultValue=""
-        >
-          <option value="" disabled>
-            {toTitleCase(messages['select your height'])}
-          </option>
-          {Array.from({ length: 61 }, (_, i) => i + 140).map((height) => (
-            <option key={height} value={height}>
-              {height}cm
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Age */}
-      <div>
-        <label
-          htmlFor="age"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          {toTitleCase(messages['age'])}
-        </label>
-        <select
-          id="age"
-          name="age"
-          required
-          className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-emerald-500 focus:border-emerald-500"
-          defaultValue=""
-        >
-          <option value="" disabled>
-            {toTitleCase(messages['select your age'])}
-          </option>
-          {Array.from({ length: 83 }, (_, i) => i + 18).map((age) => (
-            <option key={age} value={age}>
-              {age}{messages['years old']}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Menstruation (affects iron requirement for females) */}
-      <div className="flex items-center gap-2">
-        <input
-          id="menstruation"
-          name="menstruation"
-          type="checkbox"
-          className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-        />
-        <label htmlFor="menstruation" className="text-sm text-gray-700">
-          {messages['menstruating']}
-        </label>
       </div>
 
       {/* Physical Activity Level */}

@@ -1,4 +1,5 @@
 import { Card } from '@/components/ui/card';
+import type { Locale } from '@/config';
 import type { FoodRequired, NutritionTarget } from '@/types/nutrition';
 import RequiredIngredientDetailCard from './required-ingredient-detail-card';
 import type { Message } from '@/locales';
@@ -7,10 +8,12 @@ export default function IngredientsListDetail({
   ingredients,
   referenceDailyIntakes,
   messages,
+  locale,
 }: {
   ingredients: FoodRequired[];
   referenceDailyIntakes: NutritionTarget;
   messages: Message;
+  locale: Locale;
 }) {
   return (
     <Card className="p-6 backdrop-blur-sm bg-white/70 rounded-xl shadow-lg">
@@ -31,6 +34,7 @@ export default function IngredientsListDetail({
               ingredient={ingredient}
               referenceDailyIntakes={referenceDailyIntakes}
               messages={messages}
+              locale={locale}
             />
           ))}
         </div>
