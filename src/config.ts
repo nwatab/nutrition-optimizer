@@ -105,3 +105,18 @@ export const statusesFor = (
 // next/image with `unoptimized` does not prepend basePath, so public
 // assets referenced by absolute path must include it themselves.
 export const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+
+/**
+ * フォーム入力（リコメンド URL のセグメント）の localStorage 保存先。
+ * ナビの「おすすめ献立」が前回のプロフィールのページへ直接飛ぶために参照する。
+ */
+export const PROFILE_STORAGE_KEY = 'nutrition-optimizer.profile';
+
+/** 保存するプロフィール。値はすべて URL セグメントの文字列。 */
+export type StoredProfile = {
+  sex: Sex;
+  age: string;
+  weight: string;
+  pal: PalCategory;
+  status: StatusSegment;
+};

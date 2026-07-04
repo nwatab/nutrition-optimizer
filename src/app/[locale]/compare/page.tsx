@@ -1,3 +1,5 @@
+import { Suspense } from 'react';
+
 import FoodComparison from '@/components/food-comparison';
 import { appConfig, type Locale } from '@/config';
 import { enUS, jaJP } from '@/locales';
@@ -29,11 +31,14 @@ export default async function ComparePage({
             {messages['compare page description']}
           </p>
         </header>
-        <FoodComparison
-          foods={foods}
-          messages={messages}
-          locale={params.locale}
-        />
+        {/* useSearchParams（?highlight=）を使うため Suspense 境界が必要 */}
+        <Suspense>
+          <FoodComparison
+            foods={foods}
+            messages={messages}
+            locale={params.locale}
+          />
+        </Suspense>
       </div>
     </div>
   );
