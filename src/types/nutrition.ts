@@ -81,7 +81,7 @@ export type EstatPriceFoodData = {
   nameInNutritionFacts: string;
   shokuhinbangou: string;
   /**
-   * 100gあたりの金額
+   * 可食部100gあたりの金額 [円]（廃棄率補正済み）
    */
   cost: number;
   /**
@@ -94,7 +94,7 @@ export type ManualPriceFoodData = {
   nameInNutritionFacts: string;
   shokuhinbangou: string;
   /**
-   * 100gあたりの金額
+   * 可食部100gあたりの金額 [円]（廃棄率補正済み）
    */
   cost: number;
   /**
@@ -114,7 +114,7 @@ export type ManualFoodData = {
    */
   nutritionFacts: NutritionFactBase<number>;
   /**
-   * 100gあたりの金額
+   * 可食部100gあたりの金額 [円]（廃棄率補正済み）
    */
   cost: number;
   /**

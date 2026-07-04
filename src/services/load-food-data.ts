@@ -9,6 +9,7 @@ import {
 } from '@/data';
 
 import {
+  edibleCostPer100,
   getNutriantsFromExcelWorkbook,
   makeReadPriceFromExcelData,
   readExcelWorkbook,
@@ -79,9 +80,16 @@ export const loadFoodData = async (): Promise<FoodToOptimize[]> => {
           `Estat mass not found for ${estatId} (name: ${priceData.name})`
         );
       }
-      const pricePer100 = (priceOfProduct / estatMass) * 100;
-      const { name: nutritionFactName, nutritionFacts: nutriantRawFacts } =
-        readNutritionFacts(shokuhinbangou);
+      const {
+        name: nutritionFactName,
+        nutritionFacts: nutriantRawFacts,
+        refuseRate,
+      } = readNutritionFacts(shokuhinbangou);
+      const pricePer100 = edibleCostPer100(
+        priceOfProduct,
+        estatMass,
+        refuseRate
+      );
       const nutriantValuesWithoutNull = parseNutritionsRaw(nutriantRawFacts);
 
       return {
@@ -95,9 +103,16 @@ export const loadFoodData = async (): Promise<FoodToOptimize[]> => {
   );
   const manualPriceIngredentData: ManualPriceFoodData[] =
     foodIngredientDataReference.map((food) => {
-      const pricePer100 = (food.price / food.massGram) * 100;
-      const { name: nameInNutritionFacts, nutritionFacts: nutritionRawFacts } =
-        readNutritionFacts(food.shokuhinbangou);
+      const {
+        name: nameInNutritionFacts,
+        nutritionFacts: nutritionRawFacts,
+        refuseRate,
+      } = readNutritionFacts(food.shokuhinbangou);
+      const pricePer100 = edibleCostPer100(
+        food.price,
+        food.massGram,
+        refuseRate
+      );
       const nutriantValuesWithoutNull = parseNutritionsRaw(nutritionRawFacts);
       return {
         nutritionFacts: nutriantValuesWithoutNull,
@@ -116,11 +131,12 @@ export const loadFoodData = async (): Promise<FoodToOptimize[]> => {
         price,
         productMassGram,
         massForNutritionGram,
+        refuseRate,
         name,
         url,
         nutritionFacts,
       } = food;
-      const pricePer100g = (price / productMassGram) * 100;
+      const pricePer100g = edibleCostPer100(price, productMassGram, refuseRate);
       // nutriantValuesの値を100/massForNutritionGram倍する
       const nutrientFactsPer100 = Object.fromEntries(
         Object.entries(nutritionFacts).map(([key, value]) => [

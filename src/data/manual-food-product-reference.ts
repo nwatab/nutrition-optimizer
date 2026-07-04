@@ -5,6 +5,10 @@ type FoodProductDataReference = {
   price: number;
   productMassGram: number;
   massForNutritionGram: number;
+  /**
+   * 廃棄率 [%]。成分表と対応しない商品のため、各エントリに明示値を持つ。
+   */
+  refuseRate: number;
   url: string;
   nutritionFacts: NutritionFactBase<number>;
 };
@@ -15,6 +19,7 @@ export const foodProductDataReferences: FoodProductDataReference[] = [
     price: 5500,
     productMassGram: 1000,
     massForNutritionGram: 20,
+    refuseRate: 0, // 粉末製品のため廃棄部位なし
     url: 'https://www.amazon.co.jp/%E3%83%98%E3%83%B3%E3%83%97%E3%83%97%E3%83%AD%E3%83%86%E3%82%A4%E3%83%B3-%E6%A4%8D%E7%89%A9%E6%80%A7%E3%83%97%E3%83%AD%E3%83%86%E3%82%A4%E3%83%B3-100%EF%BC%85%E3%82%AB%E3%83%8A%E3%83%80%E7%94%A3-%E3%82%B9%E3%83%BC%E3%83%91%E3%83%BC%E3%83%95%E3%83%BC%E3%83%89-protein/dp/B08HKX5VZ7/ref=sr_1_2_sspa?dib=eyJ2IjoiMSJ9.O8MzzLOvPXe6582pkqM95_rNNAI5dDWgymMREVEsb9ijSsvJLf8M0xqo7uTs0VXq46P9SA3-TeBxFh35fN30oOHlpVXQ2kpSNA-JB8X7X7S6t3DZFtarrIgynuE0wioGbBQ9QaPoclKr3Ug96lLkm33OyAEynkXmJSCOep63fWiQ08j52zeDEWOqFMLCzhL_y4i22mAam0YbhggpfJ4P3BpdDKRjsKs4fGUTFe9zW42kmgccWsJnh1OWD1UUIQ16C1FQeMPNtD8aDNsj6JwvMaUTXJ89ftISjbgGiZwWino.miuHbSJFdPNVTvFAizH93am-rd9rBC6qbp4QKz7tk7Q&dib_tag=se&keywords=%E3%83%98%E3%83%B3%E3%83%97%E3%83%97%E3%83%AD%E3%83%86%E3%82%A4%E3%83%B3&qid=1743427922&sr=8-2-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY&psc=1',
 
     // 提供されたデータから取得した値
@@ -65,6 +70,7 @@ export const foodProductDataReferences: FoodProductDataReference[] = [
     price: 3900 + 0,
     productMassGram: 4000,
     massForNutritionGram: 100,
+    refuseRate: 0, // 精米済みのため廃棄部位なし
     url: 'https://www.toyorice.jp/c/item/5000010400',
     // 炊く前（お米の状態）／エネルギー354kcal、たんぱく質5.6g、脂質2.5g、炭水化物76.2g（糖質72.7g、食物繊維3.5g）、食塩相当量0g
     nutritionFacts: {
@@ -110,6 +116,7 @@ export const foodProductDataReferences: FoodProductDataReference[] = [
     price: 2380 + 0,
     productMassGram: 400,
     massForNutritionGram: 16,
+    refuseRate: 0, // 粉末製品のため廃棄部位なし
     url: 'https://item.rakuten.co.jp/keyroom-hida/keyroom-10000318/',
     nutritionFacts: {
       calories: 60,
@@ -153,6 +160,7 @@ export const foodProductDataReferences: FoodProductDataReference[] = [
     price: 2634 + 0,
     productMassGram: 6000, // およそ
     massForNutritionGram: 100,
+    refuseRate: 0, // 飲料のため廃棄部位なし
     url: 'https://www.amazon.co.jp/dp/B09TQ7SQCK?th=1',
     nutritionFacts: {
       calories: 43,
@@ -196,6 +204,7 @@ export const foodProductDataReferences: FoodProductDataReference[] = [
     price: 2912 + 0,
     productMassGram: 6000, // およそ
     massForNutritionGram: 200,
+    refuseRate: 0, // 飲料のため廃棄部位なし
     url: 'https://shop.kyusyu-nyugyo.co.jp/i/AlmondMilk1l6p2',
     nutritionFacts: {
       calories: 56,
@@ -240,6 +249,7 @@ export const foodProductDataReferences: FoodProductDataReference[] = [
     price: 1380 + 0,
     productMassGram: 500,
     massForNutritionGram: 100,
+    refuseRate: 0, // むき身のパンプキンシードのため廃棄部位なし
     url: 'https://item.rakuten.co.jp/maedayahonpo/pumpkinseeds-500',
     nutritionFacts: {
       // https://fdc.nal.usda.gov/food-details/170188/nutrients
