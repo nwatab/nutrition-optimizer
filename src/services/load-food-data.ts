@@ -203,6 +203,23 @@ export const loadFoodData = async (): Promise<FoodToOptimize[]> => {
     })),
   ];
 
+  // id は名前由来のハッシュなので、参照データに同じ食材が二重登録されると衝突する。
+  // React の key 重複などにつながるため、ビルド時に落として登録ミスを検知する。
+  const duplicateIds = foods
+    .map((food) => food.id)
+    .filter((id, index, ids) => ids.indexOf(id) !== index);
+  if (duplicateIds.length > 0) {
+    const duplicates = foods
+      .filter((food) => duplicateIds.includes(food.id))
+      .map((food) =>
+        'nameInEstat' in food ? food.nameInEstat : food.productName
+      );
+    throw new Error(
+      `Duplicate food ids detected: ${[...new Set(duplicates)].join(', ')}. ` +
+        'Check for duplicate entries in src/data.'
+    );
+  }
+
   cachedData = foods;
   return foods;
 };

@@ -220,10 +220,6 @@ export const crossFoodReference: CrossFoodDataReference[] = [
     shokuhinbangou: '06236',
   },
   {
-    estatId: 1502, // りんご
-    shokuhinbangou: '07176',
-  },
-  {
     estatId: 1511, // みかん
     shokuhinbangou: '07027',
   },
