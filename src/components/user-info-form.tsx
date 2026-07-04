@@ -1,25 +1,55 @@
 'use client';
 
-import { Locale, AGE_SEGMENTS, WEIGHT_OPTIONS_KG } from '@/config';
+import {
+  Locale,
+  AGE_SEGMENTS,
+  WEIGHT_OPTIONS_KG,
+  isChildSegment,
+  statusesFor,
+  type StatusSegment,
+} from '@/config';
+import { childReferenceWeight, type Sex } from '@/data';
 import { enUS, jaJP } from '@/locales';
 import { capitalize, toTitleCase } from '@/utils';
 import { useRouter } from 'next/navigation';
+import { useMemo, useState } from 'react';
+
+const STATUS_LABEL_KEY: Record<StatusSegment, keyof typeof enUS> = {
+  none: 'not menstruating or pregnant',
+  menstruation: 'menstruating',
+  'pregnancy-early': 'pregnancy (first trimester)',
+  'pregnancy-mid': 'pregnancy (second trimester)',
+  'pregnancy-late': 'pregnancy (third trimester)',
+  lactation: 'lactating',
+};
 
 export default function UserInfoForm({ locale }: { locale: Locale }) {
   const router = useRouter();
   const messages = locale === 'ja-JP' ? jaJP : enUS;
 
+  const [sex, setSex] = useState<'' | Sex>('');
+  const [age, setAge] = useState('30');
+  const [status, setStatus] = useState<StatusSegment>('none');
+
+  const isChild = isChildSegment(age);
+  const ageBand = AGE_SEGMENTS[age];
+  // 妊娠・授乳／月経の選択肢は性別・年齢帯で変わる。無効になった選択は 'none' に戻す。
+  const statusOptions = useMemo<readonly StatusSegment[]>(
+    () => (sex ? statusesFor(sex, ageBand) : ['none']),
+    [sex, ageBand]
+  );
+  const effectiveStatus = statusOptions.includes(status) ? status : 'none';
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
-    const sex = form.sex.value;
-    const age = form.age.value;
-    const weight = form.weight.value;
     const pal = form.pal.value;
-    const menstruation =
-      sex === 'female' && form.menstruation.checked ? 'present' : 'none';
+    // 小児は参照体重を用いるため体重入力を使わず、静的生成と同じトークンを送る。
+    const weight = isChild
+      ? String(Math.round(childReferenceWeight[ageBand]!.male))
+      : form.weight.value;
     router.push(
-      `/${locale}/recommendations/${sex}/${age}/${weight}/${pal}/${menstruation}`
+      `/${locale}/recommendations/${sex}/${age}/${weight}/${pal}/${effectiveStatus}`
     );
   };
 
@@ -38,7 +68,8 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
           name="sex"
           required
           className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-emerald-500 focus:border-emerald-500"
-          defaultValue=""
+          value={sex}
+          onChange={(e) => setSex(e.target.value as Sex)}
         >
           <option value="" disabled>
             {toTitleCase(messages['select your sex'])}
@@ -61,7 +92,8 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
           name="age"
           required
           className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-emerald-500 focus:border-emerald-500"
-          defaultValue="30"
+          value={age}
+          onChange={(e) => setAge(e.target.value)}
         >
           {Object.entries(AGE_SEGMENTS).map(([segment, band]) => (
             <option key={segment} value={segment}>
@@ -71,44 +103,58 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
         </select>
       </div>
 
-      {/* Menstruation (affects iron requirement for females) */}
-      <div className="flex items-center gap-2">
-        <input
-          id="menstruation"
-          name="menstruation"
-          type="checkbox"
-          className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-        />
-        <label htmlFor="menstruation" className="text-sm text-gray-700">
-          {messages['menstruating']}
-        </label>
-      </div>
+      {/* Reproductive status (females with menstruation/pregnancy options) */}
+      {sex === 'female' && statusOptions.length > 1 && (
+        <div>
+          <label
+            htmlFor="status"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            {toTitleCase(messages['reproductive status'])}
+          </label>
+          <select
+            id="status"
+            name="status"
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-emerald-500 focus:border-emerald-500"
+            value={effectiveStatus}
+            onChange={(e) => setStatus(e.target.value as StatusSegment)}
+          >
+            {statusOptions.map((s) => (
+              <option key={s} value={s}>
+                {messages[STATUS_LABEL_KEY[s]]}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
-      {/* Weight */}
-      <div>
-        <label
-          htmlFor="weight"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          {toTitleCase(messages['body weight'])} (kg)
-        </label>
-        <select
-          id="weight"
-          name="weight"
-          required
-          className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-emerald-500 focus:border-emerald-500"
-          defaultValue=""
-        >
-          <option value="" disabled>
-            {messages['select your weight']}
-          </option>
-          {WEIGHT_OPTIONS_KG.map((w) => (
-            <option key={w} value={String(w)}>
-              {w} kg
+      {/* Weight (adults only; children use reference body weight) */}
+      {!isChild && (
+        <div>
+          <label
+            htmlFor="weight"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            {toTitleCase(messages['body weight'])} (kg)
+          </label>
+          <select
+            id="weight"
+            name="weight"
+            required
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-emerald-500 focus:border-emerald-500"
+            defaultValue=""
+          >
+            <option value="" disabled>
+              {messages['select your weight']}
             </option>
-          ))}
-        </select>
-      </div>
+            {WEIGHT_OPTIONS_KG.map((w) => (
+              <option key={w} value={String(w)}>
+                {w} kg
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* Physical Activity Level */}
       <div>

@@ -46,42 +46,35 @@ export default function NutritionSummary({
     }
     const ipsiron = 0.01;
     const excessSafetyMargin = 0.2;
-    if ('min' in constraintRange && !('max' in constraintRange)) {
-      const percentage = (value / constraintRange.min) * 100;
-      if (value < constraintRange.min * (1 - ipsiron))
-        return { percentage, status: 'low' };
+    // max は任意（小児では上限が設定されない栄養素がある）のため値の有無で場合分けする。
+    const min = 'min' in constraintRange ? constraintRange.min : undefined;
+    const max =
+      'max' in constraintRange ? constraintRange.max : undefined;
+
+    if (min !== undefined && max === undefined) {
+      const percentage = (value / min) * 100;
+      if (value < min * (1 - ipsiron)) return { percentage, status: 'low' };
       return { percentage, status: 'optimal' };
     }
 
-    if (!('min' in constraintRange) && 'max' in constraintRange) {
-      const percentage = (value / constraintRange.max) * 100;
-      if (value > constraintRange.max * (1 + excessSafetyMargin))
+    if (min === undefined && max !== undefined) {
+      const percentage = (value / max) * 100;
+      if (value > max * (1 + excessSafetyMargin))
         return { percentage, status: 'high' };
       return { percentage, status: 'optimal' };
     }
 
     // min と max の両方がある場合
-    if ('min' in constraintRange && 'max' in constraintRange) {
-      if (value < constraintRange.min * (1 - ipsiron)) {
-        return {
-          percentage: (value / constraintRange.min) * 100,
-          status: 'low',
-        };
+    if (min !== undefined && max !== undefined) {
+      if (value < min * (1 - ipsiron)) {
+        return { percentage: (value / min) * 100, status: 'low' };
       }
-      if (value > constraintRange.max * (1 + excessSafetyMargin)) {
-        return {
-          percentage: (value / constraintRange.max) * 100,
-          status: 'high',
-        };
+      if (value > max * (1 + excessSafetyMargin)) {
+        return { percentage: (value / max) * 100, status: 'high' };
       }
       // 範囲内の場合、最小値からの達成率を計算
-      return {
-        percentage: (value / constraintRange.min) * 100,
-        status: 'optimal',
-      };
+      return { percentage: (value / min) * 100, status: 'optimal' };
     }
-    const _never: never = constraintRange;
-    console.error(`constraintRange is ${_never}`);
 
     return { percentage: 100, status: 'optimal' };
   };
@@ -147,11 +140,13 @@ export default function NutritionSummary({
                     })} ${unit}`}
                   {!('min' in targetValue) &&
                     'max' in targetValue &&
+                    targetValue.max !== undefined &&
                     ` / ${targetValue.max.toLocaleString('ja-JP', {
                       maximumFractionDigits: 0,
                     })} ${unit}`}
                   {'min' in targetValue &&
                     'max' in targetValue &&
+                    targetValue.max !== undefined &&
                     ` / ${targetValue.min.toLocaleString('ja-JP', {
                       maximumFractionDigits: 0,
                     })} - ${targetValue.max.toLocaleString('ja-JP', {

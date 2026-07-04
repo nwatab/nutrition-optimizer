@@ -94,32 +94,26 @@ export default function NutritionCategoryCharts({
     if ('equal' in constraintRange) {
       return (value / constraintRange.equal) * 100;
     }
+    // max は任意（小児では上限が設定されない栄養素がある）のため、キーの有無ではなく
+    // 値の有無で場合分けする。
+    const min = 'min' in constraintRange ? constraintRange.min : undefined;
+    const max =
+      'max' in constraintRange ? constraintRange.max : undefined;
 
     // 下限のみある場合（最低摂取量を満たすべき栄養素）
-    if ('min' in constraintRange && !('max' in constraintRange)) {
-      return (value / constraintRange.min) * 100;
+    if (min !== undefined && max === undefined) {
+      return (value / min) * 100;
     }
-
     // 上限のみある場合（摂りすぎに注意すべき栄養素）
-    if (!('min' in constraintRange && 'max' in constraintRange)) {
-      if (value < constraintRange.max) {
-        return 100;
-      }
-      return (constraintRange.max / value) * 100; // 逆数とする
+    if (min === undefined && max !== undefined) {
+      return value < max ? 100 : (max / value) * 100; // 逆数とする
     }
-
     // 両方ある場合（適正範囲のある栄養素）
-    if ('min' in constraintRange && 'max' in constraintRange) {
-      if (value < constraintRange.min) {
-        // 下限未満の場合は達成率を下限に対する割合で表す
-        return (value / constraintRange.min) * 100;
-      }
-      // 範囲内なら100%
-      return 100;
+    if (min !== undefined && max !== undefined) {
+      return value < min ? (value / min) * 100 : 100;
     }
-    const _never: never = constraintRange;
-
-    throw new Error(`Unexpected constraintRange:`, _never);
+    // 下限も上限も設定されない場合（未設定の栄養素）は達成率100%扱い。
+    return 100;
   };
 
   // 食材ごとの色
@@ -167,6 +161,7 @@ export default function NutritionCategoryCharts({
               {'min' in targetValue &&
                 ` / ${messages.target}: ${targetValue.min.toFixed(1)}${unitMap[key]}`}
               {'max' in targetValue &&
+                targetValue.max !== undefined &&
                 ` (${messages['upper limit']}: ${targetValue.max.toFixed(1)}${unitMap[key]})`}
             </p>
           </div>
