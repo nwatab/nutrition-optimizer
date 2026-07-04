@@ -39,6 +39,9 @@ export const getNutriantsFromExcelWorkbook =
       calories: 'G',
       protein: 'J',
       fat: 'M',
+      // TODO: 食物繊維総量(列S, FIB-)は食品により測定法が異なる
+      // (七訂由来のプロスキー変法 / 八訂の AOAC 2011.25 法)ため食品間で値の基準が揃っていない。
+      // 測定法の統一的な取り扱いは別途検討する。
       fiber: 'S',
       vitaminB12: 'BC',
       vitaminC: 'BG',
