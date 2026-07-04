@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Locale } from '@/config';
 import { Leaf } from 'lucide-react';
 
@@ -34,6 +35,14 @@ export function TopPage({
         {/* Card Content / Form */}
         <div className="px-6 pb-8">
           <UserInfoForm locale={locale} />
+          <p className="mt-6 text-center">
+            <Link
+              href={`/${locale}/compare`}
+              className="text-sm text-emerald-700 underline hover:text-emerald-900"
+            >
+              {messages['Compare foods for wallet and environment']} →
+            </Link>
+          </p>
         </div>
       </div>
     </div>
