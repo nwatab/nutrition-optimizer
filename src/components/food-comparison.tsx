@@ -84,76 +84,78 @@ const ScalarizedRanking = ({
     [nodes, weights]
   );
   return (
-    <table className="w-full text-sm">
-      <thead>
-        <tr className="text-left text-emerald-800 border-b border-emerald-200">
-          <th className="py-2 pr-2">#</th>
-          <th className="py-2 pr-2">{messages['food name']}</th>
-          <th className="py-2 pr-2 text-right">
-            {messages['total cost [yen]']}
-          </th>
-          <th className="py-2 pr-2 text-right">{messages.yen}</th>
-          <th className="py-2 pr-2 text-right">
-            {messages['CO2e share [yen]']}
-          </th>
-          <th className="py-2 pr-2 text-right">
-            {messages['land share [yen]']}
-          </th>
-          <th className="py-2 pr-2 text-right">
-            {messages['water share [yen]']}
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {ranking.map(({ node, totalCost }, index) => (
-          <tr
-            key={node.id}
-            className={`border-b border-gray-100 ${
-              highlightedIds.has(node.id) ? 'bg-amber-50' : ''
-            }`}
-          >
-            <td className="py-1 pr-2 text-gray-500">{index + 1}</td>
-            <td className="py-1 pr-2">
-              <Link
-                href={`/${locale}/foods/${node.foodId}`}
-                className="hover:text-emerald-800 hover:underline"
-              >
-                {truncate(node.label, 24)}
-              </Link>
-              {node.productionMethod === 'organic' && (
-                <span className="ml-1 rounded bg-green-100 px-1 text-xs text-green-700">
-                  {messages.organic}
-                </span>
-              )}
-              {node.pesticideResidue && (
-                <span className="ml-1 rounded bg-amber-100 px-1 text-xs text-amber-700">
-                  {
-                    messages[
-                      'pesticide residue: present (health impact not assessed)'
-                    ]
-                  }
-                </span>
-              )}
-            </td>
-            <td className="py-1 pr-2 text-right font-medium">
-              {totalCost.toPrecision(4)}
-            </td>
-            <td className="py-1 pr-2 text-right">
-              {node.costVector.yen.toPrecision(3)}
-            </td>
-            <td className="py-1 pr-2 text-right">
-              {(weights.yenPerKgCo2e * node.costVector.co2eKg).toPrecision(3)}
-            </td>
-            <td className="py-1 pr-2 text-right">
-              {(weights.yenPerM2Land * node.costVector.landM2).toPrecision(3)}
-            </td>
-            <td className="py-1 pr-2 text-right">
-              {(weights.yenPerLWater * node.costVector.waterL).toPrecision(3)}
-            </td>
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="text-left text-emerald-800 border-b border-emerald-200">
+            <th className="py-2 pr-2">#</th>
+            <th className="py-2 pr-2">{messages['food name']}</th>
+            <th className="py-2 pr-2 text-right">
+              {messages['total cost [yen]']}
+            </th>
+            <th className="py-2 pr-2 text-right">{messages.yen}</th>
+            <th className="py-2 pr-2 text-right">
+              {messages['CO2e share [yen]']}
+            </th>
+            <th className="py-2 pr-2 text-right">
+              {messages['land share [yen]']}
+            </th>
+            <th className="py-2 pr-2 text-right">
+              {messages['water share [yen]']}
+            </th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {ranking.map(({ node, totalCost }, index) => (
+            <tr
+              key={node.id}
+              className={`border-b border-gray-100 ${
+                highlightedIds.has(node.id) ? 'bg-amber-50' : ''
+              }`}
+            >
+              <td className="py-1 pr-2 text-gray-500">{index + 1}</td>
+              <td className="py-1 pr-2">
+                <Link
+                  href={`/${locale}/foods/${node.foodId}`}
+                  className="hover:text-emerald-800 hover:underline"
+                >
+                  {truncate(node.label, 24)}
+                </Link>
+                {node.productionMethod === 'organic' && (
+                  <span className="ml-1 rounded bg-green-100 px-1 text-xs text-green-700">
+                    {messages.organic}
+                  </span>
+                )}
+                {node.pesticideResidue && (
+                  <span className="ml-1 rounded bg-amber-100 px-1 text-xs text-amber-700">
+                    {
+                      messages[
+                        'pesticide residue: present (health impact not assessed)'
+                      ]
+                    }
+                  </span>
+                )}
+              </td>
+              <td className="py-1 pr-2 text-right font-medium">
+                {totalCost.toPrecision(4)}
+              </td>
+              <td className="py-1 pr-2 text-right">
+                {node.costVector.yen.toPrecision(3)}
+              </td>
+              <td className="py-1 pr-2 text-right">
+                {(weights.yenPerKgCo2e * node.costVector.co2eKg).toPrecision(3)}
+              </td>
+              <td className="py-1 pr-2 text-right">
+                {(weights.yenPerM2Land * node.costVector.landM2).toPrecision(3)}
+              </td>
+              <td className="py-1 pr-2 text-right">
+                {(weights.yenPerLWater * node.costVector.waterL).toPrecision(3)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 };
 
@@ -170,9 +172,7 @@ export default function FoodComparison({
   // 導線元（リコメンド・食品詳細）から ?highlight=id1,id2 で注目食材を受け取る
   const highlightedIds = useMemo(
     () =>
-      new Set(
-        (searchParams.get('highlight') ?? '').split(',').filter(Boolean)
-      ),
+      new Set((searchParams.get('highlight') ?? '').split(',').filter(Boolean)),
     [searchParams]
   );
 
@@ -211,7 +211,9 @@ export default function FoodComparison({
 
   return (
     <div className="grid gap-6">
-      <Card>
+      {/* grid 直下の子は min-width:auto で中身（SVG や表）の幅までページを
+          押し広げてしまうため、min-w-0 でカード内スクロールに閉じ込める */}
+      <Card className="min-w-0">
         <CardContent className="p-6 grid gap-4">
           <div className="flex flex-wrap gap-4 items-center">
             <div className="flex gap-1 rounded-lg bg-emerald-100 p-1">
@@ -285,38 +287,61 @@ export default function FoodComparison({
           </fieldset>
 
           {mode === 'scalarized' && (
-            <div className="grid gap-2 md:grid-cols-3">
-              {(
-                [
-                  ['yenPerKgCo2e', `p_co2 [${messages.yen}/kg-CO2e]`, 100],
-                  ['yenPerM2Land', `p_land [${messages.yen}/m²]`, 20],
-                  ['yenPerLWater', `p_water [${messages.yen}/L]`, 1],
-                ] as const
-              ).map(([field, label, max]) => (
-                <label key={field} className="text-sm text-gray-700">
-                  {label}: {weights[field]}
-                  <input
-                    type="range"
-                    min={0}
-                    max={max}
-                    step={max / 100}
-                    value={weights[field]}
-                    onChange={(event) =>
-                      setWeights((previous) => ({
-                        ...previous,
-                        [field]: Number(event.target.value),
-                      }))
-                    }
-                    className="w-full"
-                  />
-                </label>
-              ))}
+            <div className="grid gap-3">
+              <p className="text-xs text-gray-500">
+                {messages['scalarization intro']}
+              </p>
+              <div className="grid gap-4 md:grid-cols-3">
+                {(
+                  [
+                    [
+                      'yenPerKgCo2e',
+                      'CO2e price [yen/kg-CO2e]',
+                      'co2e price reference',
+                      100,
+                    ],
+                    [
+                      'yenPerM2Land',
+                      'land price [yen/m2]',
+                      'land price reference',
+                      20,
+                    ],
+                    [
+                      'yenPerLWater',
+                      'water price [yen/L]',
+                      'water price reference',
+                      1,
+                    ],
+                  ] as const
+                ).map(([field, labelKey, referenceKey, max]) => (
+                  <label key={field} className="text-sm text-gray-700">
+                    {messages[labelKey]}: {weights[field]}
+                    <input
+                      type="range"
+                      min={0}
+                      max={max}
+                      step={max / 100}
+                      value={weights[field]}
+                      onChange={(event) =>
+                        setWeights((previous) => ({
+                          ...previous,
+                          [field]: Number(event.target.value),
+                        }))
+                      }
+                      className="w-full"
+                    />
+                    <span className="block text-xs font-normal text-gray-500">
+                      {messages[referenceKey]}
+                    </span>
+                  </label>
+                ))}
+              </div>
             </div>
           )}
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="min-w-0">
         <CardContent className="p-6">
           {mode === 'pareto' ? (
             <HasseDiagram
@@ -325,6 +350,7 @@ export default function FoodComparison({
               highlightedIds={[...highlightedIds]}
               locale={locale}
               messages={messages}
+              basis={basis}
             />
           ) : (
             <ScalarizedRanking
