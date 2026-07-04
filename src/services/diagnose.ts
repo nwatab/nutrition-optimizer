@@ -29,7 +29,7 @@ const boundsOf = (
   }
   return {
     min: 'min' in constraint ? constraint.min : null,
-    max: 'max' in constraint ? constraint.max : null,
+    max: 'max' in constraint && constraint.max !== undefined ? constraint.max : null,
   };
 };
 

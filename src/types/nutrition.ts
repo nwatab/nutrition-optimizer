@@ -59,7 +59,11 @@ export type NutritionFactBase<E, Min = E, Max = E, MinMax = E> = {
 type EqualConstraint = { equal: number };
 type MinConstraint = { min: number };
 type MaxConstraint = { max: number };
-type MinMaxConstraint = { min: number; max: number };
+/**
+ * 下限は常に持つが、上限（耐容上限量など）は設定されない場合がある。小児では多くの
+ * 微量栄養素に UL が設定されないため、max を任意とする。
+ */
+type MinMaxConstraint = { min: number; max?: number };
 export type ConstraintRange =
   | EqualConstraint
   | MinConstraint

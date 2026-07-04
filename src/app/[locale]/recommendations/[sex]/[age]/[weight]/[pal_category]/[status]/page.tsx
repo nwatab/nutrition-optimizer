@@ -3,39 +3,59 @@ import IngredientsListDetail from '@/components/ingredients-list-detail';
 import NutritionCategoryCharts from '@/components/nutrition-category-charts';
 import NutritionSummary from '@/components/nutrition-summary';
 
-import { appConfig, AGE_SEGMENTS, WEIGHT_OPTIONS_KG } from '@/config';
+import {
+  appConfig,
+  AGE_SEGMENTS,
+  WEIGHT_OPTIONS_KG,
+  isChildSegment,
+  statusesFor,
+  type StatusSegment,
+} from '@/config';
 import type { Locale } from '@/config';
-import { PalCategory, Sex } from '@/data';
+import { MaternalStatus, PalCategory, Sex, childReferenceWeight } from '@/data';
 import { enUS, jaJP } from '@/locales';
 import { loadFoodData, optimizeDiet, buildTarget } from '@/services';
 
+/**
+ * [status] セグメント → 月経有無 + 妊娠授乳状態への変換。
+ * 'menstruation' は月経ありの女性、妊娠授乳は付加量に反映する。
+ */
+const parseStatus = (
+  status: StatusSegment
+): { menstruation: boolean; maternalStatus: MaternalStatus } => {
+  if (status === 'menstruation')
+    return { menstruation: true, maternalStatus: 'none' };
+  if (status === 'none') return { menstruation: false, maternalStatus: 'none' };
+  return { menstruation: false, maternalStatus: status };
+};
+
 export async function generateStaticParams() {
-  const sexes = ['male', 'female'] as const;
-  const ages = Object.keys(AGE_SEGMENTS);
-  const weights = WEIGHT_OPTIONS_KG.map(String);
-  const palCategories = ['low', 'normal', 'high'] as const;
+  const sexes: Sex[] = ['male', 'female'];
+  const ageSegments = Object.keys(AGE_SEGMENTS);
 
   return sexes.flatMap((sex) =>
-    ages.flatMap((age) =>
-      weights.flatMap((weight) =>
+    ageSegments.flatMap((age) => {
+      const ageBand = AGE_SEGMENTS[age];
+      // 小児は参照体重を用いるため体重を掛け合わせない（区分ごとに1トークン）。
+      const weights = isChildSegment(age)
+        ? [String(Math.round(childReferenceWeight[ageBand]!.male))]
+        : WEIGHT_OPTIONS_KG.map(String);
+      const palCategories: PalCategory[] = ['low', 'normal', 'high'];
+      return weights.flatMap((weight) =>
         palCategories.flatMap((pal_category) =>
-          // 月経ありは女性のみ生成する（男性では鉄の下限に影響しない）。
-          (sex === 'female'
-            ? (['none', 'present'] as const)
-            : (['none'] as const)
-          ).flatMap((menstruation) =>
+          statusesFor(sex, ageBand).flatMap((status) =>
             appConfig.i18n.flatMap((locale) => ({
               sex,
               age,
               weight,
               pal_category,
-              menstruation,
+              status,
               locale,
             }))
           )
         )
-      )
-    )
+      );
+    })
   );
 }
 
@@ -47,19 +67,27 @@ export default async function RecommendationPage({
     age: string;
     weight: string;
     pal_category: PalCategory;
-    menstruation: 'none' | 'present';
+    status: StatusSegment;
     locale: Locale;
   }>;
 }) {
   const foods = await loadFoodData();
   const params = await paramsPromise;
 
+  const ageBand = AGE_SEGMENTS[params.age] ?? '30-49';
+  const { menstruation, maternalStatus } = parseStatus(params.status);
+  // 小児は参照体重で算定し、URL の体重は用いない。
+  const weightKg = isChildSegment(params.age)
+    ? childReferenceWeight[ageBand]![params.sex]
+    : parseInt(params.weight, 10);
+
   const referenceDailyIntakes = buildTarget({
-    ageBand: AGE_SEGMENTS[params.age] ?? '30-49',
+    ageBand,
     sex: params.sex,
-    weightKg: parseInt(params.weight, 10),
+    weightKg,
     pal: params.pal_category,
-    menstruation: params.menstruation === 'present',
+    menstruation,
+    maternalStatus,
   });
 
   const { totalCost, totalNutritionFacts, breakdown } = optimizeDiet(
