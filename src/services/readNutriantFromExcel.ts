@@ -21,11 +21,16 @@ export const getNutriantsFromExcelWorkbook =
   ): {
     name: string;
     shokuhinbangou: string;
+    /**
+     * 廃棄率 [%]
+     */
+    refuseRate: number;
     nutritionFacts: NutritionFactBase<string | number | null>;
   } => {
     const excelFoodNameMapping: Record<string, string> = {
       name: 'D',
     };
+    const refuseRateColumn = 'E';
     const excelNuturitionMapping: Record<
       keyof Omit<
         NutritionFactBase<string | number>,
@@ -104,6 +109,11 @@ export const getNutriantsFromExcelWorkbook =
       );
     }
 
+    const refuseRate =
+      parseNutrientRawValue(
+        nutritionRow[excelColumnToIndex(refuseRateColumn)]
+      ) ?? 0;
+
     const nutritionWithoutFattyAcids = (
       Object.entries(excelNuturitionMapping) as Array<
         [
@@ -154,6 +164,7 @@ export const getNutriantsFromExcelWorkbook =
     return {
       name,
       shokuhinbangou,
+      refuseRate,
       nutritionFacts: {
         ...nutritionWithoutFattyAcids,
         saturatedFattyAcids,

@@ -1,3 +1,5 @@
+export * from './food-cost';
+export * from './nutrient-density';
 export * from './optimizer';
 export * from './targetAmount';
 export * from './readNutriantFromExcel';

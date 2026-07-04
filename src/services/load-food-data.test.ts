@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import { loadFoodData } from '@/services/load-food-data';
+import { density } from '@/services/nutrient-density';
 
 // public_data/ の xlsx を差し替えた際の回帰テスト。
 // 価格スナップショットはデータ更新のたびに `pnpm vitest run -u` で更新する。
-describe('loadFoodData', () => {
+// 初回の loadFoodData は Excel 読み込みで数秒かかるためタイムアウトを延長する。
+describe('loadFoodData', { timeout: 60_000 }, () => {
   it('例外なく完走し、全食材の nutritionFacts に null / NaN が残らない', async () => {
     const foods = await loadFoodData();
     expect(foods.length).toBeGreaterThan(0);
@@ -76,5 +78,33 @@ describe('loadFoodData', () => {
       大豆: Number((soy?.cost ?? NaN).toFixed(2)),
     };
     expect(snapshotTarget).toMatchSnapshot();
+  });
+
+  it('廃棄率0の食材（豆・乾物・油）は補正前の price / mass * 100 と厳密一致する（廃棄率補正の回帰）', async () => {
+    const foods = await loadFoodData();
+    const costOf = (shokuhinbangou: string) => {
+      const food = foods.find(
+        (f) => 'shokuhinbangou' in f && f.shokuhinbangou === shokuhinbangou
+      );
+      if (!food) throw new Error(`food not found: ${shokuhinbangou}`);
+      return food.cost;
+    };
+
+    // 大豆 04104（乾・廃棄率0）: (2100 + 880)円 / 5000g
+    expect(costOf('04104')).toBeCloseTo(((2100 + 880) / 5000) * 100, 10);
+    // そばの実 01126（乾物・廃棄率0）: 7380円 / 5000g
+    expect(costOf('01126')).toBeCloseTo((7380 / 5000) * 100, 10);
+    // 亜麻仁油 14023（油・廃棄率0）: 3781円 / 510g
+    expect(costOf('14023')).toBeCloseTo((3781 / 510) * 100, 10);
+  });
+
+  it('こんにゃく（calories≈0）は perKcal が undefined になり比較から除外できる', async () => {
+    const foods = await loadFoodData();
+    const konnyaku = foods.find(
+      (f) => 'shokuhinbangou' in f && f.shokuhinbangou === '02003'
+    );
+    if (!konnyaku) throw new Error('こんにゃくが見つかりません');
+    expect(density(konnyaku, 'perKcal', 'fiber')).toBeUndefined();
+    expect(density(konnyaku, 'perYen', 'fiber')).toBeDefined();
   });
 });

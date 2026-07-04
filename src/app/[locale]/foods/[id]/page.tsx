@@ -108,7 +108,7 @@ export default async function FoodPage({
             ) : (
               ''
             )}{' '}
-            • 100gあたり{' '}
+            • 可食部100gあたり{' '}
             {food.cost.toLocaleString('ja-JP', { maximumFractionDigits: 1 })}円
           </p>
         </header>
@@ -193,7 +193,8 @@ export default async function FoodPage({
               </h2>
               <div className="h-80">
                 <CostEfficiencyChart
-                  nutritionPer100Yen={nutritionPer100Yen}
+                  nutritionFacts={food.nutritionFacts}
+                  cost={food.cost}
                   referenceDailyIntakes={referenceDailyIntakes}
                 />
               </div>
