@@ -23,15 +23,17 @@ export default async function ComparePage({
       <div className="container mx-auto px-4 py-8">
         <header className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-emerald-800 mb-2">
-            どっちが良い？ — 財布にも環境にも
+            {messages['Compare foods for wallet and environment']}
           </h1>
           <p className="text-emerald-600">
-            選んだ栄養軸すべてで密度が高く、全コスト軸（円・CO2e・土地・水）で
-            負荷が低い食材だけが「支配する」。矢印のない組（有機 vs
-            慣行など）は比較不能。
+            {messages['compare page description']}
           </p>
         </header>
-        <FoodComparison foods={foods} messages={messages} />
+        <FoodComparison
+          foods={foods}
+          messages={messages}
+          locale={params.locale}
+        />
       </div>
     </div>
   );

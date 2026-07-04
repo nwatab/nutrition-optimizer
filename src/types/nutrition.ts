@@ -79,6 +79,10 @@ export type NullableNutritionFacts = NutritionFactBase<number | null>;
 export type EstatPriceFoodData = {
   nameInEstat: string;
   nameInNutritionFacts: string;
+  /**
+   * 食品標準成分表 英語版の食品名（七訂英語版 + 八訂追加分の暫定訳）
+   */
+  nameEnInNutritionFacts: string;
   shokuhinbangou: string;
   /**
    * 可食部100gあたりの金額 [円]（廃棄率補正済み）
@@ -91,7 +95,15 @@ export type EstatPriceFoodData = {
 };
 export type ManualPriceFoodData = {
   productName: string;
+  /**
+   * 商品の英語表示名（参照データで手動管理）
+   */
+  productNameEn: string;
   nameInNutritionFacts: string;
+  /**
+   * 食品標準成分表 英語版の食品名（七訂英語版 + 八訂追加分の暫定訳）
+   */
+  nameEnInNutritionFacts: string;
   shokuhinbangou: string;
   /**
    * 可食部100gあたりの金額 [円]（廃棄率補正済み）
@@ -109,6 +121,10 @@ export type ManualPriceFoodData = {
 
 export type ManualFoodData = {
   productName: string;
+  /**
+   * 商品の英語表示名（参照データで手動管理）
+   */
+  productNameEn: string;
   /**
    * 可食部100gあたりの栄養成分
    */

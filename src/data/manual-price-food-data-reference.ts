@@ -1,5 +1,9 @@
 type FoodIngredientDataReference = {
   name: string;
+  /**
+   * 商品の英語表示名。原文が日本語の商品名のため手動で併記する。
+   */
+  nameEn: string;
   price: number;
   massGram: number;
   shokuhinbangou: string;
@@ -9,6 +13,7 @@ type FoodIngredientDataReference = {
 export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   {
     name: '大豆 岩手県産 宮城県産 規格外 B級品令和６年産】',
+    nameEn: 'Soybeans, grade B, 5 kg (Iwate/Miyagi)',
     price: 2100 + 880, // 大豆
     massGram: 5000,
     shokuhinbangou: '04104',
@@ -16,6 +21,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'ひよこ豆 ガルバンソ　カレー　サラダ　大容量 アメリカ産5kg',
+    nameEn: 'Chickpeas (garbanzo), 5 kg (USA)',
     price: 3900 + 880,
     massGram: 5000,
     shokuhinbangou: '04065',
@@ -23,6 +29,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'そばの実',
+    nameEn: 'Buckwheat groats, 5 kg',
     price: 7380 + 0,
     massGram: 5000,
     shokuhinbangou: '01126',
@@ -30,6 +37,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'キヌア',
+    nameEn: 'Quinoa, 2 kg',
     price: 2511 + 0,
     massGram: 2040,
     shokuhinbangou: '01167',
@@ -37,6 +45,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'ヤマク テンペ100g×2ケース（全20本）送料無料 新商品 新発売',
+    nameEn: 'Yamaku tempeh, 100 g × 20',
     price: 3740 + 0,
     massGram: 200,
     shokuhinbangou: '04063',
@@ -44,6 +53,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: '亜麻仁油 低温圧搾一番搾り ニュージーランド産 170g 3本 エクストラバージン フラックスシードオイル オメガ3 アマニオイル あまに油 first squeeze extra virgin flaxseed oil',
+    nameEn: 'Cold-pressed extra virgin flaxseed oil, 170 g × 3 (New Zealand)',
     price: 3781 + 0,
     massGram: 510,
     shokuhinbangou: '14023',
@@ -51,6 +61,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'お徳用サイズのえごま油！朝日えごま油280gは、オメガ3系脂肪酸のα-リノレン酸を約60％含んだ健康と美容にうれしいエゴマ油です 自然の恵み ナチュランド 株式会社朝日',
+    nameEn: 'Asahi perilla (egoma) seed oil, 280 g',
     price: 3800 + 0,
     massGram: 280,
     shokuhinbangou: '14024',
@@ -58,6 +69,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'レンズ豆 皮つき 1Kg 最強配送 まめやの底力 アメリカ産 れんずまめ レンティルピース 皮付き 国内加工 乾燥豆 豆類 乾燥豆 スープ 輸入豆',
+    nameEn: 'Lentils with skin, 1 kg (USA)',
     price: 861 + 650,
     massGram: 1000,
     shokuhinbangou: '04073',
@@ -65,6 +77,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: '【メール便送料無料】アマランサス オーガニック 有機JAS認証で安心！ギフト',
+    nameEn: 'Organic amaranth (JAS certified), 900 g',
     price: 1690 + 0,
     massGram: 900,
     shokuhinbangou: '01001',
@@ -72,6 +85,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: '送料無料 ローストアマニ 亜麻仁 粒 80g 煎りアマニ 北海道産 国産 国産雑穀米 国産原料100％ フラックスシード 実 タネ 油 オイル 十勝 オメガ3 αリノレン酸 ポイント消化 【単品配送｜同梱不可】',
+    nameEn: 'Roasted whole flaxseed, 80 g (Hokkaido)',
     price: 980 + 0,
     massGram: 80,
     shokuhinbangou: '05041',
@@ -79,6 +93,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'チアシード ペルー産 1kg',
+    nameEn: 'Chia seeds, 1 kg (Peru)',
     price: 1950 + 300,
     massGram: 1000,
     shokuhinbangou: '05046',
@@ -86,6 +101,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'チアシード 800g 黒 南米産',
+    nameEn: 'Black chia seeds, 800 g (South America)',
     price: 2190 + 0,
     massGram: 800,
     shokuhinbangou: '05046',
@@ -93,6 +109,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'アリサン 有機ピーナッツバタークランチ',
+    nameEn: 'Alishan organic crunchy peanut butter, 454 g',
     price: 1620 + 770,
     massGram: 454,
     shokuhinbangou: '05037',
@@ -100,6 +117,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'ローストクルミ400ｇ(200ｇ×2入)【おつまみ・素焼きナッツ】【送料無料】【チャンドラー種/LHP】',
+    nameEn: 'Roasted walnuts, 400 g (200 g × 2)',
     price: 1200 + 0,
     massGram: 400,
     shokuhinbangou: '05014',
@@ -107,6 +125,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'あおさ 干し 12g',
+    nameEn: 'Dried aosa (sea lettuce), 12 g',
     price: 98 * 1.1,
     massGram: 12,
     shokuhinbangou: '09001',
@@ -114,6 +133,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'フジッコ 塩昆布 28g',
+    nameEn: 'Fujicco shio-kombu (salted kelp), 28 g',
     price: 98 * 1.1,
     massGram: 28,
     shokuhinbangou: '09022',
@@ -121,6 +141,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: '尾道の昆布問屋-北海道釧路産きざみ昆布-300g国産-徳用-乾燥・Dry',
+    nameEn: 'Shredded dried kombu, 300 g (Kushiro, Hokkaido)',
     price: 1339,
     massGram: 200,
     shokuhinbangou: '09020',
@@ -128,6 +149,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'S&B クローブ　粉 15g 286円',
+    nameEn: 'S&B ground cloves, 15 g',
     price: 286,
     massGram: 15,
     shokuhinbangou: '17062',
@@ -135,6 +157,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'S&B バジル　こな 100g 421円',
+    nameEn: 'S&B ground basil, 100 g',
     price: 421,
     massGram: 100,
     shokuhinbangou: '17077',
@@ -142,6 +165,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'Ｓ＆Ｂ　韓国産唐辛子（パウダー）',
+    nameEn: 'S&B Korean chili powder, 13 g',
     price: 243,
     massGram: 13,
     shokuhinbangou: '17073',
@@ -149,6 +173,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'Ｓ＆Ｂ　タイム（パウダー）',
+    nameEn: 'S&B ground thyme, 10 g',
     price: 189,
     massGram: 10,
     shokuhinbangou: '17071',
@@ -156,6 +181,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'きくらげ 中国産菌床栽培(おがくず栽培)',
+    nameEn: 'Dried wood ear mushrooms, 30 g (China)',
     price: 171,
     massGram: 30,
     shokuhinbangou: '08004',
@@ -163,6 +189,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'いりごま 白 大',
+    nameEn: 'Roasted white sesame seeds, 140 g',
     price: 203,
     massGram: 140,
     shokuhinbangou: '05018',
@@ -170,6 +197,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'オーガニック香ばしく焼き上げた粒そろいのからつき落花生',
+    nameEn: 'Organic roasted peanuts in shell, 200 g',
     price: 279,
     massGram: 200,
     shokuhinbangou: '05035',

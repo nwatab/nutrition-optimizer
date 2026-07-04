@@ -90,6 +90,7 @@ const riceLike: FoodToOptimize = {
   id: 'rice',
   type: 'manual',
   productName: 'rice-like',
+  productNameEn: 'rice-like',
   url: '',
   cost: 50, // 円/可食部100g
   nutritionFacts: makeNutritionFacts({ calories: 350, protein: 7 }),
@@ -98,6 +99,7 @@ const soyLike: FoodToOptimize = {
   id: 'soy',
   type: 'manual',
   productName: 'soy-like',
+  productNameEn: 'soy-like',
   url: '',
   cost: 80,
   nutritionFacts: makeNutritionFacts({ calories: 400, protein: 33 }),

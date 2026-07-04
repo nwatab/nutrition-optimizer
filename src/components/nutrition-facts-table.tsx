@@ -1,90 +1,70 @@
 import { unitMap } from '@/lib/unitmap';
+import type { Message } from '@/locales';
 import type { NutritionFactBase } from '@/types/nutrition';
 
 type NutritionFactsTableProps = {
   nutritionFacts: NutritionFactBase<number>;
+  messages: Message;
 };
 
-// 栄養素の単位マッピング
-
-// 栄養素の日本語名マッピング
-const nameMap: Record<keyof NutritionFactBase<number>, string> = {
-  calories: 'カロリー',
-  protein: 'タンパク質',
-  fat: '脂質',
-  carbohydrates: '炭水化物',
-  fiber: '食物繊維',
-  vitaminA: 'ビタミンA',
-  vitaminD: 'ビタミンD',
-  vitaminE: 'ビタミンE',
-  vitaminK: 'ビタミンK',
-  vitaminB1: 'ビタミンB1',
-  vitaminB2: 'ビタミンB2',
-  vitaminB6: 'ビタミンB6',
-  vitaminB12: 'ビタミンB12',
-  vitaminC: 'ビタミンC',
-  niacin: 'ナイアシン',
-  folate: '葉酸',
-  pantothenicAcid: 'パントテン酸',
-  biotin: 'ビオチン',
-  saturatedFattyAcids: '飽和脂肪酸',
-  n6PolyunsaturatedFattyAcids: 'n-6系多価不飽和脂肪酸',
-  n3PolyunsaturatedFattyAcids: 'n-3系多価不飽和脂肪酸',
-  nacl: '食塩相当量',
-  potassium: 'カリウム',
-  calcium: 'カルシウム',
-  magnesium: 'マグネシウム',
-  phosphorus: 'リン',
-  iron: '鉄',
-  zinc: '亜鉛',
-  copper: '銅',
-  manganese: 'マンガン',
-  iodine: 'ヨウ素',
-  selenium: 'セレン',
-  chromium: 'クロム',
-  molybdenum: 'モリブデン',
-};
+type NutrientCategory =
+  | 'energy'
+  | 'macronutrients'
+  | 'vitamins'
+  | 'minerals'
+  | 'fatty acids';
 
 // 栄養素のカテゴリーマッピング
-const categoryMap: Record<keyof NutritionFactBase<number>, string> = {
-  calories: 'エネルギー',
-  protein: 'マクロ栄養素',
-  fat: 'マクロ栄養素',
-  carbohydrates: 'マクロ栄養素',
-  fiber: 'マクロ栄養素',
-  vitaminA: 'ビタミン',
-  vitaminD: 'ビタミン',
-  vitaminE: 'ビタミン',
-  vitaminK: 'ビタミン',
-  vitaminB1: 'ビタミン',
-  vitaminB2: 'ビタミン',
-  vitaminB6: 'ビタミン',
-  vitaminB12: 'ビタミン',
-  vitaminC: 'ビタミン',
-  niacin: 'ビタミン',
-  folate: 'ビタミン',
-  pantothenicAcid: 'ビタミン',
-  biotin: 'ビタミン',
-  saturatedFattyAcids: '脂肪酸',
-  n6PolyunsaturatedFattyAcids: '脂肪酸',
-  n3PolyunsaturatedFattyAcids: '脂肪酸',
-  nacl: 'ミネラル',
-  potassium: 'ミネラル',
-  calcium: 'ミネラル',
-  magnesium: 'ミネラル',
-  phosphorus: 'ミネラル',
-  iron: 'ミネラル',
-  zinc: 'ミネラル',
-  copper: 'ミネラル',
-  manganese: 'ミネラル',
-  iodine: 'ミネラル',
-  selenium: 'ミネラル',
-  chromium: 'ミネラル',
-  molybdenum: 'ミネラル',
-};
+const categoryMap: Record<keyof NutritionFactBase<number>, NutrientCategory> =
+  {
+    calories: 'energy',
+    protein: 'macronutrients',
+    fat: 'macronutrients',
+    carbohydrates: 'macronutrients',
+    fiber: 'macronutrients',
+    vitaminA: 'vitamins',
+    vitaminD: 'vitamins',
+    vitaminE: 'vitamins',
+    vitaminK: 'vitamins',
+    vitaminB1: 'vitamins',
+    vitaminB2: 'vitamins',
+    vitaminB6: 'vitamins',
+    vitaminB12: 'vitamins',
+    vitaminC: 'vitamins',
+    niacin: 'vitamins',
+    folate: 'vitamins',
+    pantothenicAcid: 'vitamins',
+    biotin: 'vitamins',
+    saturatedFattyAcids: 'fatty acids',
+    n6PolyunsaturatedFattyAcids: 'fatty acids',
+    n3PolyunsaturatedFattyAcids: 'fatty acids',
+    nacl: 'minerals',
+    potassium: 'minerals',
+    calcium: 'minerals',
+    magnesium: 'minerals',
+    phosphorus: 'minerals',
+    iron: 'minerals',
+    zinc: 'minerals',
+    copper: 'minerals',
+    manganese: 'minerals',
+    iodine: 'minerals',
+    selenium: 'minerals',
+    chromium: 'minerals',
+    molybdenum: 'minerals',
+  };
+
+// カテゴリーの表示順序
+const categoryOrder: NutrientCategory[] = [
+  'energy',
+  'macronutrients',
+  'vitamins',
+  'minerals',
+  'fatty acids',
+];
 
 export default function NutritionFactsTable({
   nutritionFacts,
+  messages,
 }: NutritionFactsTableProps) {
   // カテゴリーごとに栄養素をグループ化
   const groupedNutrients = Object.entries(nutritionFacts).reduce(
@@ -99,23 +79,20 @@ export default function NutritionFactsTable({
     {} as Record<string, Array<{ key: string; value: number }>>
   );
 
-  // カテゴリーの表示順序
-  const categoryOrder = [
-    'エネルギー',
-    'マクロ栄養素',
-    'ビタミン',
-    'ミネラル',
-    '脂肪酸',
-  ];
-
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
           <tr className="bg-emerald-50">
-            <th className="px-4 py-2 text-left text-emerald-800">栄養素</th>
-            <th className="px-4 py-2 text-right text-emerald-800">含有量</th>
-            <th className="px-4 py-2 text-left text-emerald-800">単位</th>
+            <th className="px-4 py-2 text-left text-emerald-800">
+              {messages.nutrient}
+            </th>
+            <th className="px-4 py-2 text-right text-emerald-800">
+              {messages.amount}
+            </th>
+            <th className="px-4 py-2 text-left text-emerald-800">
+              {messages.unit}
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -126,7 +103,7 @@ export default function NutritionFactsTable({
                 className={`${index % 2 === 0 ? 'bg-white' : 'bg-emerald-50/50'} border-b border-emerald-100`}
               >
                 <td className="px-4 py-2 font-medium">
-                  {nameMap[key as keyof NutritionFactBase<number>]}
+                  {messages[key as keyof NutritionFactBase<number>]}
                 </td>
                 <td className="px-4 py-2 text-right">
                   {value.toFixed(key === 'calories' ? 0 : 1)}

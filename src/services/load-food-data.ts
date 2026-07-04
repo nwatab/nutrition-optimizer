@@ -7,9 +7,11 @@ import {
   foodIngredientDataReference,
   foodProductDataReferences,
 } from '@/data';
+import { englishFoodNameOverrides } from '@/data/food-name-en-reference';
 
 import {
   edibleCostPer100,
+  getEnglishFoodNamesFromExcelWorkbook,
   getNutriantsFromExcelWorkbook,
   makeReadPriceFromExcelData,
   readExcelWorkbook,
@@ -38,12 +40,14 @@ export const loadFoodData = async (): Promise<FoodToOptimize[]> => {
     priceData2Buffer,
     nutriantWorkbookBuffer,
     fatWorkbookBuffer,
+    englishNameWorkbookBuffer,
   ] = await Promise.all(
     [
       'b002-1.xlsx',
       'b002-2.xlsx',
       '20230428-mxt_kagsei-mext_00001_012.xlsx',
       '20230428-mxt_kagsei-mext_00001_032.xlsx',
+      '1374049_1r12_1.xlsx',
     ]
       .map((filename) => path.join(process.cwd(), DATA_DIR, filename))
       .map((filepath) => fs.readFile(filepath))
@@ -63,6 +67,23 @@ export const loadFoodData = async (): Promise<FoodToOptimize[]> => {
     nutriantWorkbook,
     fatWorkbook
   );
+  const readEnglishName = getEnglishFoodNamesFromExcelWorkbook(
+    readExcelWorkbook(englishNameWorkbookBuffer)
+  );
+  // 七訂英語版 → 八訂追加分オーバーライドの順で解決する。
+  // どちらにも無い食品番号はビルドを止め、未訳のまま公開されるのを防ぐ。
+  const englishNameOf = (shokuhinbangou: string): string => {
+    const name =
+      readEnglishName(shokuhinbangou) ??
+      englishFoodNameOverrides[shokuhinbangou];
+    if (!name) {
+      throw new Error(
+        `English food name not found for ${shokuhinbangou}. ` +
+          'Add it to src/data/food-name-en-reference.ts.'
+      );
+    }
+    return name;
+  };
 
   const estatFoodData: EstatPriceFoodData[] = crossFoodReference.map(
     ({ estatId, estatMassGram, shokuhinbangou }) => {
@@ -96,6 +117,7 @@ export const loadFoodData = async (): Promise<FoodToOptimize[]> => {
         nutritionFacts: nutriantValuesWithoutNull,
         nameInEstat: priceData.name,
         nameInNutritionFacts: nutritionFactName,
+        nameEnInNutritionFacts: englishNameOf(shokuhinbangou),
         shokuhinbangou,
         cost: pricePer100,
       };
@@ -117,7 +139,9 @@ export const loadFoodData = async (): Promise<FoodToOptimize[]> => {
       return {
         nutritionFacts: nutriantValuesWithoutNull,
         productName: food.name,
+        productNameEn: food.nameEn,
         nameInNutritionFacts: nameInNutritionFacts,
+        nameEnInNutritionFacts: englishNameOf(food.shokuhinbangou),
         shokuhinbangou: food.shokuhinbangou,
         cost: pricePer100,
         url: food.url,
@@ -133,6 +157,7 @@ export const loadFoodData = async (): Promise<FoodToOptimize[]> => {
         massForNutritionGram,
         refuseRate,
         name,
+        nameEn,
         url,
         nutritionFacts,
       } = food;
@@ -147,6 +172,7 @@ export const loadFoodData = async (): Promise<FoodToOptimize[]> => {
       return {
         nutritionFacts: nutrientFactsPer100,
         productName: name,
+        productNameEn: nameEn,
         url: url,
         cost: pricePer100g,
       };
