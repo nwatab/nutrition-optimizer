@@ -1,0 +1,38 @@
+import FoodComparison from '@/components/food-comparison';
+import { appConfig, type Locale } from '@/config';
+import { enUS, jaJP } from '@/locales';
+import { loadFoodData } from '@/services';
+
+export async function generateStaticParams() {
+  return appConfig.i18n.map((locale) => ({ locale }));
+}
+
+// 食材比較ページ: コストベクトル (円, CO2e, 土地, 水) 上の半順序。
+// デフォルトは Pareto（Hasse 図・比較不能を保持）、スカラー化は任意。
+export default async function ComparePage({
+  params: paramsPromise,
+}: {
+  params: Promise<{ locale: Locale }>;
+}) {
+  const params = await paramsPromise;
+  const foods = await loadFoodData();
+  const messages = params.locale === 'ja-JP' ? jaJP : enUS;
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white">
+      <div className="container mx-auto px-4 py-8">
+        <header className="mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-emerald-800 mb-2">
+            どっちが良い？ — 財布にも環境にも
+          </h1>
+          <p className="text-emerald-600">
+            選んだ栄養軸すべてで密度が高く、全コスト軸（円・CO2e・土地・水）で
+            負荷が低い食材だけが「支配する」。矢印のない組（有機 vs
+            慣行など）は比較不能。
+          </p>
+        </header>
+        <FoodComparison foods={foods} messages={messages} />
+      </div>
+    </div>
+  );
+}

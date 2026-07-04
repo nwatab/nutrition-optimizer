@@ -123,6 +123,29 @@ export type ManualFoodData = {
   url: string;
 };
 
+/**
+ * 食材 1kg あたりの環境負荷。
+ * 出典は Poore & Nemecek (2018) の世界平均値（食材カテゴリで対応付け）。
+ * 原産地による差は未補正。詳細は data/environmental-impact-reference.ts を参照。
+ */
+export type EnvironmentalImpact = {
+  co2eKgPerKg: number;
+  landM2PerKg: number;
+  waterLPerKg: number;
+};
+
+export type ProductionMethod = 'conventional' | 'organic';
+
+/**
+ * 比較ノードの属性。有機/慣行は別ノードとして扱う。
+ * 残留農薬は boolean 属性のみで、健康コストは数値化しない（意図的な設計判断）。
+ */
+export type EnvAttributes = {
+  env: EnvironmentalImpact;
+  productionMethod: ProductionMethod;
+  pesticideResidue?: boolean;
+};
+
 export type WithId<T> = T & { id: string };
 export type WithIngredientType<
   I,
