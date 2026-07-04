@@ -16,7 +16,11 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
     const height = form.height.value;
     const age = form.age.value;
     const pal = form.pal.value;
-    router.push(`/${locale}/recommendations/${sex}/${weight}/${height}/${age}/${pal}`);
+    const menstruation =
+      sex === 'female' && form.menstruation.checked ? 'present' : 'none';
+    router.push(
+      `/${locale}/recommendations/${sex}/${weight}/${height}/${age}/${pal}/${menstruation}`
+    );
   };
 
   return (
@@ -120,6 +124,19 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
             </option>
           ))}
         </select>
+      </div>
+
+      {/* Menstruation (affects iron requirement for females) */}
+      <div className="flex items-center gap-2">
+        <input
+          id="menstruation"
+          name="menstruation"
+          type="checkbox"
+          className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+        />
+        <label htmlFor="menstruation" className="text-sm text-gray-700">
+          {messages['menstruating']}
+        </label>
       </div>
 
       {/* Physical Activity Level */}

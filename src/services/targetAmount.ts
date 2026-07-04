@@ -1,93 +1,167 @@
 import { NutritionTarget } from '@/types/nutrition';
+import {
+  AgeBand,
+  Sex,
+  PalCategory,
+  basalMetabolicRate,
+  pal,
+  vitaminCoefficients,
+  proteinCoefficients,
+  energyPercentTargets,
+  micronutrientTable,
+  ironRdaMenstruating,
+} from '@/data/dri-2025';
 
-const ENERGY_PER_KG_BY_AGE_AND_PAL = {
-  male: {
-    low: [null, null, 59.8, 57.1, 54.2, 46.5, 41.9, 35.6, 33.8, 32.7, 32.4, 30.1],
-    normal: [82.4, 79.5, 68.7, 65.3, 61.7, 52.7, 47.3, 41.5, 39.4, 38.2, 36.7, 36.6],
-    high: [null, null, 77.5, 73.4, 69.2, 58.9, 52.7, 47.4, 45.0, 43.6, 41.0, null]
-  },
-  female: {
-    low: [null, null, 56.6, 53.6, 50.5, 44.4, 39.2, 33.2, 32.9, 31.1, 31.1, 29.0],
-    normal: [80.6, 75.7, 64.9, 61.3, 57.4, 50.3, 44.3, 38.7, 38.3, 36.2, 35.2, 35.2],
-    high: [null, null, 73.3, 68.9, 64.4, 56.2, 49.3, 44.2, 43.8, 41.4, 39.3, null]
-  }
+export type BuildTargetParams = {
+  ageBand: AgeBand;
+  sex: Sex;
+  weightKg: number;
+  pal: PalCategory;
+  /** 女性の月経の有無。鉄の下限に影響する（男性では無視される）。 */
+  menstruation?: boolean;
 };
 
-const getAgeGroupIndex = (age: number): number => {
-  if (age >= 1 && age <= 2) return 0;
-  if (age >= 3 && age <= 5) return 1;
-  if (age >= 6 && age <= 7) return 2;
-  if (age >= 8 && age <= 9) return 3;
-  if (age >= 10 && age <= 11) return 4;
-  if (age >= 12 && age <= 14) return 5;
-  if (age >= 15 && age <= 17) return 6;
-  if (age >= 18 && age <= 29) return 7;
-  if (age >= 30 && age <= 49) return 8;
-  if (age >= 50 && age <= 64) return 9;
-  if (age >= 65 && age <= 74) return 10;
-  if (age >= 75) return 11;
-  return 7; // Default to 18-29 age group
+/**
+ * 年齢（歳）を報告書の成人年齢帯に丸める。17歳以下は最小の成人区分に丸める（スコープ外の暫定）。
+ */
+export const toAgeBand = (age: number): AgeBand => {
+  if (age < 30) return '18-29';
+  if (age < 50) return '30-49';
+  if (age < 65) return '50-64';
+  if (age < 75) return '65-74';
+  return '75+';
 };
 
+/**
+ * 推定エネルギー必要量 EER（kcal/日）= 基礎代謝基準値 × 体重 × 身体活動レベル。
+ * 体重に比例する。
+ */
+export const estimateEnergyRequirement = (
+  ageBand: AgeBand,
+  sex: Sex,
+  weightKg: number,
+  palCategory: PalCategory
+): number => basalMetabolicRate[ageBand][sex] * weightKg * pal[palCategory];
+
+/**
+ * たんぱく質推奨量（RDA, g/日）。維持必要量 ÷ 消化率 × 推奨量算定係数 × 体重。体重に比例する。
+ */
+export const proteinRdaGrams = (weightKg: number): number => {
+  const { maintenancePerKg, digestibility, recommendedFactor } =
+    proteinCoefficients;
+  return (maintenancePerKg / digestibility) * recommendedFactor * weightKg;
+};
+
+const gramsFromEnergyPercent = (
+  energyKcal: number,
+  percent: number,
+  kcalPerGram: number
+): number => (energyKcal * percent) / kcalPerGram;
+
+/**
+ * 目標エネルギー（kcal/日）。EER = 基礎代謝基準値 × 体重 × PAL を丸めた値。
+ */
 export const getDailyCaloryGoal = (
-  sex: 'male' | 'female',
+  sex: Sex,
   age: number,
   weight: number,
-  palCategory: 'low' | 'normal' | 'high'
-): number => {
-  const ageGroupIndex = getAgeGroupIndex(age);
-  const energyPerKg = ENERGY_PER_KG_BY_AGE_AND_PAL[sex][palCategory][ageGroupIndex];
-  
-  if (energyPerKg === null) {
-    const fallbackEnergyPerKg = ENERGY_PER_KG_BY_AGE_AND_PAL[sex]['normal'][ageGroupIndex];
-    return Math.round(weight * (fallbackEnergyPerKg || 35)); // Default fallback
-  }
-  
-  return Math.round(weight * energyPerKg);
-};
+  palCategory: PalCategory
+): number =>
+  Math.round(
+    estimateEnergyRequirement(toAgeBand(age), sex, weight, palCategory)
+  );
+
 /**
- * 日本人の食事摂取基準。単位はいずれも /日 がつく。
- * [「日本人の食事摂取基準（2025年版）」策定検討会報告書](https://www.mhlw.go.jp/stf/newpage_44138.html)
- * [日本人の食事摂取基準（2025年版）の策定ポイント](https://www.mhlw.go.jp/content/12400000/000706_00000.pdf)
+ * buildTarget: 年齢帯・性別・体重・PAL・月経有無から NutritionTarget を組み立てる。
+ *
+ * 指標種別に応じて min（EAR/RDA/AI・目標量下限）と max（耐容上限量 UL・目標量上限）を設定する。
+ * - エネルギー: EER（equal）
+ * - たんぱく質: min = max(RDA体重比例, 目標量下限13%E), max = 目標量上限20%E
+ * - 脂質・飽和脂肪酸・炭水化物: %エネルギー → 質量換算
+ * - B1/B2/ナイアシン: エネルギー比例（per-1,000 kcal 係数 × EER/1000）
+ * - B6: たんぱく質比例（per-g-protein 係数 × たんぱく質RDA）
+ * - それ以外の微量栄養素: [[micronutrientTable]] を表引き（PAL 非依存）
+ * - 鉄: 2025年版で UL 撤廃のため max なし。女性・月経ありは min を上げる。
+ */
+export const buildTarget = ({
+  ageBand,
+  sex,
+  weightKg,
+  pal: palCategory,
+  menstruation = false,
+}: BuildTargetParams): NutritionTarget => {
+  const eer = estimateEnergyRequirement(ageBand, sex, weightKg, palCategory);
+  const eerMcal = eer / 1000;
+  const proteinRda = proteinRdaGrams(weightKg);
+
+  const table = micronutrientTable[ageBand][sex];
+  const { protein, fat, saturatedFattyAcids, carbohydrates } =
+    energyPercentTargets;
+
+  // 鉄: 女性・月経ありは月経あり列の RDA（65歳以上は区分がないため月経なしのまま）。
+  const menstruatingIron =
+    sex === 'female' && menstruation ? ironRdaMenstruating[ageBand] : null;
+  const iron =
+    menstruatingIron !== null ? { min: menstruatingIron } : table.iron;
+
+  return {
+    ...table,
+    calories: { equal: eer },
+    protein: {
+      min: Math.max(
+        proteinRda,
+        gramsFromEnergyPercent(eer, protein.minPercent, protein.kcalPerGram)
+      ),
+      max: gramsFromEnergyPercent(eer, protein.maxPercent, protein.kcalPerGram),
+    },
+    fat: {
+      min: gramsFromEnergyPercent(eer, fat.minPercent, fat.kcalPerGram),
+      max: gramsFromEnergyPercent(eer, fat.maxPercent, fat.kcalPerGram),
+    },
+    saturatedFattyAcids: {
+      max: gramsFromEnergyPercent(
+        eer,
+        saturatedFattyAcids.maxPercent,
+        saturatedFattyAcids.kcalPerGram
+      ),
+    },
+    carbohydrates: {
+      min: gramsFromEnergyPercent(
+        eer,
+        carbohydrates.minPercent,
+        carbohydrates.kcalPerGram
+      ),
+      max: gramsFromEnergyPercent(
+        eer,
+        carbohydrates.maxPercent,
+        carbohydrates.kcalPerGram
+      ),
+    },
+    vitaminB1: { min: vitaminCoefficients.vitaminB1PerMcal * eerMcal },
+    vitaminB2: { min: vitaminCoefficients.vitaminB2PerMcal * eerMcal },
+    niacin: { min: vitaminCoefficients.niacinPerMcal * eerMcal },
+    vitaminB6: {
+      min: vitaminCoefficients.vitaminB6PerProteinGram * proteinRda,
+    },
+    iron,
+  };
+};
+
+/**
+ * 後方互換のための薄いラッパー。旧シグネチャ (sex, age, weight, _dailyCalory) を
+ * buildTarget に委譲する。PAL は「ふつう」、月経なしを既定とする。
+ * @deprecated buildTarget を直接使うこと。
  */
 export const getReferenceDailyIntakes = (
-  sex: 'male' | 'female',
+  sex: Sex,
   age: number,
   weight: number,
-  dailyCalory: number = 2750
-): NutritionTarget => ({
-  calories: { equal: dailyCalory }, // kcal
-  protein: { min: (dailyCalory * 0.13) / 4, max: (dailyCalory * 0.2) / 4 }, // g 13-20%エネルギー 目標。耐容上の指定なし。
-  fat: { min: (dailyCalory * 0.2) / 9, max: (dailyCalory * 0.3) / 9 }, // g. 脂質単位gあたりのエネルギー = 9kcal/g.
-  saturatedFattyAcids: { max: (dailyCalory * 0.07) / 9 }, // 9kcal/g
-  n6PolyunsaturatedFattyAcids: { min: 11 }, // g
-  n3PolyunsaturatedFattyAcids: { min: 2.2 }, // g
-  carbohydrates: { min: (dailyCalory * 0.5) / 4, max: (dailyCalory * 0.65) / 4 }, // 4kcal/g
-  fiber: { min: 29 }, // g • 少なくとも1日当たり25～29gの食物繊維の摂取が、様々な生活習慣病のリスク低下に寄与すると報告されているが、食物繊維摂取量と生活習慣病リスクとの間に明らかな閾値は存在しない。WHOのガイドラインなどを踏まえて、少なくとも1日当たり25gの食物繊維を摂取した方が良いと
-  vitaminA: { min: 900, max: 2700 }, // μg
-  vitaminD: { min: 9, max: 100 }, // μg
-  vitaminE: { min: 6.5, max: 800 }, // mg
-  vitaminK: { min: 150 }, // μg
-  vitaminB1: { min: 1.2 }, // mg
-  vitaminB2: { min: 1.7 }, // mg
-  vitaminB6: { min: 1.5 }, // mg
-  vitaminB12: { min: 4 }, // μg
-  niacin: { min: 16 }, // mg
-  folate: { min: 240, max: 1000 }, // μg 葉酸
-  pantothenicAcid: { min: 6 }, // mg
-  biotin: { min: 50 }, // μg
-  vitaminC: { min: 100 }, // mg
-  nacl: { min: 1.5, max: 6.0 }, // g 高血圧及び慢性腎臓病（CKD）の重症化予防のための食塩相当量の量は、男女とも6.0 g/日未満
-  potassium: { min: 2500, max: 3000 }, // mg カリウム
-  calcium: { min: 750, max: 2500 }, // mg
-  magnesium: { min: 380 }, // mg
-  phosphorus: { min: 1000, max: 3000 }, // mg リン
-  iron: { min: 7.5 }, // mg
-  zinc: { min: 9.5, max: 45 }, // mg
-  copper: { min: 0.9, max: 7 }, // mg
-  manganese: { min: 3.5, max: 11 }, // mg
-  iodine: { min: 140, max: 1400 }, // μg
-  selenium: { min: 35, max: 450 }, // μg
-  chromium: { min: 10, max: 500 }, // μg
-  molybdenum: { min: 30, max: 600 }, // μg
-});
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _dailyCalory: number = 2750
+): NutritionTarget =>
+  buildTarget({
+    ageBand: toAgeBand(age),
+    sex,
+    weightKg: weight,
+    pal: 'normal',
+  });
