@@ -227,22 +227,3 @@ export const getDailyCaloryGoal = (
   ageBand: AgeBand = '30-49',
   sex: Sex = 'male'
 ): number => estimateEnergyRequirement(ageBand, sex, weightKg, palCategory);
-
-/**
- * 後方互換のための薄いラッパー。旧シグネチャ (sex, age, weight, _dailyCalory) を
- * buildTarget に委譲する。PAL は「ふつう」、月経なしを既定とする。
- * @deprecated buildTarget を直接使うこと。
- */
-export const getReferenceDailyIntakes = (
-  sex: Sex,
-  age: number,
-  weight: number,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _dailyCalory: number = 2750
-): NutritionTarget =>
-  buildTarget({
-    ageBand: toAgeBand(age),
-    sex,
-    weightKg: weight,
-    pal: 'normal',
-  });
