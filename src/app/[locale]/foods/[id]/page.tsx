@@ -5,7 +5,7 @@ import NutritionFactsTable from '@/components/nutrition-facts-table';
 import NutritionRadarChart from '@/components/nutrition-radar-chart';
 import CostEfficiencyChart from '@/components/cost-efficiency-chart';
 import NutritionCategoryBars from '@/components/nutrition-category-bars';
-import { getReferenceDailyIntakes, loadFoodData } from '@/services';
+import { buildTarget, loadFoodData } from '@/services';
 import { appConfig, Locale } from '@/config';
 import { enUS, jaJP } from '@/locales';
 import { foodDisplayName, foodNutritionFactsName } from '@/utils';
@@ -24,7 +24,21 @@ export default async function FoodPage({
 }) {
   const { id, locale } = await params;
   const foods = await loadFoodData();
-  const referenceDailyIntakes = getReferenceDailyIntakes('male', 30, 60, 2750);
+  // 代表プロフィールの基準量。詳細ページは静的生成のため全閲覧者共通で、
+  // 性別で基準が大きく変わる鉄・カルシウムはレーダーチャートが女性基準を併記する。
+  const referenceDailyIntakes = buildTarget({
+    ageBand: '30-49',
+    sex: 'male',
+    weightKg: 60,
+    pal: 'normal',
+  });
+  const femaleReferenceDailyIntakes = buildTarget({
+    ageBand: '30-49',
+    sex: 'female',
+    weightKg: 53,
+    pal: 'normal',
+    menstruation: true,
+  });
   const food = foods.find((food) => food.id === id);
   const messages = locale === 'ja-JP' ? jaJP : enUS;
 
@@ -197,7 +211,10 @@ export default async function FoodPage({
               <div className="h-80">
                 <NutritionRadarChart
                   nutritionFacts={food.nutritionFacts}
-                  referenceDailyIntakes={referenceDailyIntakes}
+                  targets={{
+                    male: referenceDailyIntakes,
+                    female: femaleReferenceDailyIntakes,
+                  }}
                   messages={messages}
                 />
               </div>
