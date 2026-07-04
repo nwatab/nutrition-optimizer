@@ -1,4 +1,4 @@
-import type { AgeBand, Sex } from '@/data';
+import type { AgeBand, PalCategory, Sex } from '@/data';
 
 export type Locale = 'en-US' | 'ja-JP';
 
@@ -33,11 +33,29 @@ export const AGE_SEGMENTS: Record<string, AgeBand> = {
 export const isChildSegment = (segment: string): boolean =>
   ['1', '3', '6', '8', '10', '12', '15'].includes(segment);
 
+/**
+ * 小児の [weight] ルートセグメント。小児は年齢区分・性別の参照体重で算定し
+ * URL の体重を用いないため、具体的な数値ではなく固定トークンを置く。
+ */
+export const CHILD_WEIGHT_SEGMENT = 'ref';
+
 /** 体重の選択肢（kg, 成人用）。AGE_SEGMENTS と同じ理由でフォームと静的生成で共有する。 */
 export const WEIGHT_OPTIONS_KG: readonly number[] = Array.from(
   { length: 12 },
   (_, i) => 40 + i * 5
 );
+
+/** PAL が「ふつう」のみ設定される小児区分（1〜5歳, エネルギー 表4）。 */
+const SINGLE_PAL_SEGMENTS: readonly string[] = ['1', '3'];
+
+/**
+ * 年齢区分で選択可能な [pal_category] の一覧。1〜5歳は「ふつう」のみ設定される
+ * ため 'normal' の1トークンに畳む。フォームと generateStaticParams の両方が参照する。
+ */
+export const palCategoriesFor = (segment: string): readonly PalCategory[] =>
+  SINGLE_PAL_SEGMENTS.includes(segment)
+    ? ['normal']
+    : ['low', 'normal', 'high'];
 
 /**
  * [status] ルートセグメント（女性の生理・妊娠・授乳の状態）。
