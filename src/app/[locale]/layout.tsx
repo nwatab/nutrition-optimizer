@@ -1,6 +1,6 @@
 import { LanguageSwitch } from '@/components/language-switcher';
 import ThemeImage from '@/components/theme-image';
-import { appConfig, Locale } from '@/config';
+import { appConfig, basePath, Locale } from '@/config';
 import Link from 'next/link';
 import { Suspense } from 'react';
 
@@ -30,9 +30,9 @@ export default async function LocaleLayout({
           className="flex items-center gap-2 p-2 rounded-lg hover:bg-emerald-100 transition-colors"
         >
           <ThemeImage
-            srcLight="/github-mark.svg"
-            // srcDark="/github-mark-white.svg" ToDo
-            srcDark="/github-mark.svg"
+            srcLight={`${basePath}/github-mark.svg`}
+            // srcDark={`${basePath}/github-mark-white.svg`} ToDo
+            srcDark={`${basePath}/github-mark.svg`}
             alt="GitHub"
             width={24}
             height={24}
