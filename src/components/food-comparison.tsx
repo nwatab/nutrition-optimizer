@@ -1,12 +1,26 @@
 'use client';
 
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 
 import { HasseDiagram, truncate } from '@/components/hasse-diagram';
 import { Card, CardContent } from '@/components/ui/card';
 import type { Locale } from '@/config';
+import {
+  MAX_AXES,
+  MIN_AXES,
+  NUTRIENT_KEYS,
+  defaultAxesFor,
+  denominatorCostOf,
+  denominatorNutrientOf,
+  parseAxes,
+  parseBasis,
+  parseView,
+  sameAxes,
+  serializeAxes,
+  type CompareView,
+} from '@/lib/compare-state';
 import {
   ZERO_WEIGHTS,
   hasNonZeroWeights,
@@ -17,7 +31,6 @@ import type { Message } from '@/locales';
 import type { NutrientKey } from '@/services/diagnose';
 import {
   COST_AXES,
-  DEFAULT_COMPARE_AXES,
   scalarizeCost,
   skyline,
   type ComparisonAxes,
@@ -28,59 +41,11 @@ import { toCompareNode, type CompareNode } from '@/services/environment';
 import type { Basis } from '@/services/nutrient-density';
 import type { FoodToOptimize } from '@/types/nutrition';
 
-const NUTRIENT_KEYS: NutrientKey[] = [
-  'calories',
-  'protein',
-  'fat',
-  'saturatedFattyAcids',
-  'n6PolyunsaturatedFattyAcids',
-  'n3PolyunsaturatedFattyAcids',
-  'carbohydrates',
-  'fiber',
-  'vitaminA',
-  'vitaminD',
-  'vitaminE',
-  'vitaminK',
-  'vitaminB1',
-  'vitaminB2',
-  'vitaminB6',
-  'vitaminB12',
-  'niacin',
-  'folate',
-  'pantothenicAcid',
-  'biotin',
-  'vitaminC',
-  'nacl',
-  'potassium',
-  'calcium',
-  'magnesium',
-  'phosphorus',
-  'iron',
-  'zinc',
-  'copper',
-  'manganese',
-  'iodine',
-  'selenium',
-  'chromium',
-  'molybdenum',
-];
-
-// 軸は栄養+コスト合計で 2〜5 個。高次元では比較可能対が 2^{1-d} で消えて
-// ほぼ全ノードが antichain 化するため（domination.test.ts で確認済み）。
-const MIN_AXES = 2;
-const MAX_AXES = 5;
-
 const BASIS_LABELS: Record<Basis, keyof Message> = {
   per100g: 'per 100 g edible portion',
   perYen: 'per 1 yen',
   perKcal: 'per 1 kcal',
 };
-
-// 基準の分母に使っている量は全ノードで定数になるため、軸から外す
-const denominatorNutrientOf = (basis: Basis): NutrientKey | null =>
-  basis === 'perKcal' ? 'calories' : null;
-const denominatorCostOf = (basis: Basis): CostAxis | null =>
-  basis === 'perYen' ? 'yen' : null;
 
 const costAxisLabels = (messages: Message): Record<CostAxis, string> => ({
   yen: messages.price,
@@ -296,6 +261,7 @@ export default function FoodComparison({
   messages: Message;
   locale: Locale;
 }) {
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   // 導線元（リコメンド・食品詳細）から ?highlight=id1,id2 で注目食材を受け取る
   const highlightedIds = useMemo(
@@ -304,9 +270,38 @@ export default function FoodComparison({
     [searchParams]
   );
 
-  const [basis, setBasis] = useState<Basis>('per100g');
-  const [mode, setMode] = useState<'graph' | 'table'>('graph');
-  const [axes, setAxes] = useState<ComparisonAxes>(DEFAULT_COMPARE_AXES);
+  // 選択状態（基準・軸・ビュー）は URL クエリを単一の情報源にする。
+  // 見えている比較をそのまま共有でき、リロードや戻るボタンでも保たれる。
+  // 既定値のパラメータは URL から省く。
+  const basis = parseBasis(searchParams.get('basis'));
+  const view = parseView(searchParams.get('view'));
+  const axes = useMemo(
+    () => parseAxes(searchParams.get('axes'), basis),
+    [searchParams, basis]
+  );
+
+  // ページ遷移ではないので history.replaceState で浅く書き換える
+  // （Next 14.1+ は useSearchParams に反映される）。
+  const updateQuery = (updates: Record<string, string | null>) => {
+    const params = new URLSearchParams(searchParams.toString());
+    Object.entries(updates).forEach(([key, value]) =>
+      value === null ? params.delete(key) : params.set(key, value)
+    );
+    const query = params.toString();
+    window.history.replaceState(null, '', query ? `${pathname}?${query}` : pathname);
+  };
+
+  const changeView = (next: CompareView) =>
+    updateQuery({ view: next === 'graph' ? null : next });
+
+  const applyAxes = (next: ComparisonAxes, nextBasis: Basis = basis) =>
+    updateQuery({
+      basis: nextBasis === 'per100g' ? null : nextBasis,
+      axes: sameAxes(next, defaultAxesFor(nextBasis))
+        ? null
+        : serializeAxes(next),
+    });
+
   // 環境負荷の円換算価格はおすすめ献立ページで設定し、ここでは
   // 表の総コスト列（導出値）にだけ使う。SSG と一致させるため初期値 0。
   const [weights, setWeights] =
@@ -325,42 +320,39 @@ export default function FoodComparison({
 
   const axisCount = axes.nutrientKeys.length + axes.costAxes.length;
 
-  const toggleNutrientKey = (key: NutrientKey) =>
-    setAxes((previous) => {
-      const count = previous.nutrientKeys.length + previous.costAxes.length;
-      const checked = previous.nutrientKeys.includes(key);
-      if (checked ? count <= MIN_AXES : count >= MAX_AXES) return previous;
-      return {
-        ...previous,
-        nutrientKeys: checked
-          ? previous.nutrientKeys.filter((k) => k !== key)
-          : [...previous.nutrientKeys, key],
-      };
+  const toggleNutrientKey = (key: NutrientKey) => {
+    const checked = axes.nutrientKeys.includes(key);
+    if (checked ? axisCount <= MIN_AXES : axisCount >= MAX_AXES) return;
+    applyAxes({
+      ...axes,
+      nutrientKeys: checked
+        ? axes.nutrientKeys.filter((k) => k !== key)
+        : [...axes.nutrientKeys, key],
     });
-
-  const toggleCostAxis = (axis: CostAxis) =>
-    setAxes((previous) => {
-      const count = previous.nutrientKeys.length + previous.costAxes.length;
-      const checked = previous.costAxes.includes(axis);
-      if (checked ? count <= MIN_AXES : count >= MAX_AXES) return previous;
-      return {
-        ...previous,
-        costAxes: checked
-          ? previous.costAxes.filter((a) => a !== axis)
-          : [...previous.costAxes, axis],
-      };
-    });
-
-  const changeBasis = (next: Basis) => {
-    setBasis(next);
-    // 分母に使う量は全ノードで定数になるため、選択から外す
-    setAxes((previous) => ({
-      nutrientKeys: previous.nutrientKeys.filter(
-        (k) => k !== denominatorNutrientOf(next)
-      ),
-      costAxes: previous.costAxes.filter((a) => a !== denominatorCostOf(next)),
-    }));
   };
+
+  const toggleCostAxis = (axis: CostAxis) => {
+    const checked = axes.costAxes.includes(axis);
+    if (checked ? axisCount <= MIN_AXES : axisCount >= MAX_AXES) return;
+    applyAxes({
+      ...axes,
+      costAxes: checked
+        ? axes.costAxes.filter((a) => a !== axis)
+        : [...axes.costAxes, axis],
+    });
+  };
+
+  const changeBasis = (next: Basis) =>
+    // 分母に使う量は全ノードで定数になるため、選択から外す
+    applyAxes(
+      {
+        nutrientKeys: axes.nutrientKeys.filter(
+          (k) => k !== denominatorNutrientOf(next)
+        ),
+        costAxes: axes.costAxes.filter((a) => a !== denominatorCostOf(next)),
+      },
+      next
+    );
 
   const costLabels = costAxisLabels(messages);
 
@@ -375,9 +367,9 @@ export default function FoodComparison({
               {(['graph', 'table'] as const).map((m) => (
                 <button
                   key={m}
-                  onClick={() => setMode(m)}
+                  onClick={() => changeView(m)}
                   className={`px-3 py-1 rounded-md text-sm ${
-                    mode === m
+                    view === m
                       ? 'bg-white text-emerald-800 shadow'
                       : 'text-emerald-700'
                   }`}
@@ -478,7 +470,7 @@ export default function FoodComparison({
 
       <Card className="min-w-0">
         <CardContent className="p-6">
-          {mode === 'graph' ? (
+          {view === 'graph' ? (
             <HasseDiagram
               nodes={nodes}
               axes={axes}
