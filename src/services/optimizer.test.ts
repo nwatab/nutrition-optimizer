@@ -4,6 +4,7 @@ import type {
   NutritionFactBase,
   NutritionTarget,
 } from '@/types/nutrition';
+import { environmentalImpactOf } from './environment';
 import { optimizeDiet } from './optimizer';
 
 const makeNutritionFacts = (
@@ -126,5 +127,60 @@ describe('optimizeDiet', () => {
     expect(soy?.hectoGrams).toBeCloseTo(expectedSoy, 4);
     expect(result.totalNutritionFacts.calories).toBeCloseTo(2000, 4);
     expect(result.totalNutritionFacts.protein).toBeCloseTo(50, 4);
+    // 価格 0 のとき目的関数値は円の支出そのもの
+    expect(result.totalYen).toBeCloseTo(result.totalCost, 4);
+  });
+
+  it('CO2e に価格を付けると、環境負荷の低い食材へ解が切り替わる', () => {
+    // 栄養は同一、安い方が高CO2e（ライス→rice区分、トマト→tomatoes区分）
+    const nutritionFacts = makeNutritionFacts({ calories: 400, protein: 10 });
+    const cheapHighCo2: FoodToOptimize = {
+      id: 'cheap-rice',
+      type: 'manual',
+      productName: 'ライス',
+      productNameEn: 'rice',
+      url: '',
+      cost: 50,
+      nutritionFacts,
+    };
+    const priceyLowCo2: FoodToOptimize = {
+      id: 'pricey-tomato',
+      type: 'manual',
+      productName: 'トマト',
+      productNameEn: 'tomato',
+      url: '',
+      cost: 60,
+      nutritionFacts,
+    };
+    const co2PerHectogram = (food: FoodToOptimize) =>
+      environmentalImpactOf(food).co2eKgPerKg / 10;
+    // フィクスチャの前提（安い方が高CO2e）が崩れていないことの防波堤
+    expect(co2PerHectogram(cheapHighCo2)).toBeGreaterThan(
+      co2PerHectogram(priceyLowCo2)
+    );
+
+    const foods = [cheapHighCo2, priceyLowCo2];
+    const cheapest = optimizeDiet(foods, target);
+    expect(cheapest.breakdown.map((food) => food.id)).toEqual(['cheap-rice']);
+
+    // 損益分岐の2倍の炭素価格なら、総コスト最小はトマト側に反転する
+    const breakEven =
+      (priceyLowCo2.cost - cheapHighCo2.cost) /
+      (co2PerHectogram(cheapHighCo2) - co2PerHectogram(priceyLowCo2));
+    const weights = {
+      yenPerKgCo2e: breakEven * 2,
+      yenPerM2Land: 0,
+      yenPerLWater: 0,
+    };
+    const greenest = optimizeDiet(foods, target, weights);
+    expect(greenest.breakdown.map((food) => food.id)).toEqual([
+      'pricey-tomato',
+    ]);
+    // 目的関数値 = 円の支出 + 価格×環境負荷 の恒等式
+    expect(greenest.totalCost).toBeCloseTo(
+      greenest.totalYen +
+        weights.yenPerKgCo2e * greenest.environmentalTotals.co2eKg,
+      4
+    );
   });
 });

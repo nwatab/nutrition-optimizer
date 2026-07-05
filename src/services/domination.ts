@@ -2,38 +2,47 @@ import type { NutrientKey } from '@/services/diagnose';
 import type { CompareNode, CostVector } from '@/services/environment';
 
 /**
- * コストベクトル上の半順序（skyline query）。
+ * 選択した軸集合上の半順序（skyline query）。
  *
  * x ≻ y ⇔ 選択した全栄養軸で density(x) ≥ density(y) かつ
- *          全コスト軸で cost(x) ≤ cost(y) かつ、いずれかが厳密。
+ *          選択した全コスト軸で cost(x) ≤ cost(y) かつ、いずれかが厳密。
  *
- * 栄養軸はユーザーが 2〜5 個選択する想定。次元 d を上げると
- * ランダムな点同士が比較可能になる確率は 2^{1-d} で落ち、
- * ほぼ全ノードが非支配（antichain）になるため。
+ * 栄養もコスト（円・CO2e・土地・水）も独立の軸として成分ごとに比較し、
+ * 円換算（スカラー化）は比較には使わない。単一の数字が必要な場面
+ * （最適化の目的関数・表の総コスト列）だけが scalarizeCost を使う。
+ *
+ * 軸は合計 2〜5 個選択する想定。次元 d を上げるとランダムな点同士が
+ * 比較可能になる確率は 2^{1-d} で落ち、ほぼ全ノードが非支配
+ * （antichain）になるため（domination.test.ts で確認済み）。
  */
 
 export const COST_AXES = ['yen', 'co2eKg', 'landM2', 'waterL'] as const;
 export type CostAxis = (typeof COST_AXES)[number];
 
+/** 比較に使う軸の集合。栄養軸は多いほど良い、コスト軸は少ないほど良い。 */
+export type ComparisonAxes = {
+  nutrientKeys: NutrientKey[];
+  costAxes: CostAxis[];
+};
+
 /**
- * 比較 UI のデフォルト栄養軸。compare ページの初期選択と、
+ * 比較 UI のデフォルト軸。compare ページの初期選択と、
  * 食品詳細ページの局所支配関係ビューで共有する。
  */
-export const DEFAULT_COMPARE_NUTRIENT_KEYS: NutrientKey[] = [
-  'protein',
-  'fiber',
-  'vitaminC',
-];
+export const DEFAULT_COMPARE_AXES: ComparisonAxes = {
+  nutrientKeys: ['protein', 'fiber'],
+  costAxes: ['yen', 'co2eKg'],
+};
 
 export const dominates = (
   x: CompareNode,
   y: CompareNode,
-  nutrientKeys: NutrientKey[]
+  axes: ComparisonAxes
 ): boolean => {
-  const nutrientDiffs = nutrientKeys.map(
+  const nutrientDiffs = axes.nutrientKeys.map(
     (key) => x.nutrientDensity[key] - y.nutrientDensity[key]
   );
-  const costDiffs = COST_AXES.map(
+  const costDiffs = axes.costAxes.map(
     (axis) => y.costVector[axis] - x.costVector[axis]
   );
   const diffs = [...nutrientDiffs, ...costDiffs];
@@ -43,11 +52,9 @@ export const dominates = (
 /** どのノードにも支配されないノード（Pareto フロント） */
 export const skyline = (
   nodes: CompareNode[],
-  nutrientKeys: NutrientKey[]
+  axes: ComparisonAxes
 ): CompareNode[] =>
-  nodes.filter(
-    (node) => !nodes.some((other) => dominates(other, node, nutrientKeys))
-  );
+  nodes.filter((node) => !nodes.some((other) => dominates(other, node, axes)));
 
 export type DominationEdge = {
   /** 支配する側のノード id */
@@ -62,11 +69,11 @@ export type DominationEdge = {
  */
 export const hasseEdges = (
   nodes: CompareNode[],
-  nutrientKeys: NutrientKey[]
+  axes: ComparisonAxes
 ): DominationEdge[] => {
   const pairs = nodes.flatMap((x) =>
     nodes
-      .filter((y) => x.id !== y.id && dominates(x, y, nutrientKeys))
+      .filter((y) => x.id !== y.id && dominates(x, y, axes))
       .map((y) => ({ from: x, to: y }))
   );
   return pairs
@@ -76,18 +83,18 @@ export const hasseEdges = (
           (mid) =>
             mid.id !== from.id &&
             mid.id !== to.id &&
-            dominates(from, mid, nutrientKeys) &&
-            dominates(mid, to, nutrientKeys)
+            dominates(from, mid, axes) &&
+            dominates(mid, to, axes)
         )
     )
     .map(({ from, to }) => ({ from: from.id, to: to.id }));
 };
 
 /**
- * 任意のスカラー化の重み（ユーザー設定。ハードコードしない）。
- * デフォルトの p_co2 の参照アンカーとしては、J-クレジット取引価格
- * （数千円/t-CO2e 程度）〜 炭素の社会的費用（数万円/t-CO2e 程度）が
- * 目安になるが、採用はユーザーに委ねる。
+ * 環境負荷の円換算価格（ユーザー設定。ハードコードしない）。
+ * 比較（半順序）には使わず、最適化の目的関数と表の総コスト列だけが使う。
+ * p_co2 の参照アンカー: J-クレジット取引価格（数千円/t-CO2e 程度）〜
+ * 炭素の社会的費用（数万円/t-CO2e 程度）。採否はユーザーに委ねる。
  */
 export type ScalarizationWeights = {
   /** 円 / kg-CO2e */
@@ -107,12 +114,3 @@ export const scalarizeCost = (
   weights.yenPerKgCo2e * cost.co2eKg +
   weights.yenPerM2Land * cost.landM2 +
   weights.yenPerLWater * cost.waterL;
-
-/** スカラー化した総コストの昇順（安い順）ランキング */
-export const rankByScalarizedCost = (
-  nodes: CompareNode[],
-  weights: ScalarizationWeights
-): { node: CompareNode; totalCost: number }[] =>
-  nodes
-    .map((node) => ({ node, totalCost: scalarizeCost(node.costVector, weights) }))
-    .toSorted((a, b) => a.totalCost - b.totalCost);

@@ -7,7 +7,12 @@ import type { Locale } from '@/config';
 import { unitMap } from '@/lib/unitmap';
 import type { Message } from '@/locales';
 import type { NutrientKey } from '@/services/diagnose';
-import { hasseEdges, skyline } from '@/services/domination';
+import {
+  hasseEdges,
+  skyline,
+  type ComparisonAxes,
+  type CostAxis,
+} from '@/services/domination';
 import type { CompareNode } from '@/services/environment';
 import type { Basis } from '@/services/nutrient-density';
 
@@ -45,8 +50,8 @@ const LAYER_GAP = 60;
 const TOP_PAD = 4;
 /** 1層が横に伸び続けないよう、この列数で折り返す。 */
 const MAX_PER_ROW = 7;
-/** 名前行・摂取形態行 + 選択中の栄養素1行あたり11px。 */
-const nodeHeight = (nutrientCount: number): number => 33 + 11 * nutrientCount;
+/** 名前行・摂取形態行 + 選択中の軸1行あたり11px。 */
+const nodeHeight = (axisCount: number): number => 33 + 11 * axisCount;
 
 const chunk = <T,>(items: readonly T[], size: number): T[][] =>
   items.length === 0
@@ -65,7 +70,7 @@ type Position = { x: number; y: number };
  */
 export const HasseDiagram = ({
   nodes,
-  nutrientKeys,
+  axes,
   highlightedIds,
   locale,
   messages,
@@ -73,7 +78,8 @@ export const HasseDiagram = ({
   showHighlightCount = true,
 }: {
   nodes: CompareNode[];
-  nutrientKeys: NutrientKey[];
+  /** 比較に使う軸（栄養は多いほど・コストは少ないほど良い） */
+  axes: ComparisonAxes;
   highlightedIds: readonly string[];
   locale: Locale;
   messages: Message;
@@ -84,13 +90,10 @@ export const HasseDiagram = ({
 }) => {
   const router = useRouter();
   const highlighted = useMemo(() => new Set(highlightedIds), [highlightedIds]);
-  const edges = useMemo(
-    () => hasseEdges(nodes, nutrientKeys),
-    [nodes, nutrientKeys]
-  );
+  const edges = useMemo(() => hasseEdges(nodes, axes), [nodes, axes]);
   const front = useMemo(
-    () => new Set(skyline(nodes, nutrientKeys).map((n) => n.id)),
-    [nodes, nutrientKeys]
+    () => new Set(skyline(nodes, axes).map((n) => n.id)),
+    [nodes, axes]
   );
   const linked = useMemo(
     () => new Set(edges.flatMap(({ from, to }) => [from, to])),
@@ -109,7 +112,7 @@ export const HasseDiagram = ({
     [connected, edges]
   );
 
-  const height = nodeHeight(nutrientKeys.length);
+  const height = nodeHeight(axes.nutrientKeys.length + axes.costAxes.length);
 
   // 層ごとに MAX_PER_ROW で折り返した格子状レイアウト
   const layout = useMemo(() => {
@@ -166,15 +169,22 @@ export const HasseDiagram = ({
 
   const isolatedRows = useMemo(() => chunk(isolated, MAX_PER_ROW), [isolated]);
 
-  // 栄養密度の単位: 基準が 1円/1kcal あたりのときは分母を明示する
-  const unitOf = (key: NutrientKey): string =>
-    `${unitMap[key]}${
-      basis === 'perYen'
-        ? `/${messages.yen}`
-        : basis === 'perKcal'
-          ? '/kcal'
-          : ''
-    }`;
+  // 単位: 基準が 1円/1kcal あたりのときは分母を明示する
+  const basisSuffix =
+    basis === 'perYen' ? `/${messages.yen}` : basis === 'perKcal' ? '/kcal' : '';
+  const unitOf = (key: NutrientKey): string => `${unitMap[key]}${basisSuffix}`;
+  const costLabels: Record<CostAxis, string> = {
+    yen: messages.price,
+    co2eKg: 'CO2e',
+    landM2: messages.land,
+    waterL: messages.water,
+  };
+  const costUnits: Record<CostAxis, string> = {
+    yen: messages.yen,
+    co2eKg: 'kg',
+    landM2: 'm²',
+    waterL: 'L',
+  };
 
   // 栄養素はカードに表示済みなので、ツールチップはコスト内訳だけにする
   const tooltip = (node: CompareNode): string =>
@@ -224,7 +234,7 @@ export const HasseDiagram = ({
             ? ` / ${messages['pesticide residue (not assessed)']}`
             : ''}
         </text>
-        {nutrientKeys.map((key, index) => (
+        {axes.nutrientKeys.map((key, index) => (
           <g key={key}>
             <text x={6} y={36 + index * 11} fontSize={8.5} fill="#475569">
               {truncate(messages[key], 9)}
@@ -237,6 +247,28 @@ export const HasseDiagram = ({
               textAnchor="end"
             >
               {node.nutrientDensity[key].toPrecision(3)} {unitOf(key)}
+            </text>
+          </g>
+        ))}
+        {axes.costAxes.map((axis, index) => (
+          <g key={axis}>
+            <text
+              x={6}
+              y={36 + (axes.nutrientKeys.length + index) * 11}
+              fontSize={8.5}
+              fill="#475569"
+            >
+              {truncate(costLabels[axis], 9)}
+            </text>
+            <text
+              x={NODE_WIDTH - 6}
+              y={36 + (axes.nutrientKeys.length + index) * 11}
+              fontSize={8.5}
+              fill="#0f172a"
+              textAnchor="end"
+            >
+              {node.costVector[axis].toPrecision(3)} {costUnits[axis]}
+              {basisSuffix}
             </text>
           </g>
         ))}

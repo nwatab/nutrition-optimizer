@@ -2,16 +2,21 @@ import { describe, expect, it } from 'vitest';
 
 import type { NutrientKey } from '@/services/diagnose';
 import {
+  COST_AXES,
   dominates,
   hasseEdges,
-  rankByScalarizedCost,
+  scalarizeCost,
   skyline,
+  type ComparisonAxes,
 } from '@/services/domination';
 import { toCompareNode } from '@/services/environment';
 import { loadFoodData } from '@/services/load-food-data';
 import { makeCompareNode } from '@/services/test-fixtures';
 
-const nutrientKeys: NutrientKey[] = ['protein', 'fiber'];
+const axes: ComparisonAxes = {
+  nutrientKeys: ['protein', 'fiber'],
+  costAxes: ['yen', 'co2eKg'],
+};
 
 // 同一食材の有機/慣行ペア: 有機は 円↑・CO2↓
 const conventional = makeCompareNode({
@@ -29,10 +34,10 @@ const organic = makeCompareNode({
 
 describe('dominates / skyline', () => {
   it('同一食材の有機/慣行が、円↑・CO2↓のとき Pareto 比較不能になる', () => {
-    expect(dominates(conventional, organic, nutrientKeys)).toBe(false);
-    expect(dominates(organic, conventional, nutrientKeys)).toBe(false);
+    expect(dominates(conventional, organic, axes)).toBe(false);
+    expect(dominates(organic, conventional, axes)).toBe(false);
 
-    const front = skyline([conventional, organic], nutrientKeys);
+    const front = skyline([conventional, organic], axes);
     expect(front.map((n) => n.id).toSorted()).toEqual([
       'spinach-conventional',
       'spinach-organic',
@@ -45,13 +50,35 @@ describe('dominates / skyline', () => {
       nutrientDensity: { protein: 1.0, fiber: 2.8 },
       costVector: { yen: 90, co2eKg: 0.06, landM2: 0.038, waterL: 10.3 },
     });
-    expect(dominates(conventional, worse, nutrientKeys)).toBe(true);
-    expect(skyline([conventional, worse], nutrientKeys)).toEqual([conventional]);
+    expect(dominates(conventional, worse, axes)).toBe(true);
+    expect(skyline([conventional, worse], axes)).toEqual([conventional]);
   });
 
   it('全軸が同値のノード同士は互いに支配しない（厳密性の要求）', () => {
     const twin = { ...conventional, id: 'twin' };
-    expect(dominates(conventional, twin, nutrientKeys)).toBe(false);
+    expect(dominates(conventional, twin, axes)).toBe(false);
+  });
+
+  it('コスト軸の選択で順序が変わる: CO2e だけを見れば有機が慣行を支配する', () => {
+    const co2Only: ComparisonAxes = { ...axes, costAxes: ['co2eKg'] };
+    expect(dominates(organic, conventional, co2Only)).toBe(true);
+    expect(skyline([conventional, organic], co2Only)).toEqual([organic]);
+  });
+
+  it('分母に使った軸（例: 1円あたりの円 = 定数1）は比較に影響しない', () => {
+    // basis=perYen のとき costVector.yen は全ノードで 1 になる。
+    // 差 0 の軸は支配を妨げも作りもしないことを確認する。
+    const cheapPerYen = makeCompareNode({
+      id: 'cheap',
+      nutrientDensity: { protein: 3.0, fiber: 2.8 },
+      costVector: { yen: 1, co2eKg: 0.05, landM2: 0.04, waterL: 10 },
+    });
+    const richPerYen = makeCompareNode({
+      id: 'rich',
+      nutrientDensity: { protein: 2.0, fiber: 2.8 },
+      costVector: { yen: 1, co2eKg: 0.05, landM2: 0.04, waterL: 10 },
+    });
+    expect(dominates(cheapPerYen, richPerYen, axes)).toBe(true);
   });
 });
 
@@ -73,7 +100,10 @@ describe('hasseEdges', () => {
       costVector: { yen: 30 },
     });
 
-    const edges = hasseEdges([a, b, c], ['protein']);
+    const edges = hasseEdges([a, b, c], {
+      nutrientKeys: ['protein'],
+      costAxes: ['yen'],
+    });
     expect(edges.toSorted((x, y) => x.from.localeCompare(y.from))).toEqual([
       { from: 'a', to: 'b' },
       { from: 'b', to: 'c' },
@@ -81,39 +111,34 @@ describe('hasseEdges', () => {
   });
 
   it('比較不能な有機/慣行ペアの間にはエッジが生じない', () => {
-    expect(hasseEdges([conventional, organic], nutrientKeys)).toEqual([]);
+    expect(hasseEdges([conventional, organic], axes)).toEqual([]);
   });
 });
 
-describe('rankByScalarizedCost', () => {
+describe('scalarizeCost', () => {
   const zeroWeights = { yenPerKgCo2e: 0, yenPerM2Land: 0, yenPerLWater: 0 };
 
-  it('p_co2=0 なら総コストは円のみのランキングに一致する', () => {
-    const ranking = rankByScalarizedCost([organic, conventional], zeroWeights);
-    expect(ranking.map(({ node }) => node.id)).toEqual([
-      'spinach-conventional',
-      'spinach-organic',
-    ]);
-    expect(ranking[0].totalCost).toBe(conventional.costVector.yen);
+  it('価格が全部 0 なら総コストは円に一致する', () => {
+    expect(scalarizeCost(conventional.costVector, zeroWeights)).toBe(
+      conventional.costVector.yen
+    );
   });
 
-  it('p_co2 を上げると有機が慣行を上回る順位反転が起きる', () => {
+  it('p_co2 を上げると有機の総コストが慣行を下回る逆転が起きる', () => {
     // 損益分岐: Δ円 30 / ΔCO2e 0.013kg ≈ 2308 円/kg-CO2e
     const highCarbonPrice = { ...zeroWeights, yenPerKgCo2e: 3000 };
-    const ranking = rankByScalarizedCost(
-      [organic, conventional],
-      highCarbonPrice
+    expect(scalarizeCost(organic.costVector, zeroWeights)).toBeGreaterThan(
+      scalarizeCost(conventional.costVector, zeroWeights)
     );
-    expect(ranking.map(({ node }) => node.id)).toEqual([
-      'spinach-organic',
-      'spinach-conventional',
-    ]);
+    expect(scalarizeCost(organic.costVector, highCarbonPrice)).toBeLessThan(
+      scalarizeCost(conventional.costVector, highCarbonPrice)
+    );
   });
 });
 
-describe('栄養軸の次元と antichain 化（実データ）', () => {
+describe('軸の次元と antichain 化（実データ）', () => {
   // xlsx の読み込みが重いためタイムアウトを延長
-  it('34次元全選択ではほぼ全ノードが非支配になる → UI 既定は 2〜5 次元にする', { timeout: 60_000 }, async () => {
+  it('34栄養軸 + 全コスト軸ではほぼ全ノードが非支配になる → UI 既定は合計 2〜5 軸にする', { timeout: 60_000 }, async () => {
     const foods = await loadFoodData();
     const nodes = foods
       .map((food) => toCompareNode(food, 'perYen'))
@@ -121,8 +146,14 @@ describe('栄養軸の次元と antichain 化（実データ）', () => {
     const allKeys = Object.keys(nodes[0].nutrientDensity) as NutrientKey[];
     expect(allKeys).toHaveLength(34);
 
-    const fullDimensionFront = skyline(nodes, allKeys);
-    const lowDimensionFront = skyline(nodes, ['protein', 'fiber', 'vitaminC']);
+    const fullDimensionFront = skyline(nodes, {
+      nutrientKeys: allKeys,
+      costAxes: [...COST_AXES],
+    });
+    const lowDimensionFront = skyline(nodes, {
+      nutrientKeys: ['protein', 'fiber'],
+      costAxes: ['yen', 'co2eKg'],
+    });
 
     // 高次元では比較可能な対が 2^{1-d} で消え、ほぼ antichain になる
     expect(fullDimensionFront.length / nodes.length).toBeGreaterThan(0.8);

@@ -1,9 +1,4 @@
-import Link from 'next/link';
-
-import IngredientsList from '@/components/ingredients-list';
-import IngredientsListDetail from '@/components/ingredients-list-detail';
-import NutritionCategoryCharts from '@/components/nutrition-category-charts';
-import NutritionSummary from '@/components/nutrition-summary';
+import RecommendationResults from '@/components/recommendation-results';
 
 import {
   appConfig,
@@ -95,10 +90,9 @@ export default async function RecommendationPage({
     maternalStatus,
   });
 
-  const { totalCost, totalNutritionFacts, breakdown } = optimizeDiet(
-    foods,
-    referenceDailyIntakes
-  );
+  // 静的生成は価格 0（円のみ最小化）。環境コストの価格づけは
+  // クライアント側（RecommendationResults）で再最適化する。
+  const initialPlan = optimizeDiet(foods, referenceDailyIntakes);
   const messages = params.locale === 'ja-JP' ? jaJP : enUS;
 
   return (
@@ -130,48 +124,12 @@ export default async function RecommendationPage({
           </p>
         </header>
 
-        <div className="grid gap-8">
-          {/* 総合サマリー */}
-          <NutritionSummary
-            totalCost={totalCost}
-            totalNutrition={totalNutritionFacts}
-            target={referenceDailyIntakes}
-            messages={messages}
-          />
-
-          {/* 食材リスト */}
-          <IngredientsList
-            ingredients={breakdown}
-            messages={messages}
-            locale={params.locale}
-          />
-          {/* 選定根拠への導線: 選ばれた食材を Hasse 図上でハイライトする */}
-          <p className="-mt-4 text-center">
-            <Link
-              href={`/${params.locale}/compare?highlight=${breakdown
-                .map((ingredient) => encodeURIComponent(ingredient.id))
-                .join(',')}`}
-              className="text-sm text-emerald-700 underline hover:text-emerald-900"
-            >
-              {messages['Why these foods? See the rationale on the Hasse diagram']}{' '}
-              →
-            </Link>
-          </p>
-          <IngredientsListDetail
-            ingredients={breakdown}
-            referenceDailyIntakes={referenceDailyIntakes}
-            messages={messages}
-            locale={params.locale}
-          />
-          {/* 栄養素カテゴリー別チャート */}
-          <NutritionCategoryCharts
-            totalNutrition={totalNutritionFacts}
-            target={referenceDailyIntakes}
-            breakdown={breakdown}
-            messages={messages}
-            locale={params.locale}
-          />
-        </div>
+        <RecommendationResults
+          initialPlan={initialPlan}
+          target={referenceDailyIntakes}
+          messages={messages}
+          locale={params.locale}
+        />
       </div>
     </div>
   );

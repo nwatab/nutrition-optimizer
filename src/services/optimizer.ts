@@ -1,3 +1,8 @@
+import {
+  scalarizeCost,
+  type ScalarizationWeights,
+} from '@/services/domination';
+import { environmentalImpactOf } from '@/services/environment';
 import type {
   FoodRequired,
   FoodToOptimize,
@@ -6,7 +11,31 @@ import type {
 } from '@/types/nutrition';
 import { solve } from 'yalps';
 
-export function optimizeDiet(foods: FoodToOptimize[], target: NutritionTarget) {
+const ZERO_WEIGHTS: ScalarizationWeights = {
+  yenPerKgCo2e: 0,
+  yenPerM2Land: 0,
+  yenPerLWater: 0,
+};
+
+/** 可食部100gあたりの環境負荷（データは1kgあたりのため 1/10 する） */
+const environmentPerHectogram = (food: FoodToOptimize) => {
+  const env = environmentalImpactOf(food);
+  return {
+    co2eKg: env.co2eKgPerKg / 10,
+    landM2: env.landM2PerKg / 10,
+    waterL: env.waterLPerKg / 10,
+  };
+};
+
+/**
+ * 目的関数は 円 + 環境負荷の円換算（weights はユーザー設定）。
+ * 既定は 0 で、そのときは従来どおり価格のみの最小化になる。
+ */
+export function optimizeDiet(
+  foods: FoodToOptimize[],
+  target: NutritionTarget,
+  weights: ScalarizationWeights = ZERO_WEIGHTS
+) {
   // モデルの作成
   const model = {
     direction: 'minimize' as const,
@@ -18,7 +47,10 @@ export function optimizeDiet(foods: FoodToOptimize[], target: NutritionTarget) {
       (acc, food) => {
         acc[food.id] = {
           ...food.nutritionFacts,
-          cost: food.cost,
+          cost: scalarizeCost(
+            { yen: food.cost, ...environmentPerHectogram(food) },
+            weights
+          ),
         };
         return acc;
       },
@@ -86,9 +118,28 @@ export function optimizeDiet(foods: FoodToOptimize[], target: NutritionTarget) {
     {} as NutritionFactBase<number>
   );
 
+  // 円の支出と環境負荷の合計。totalCost（目的関数値）は
+  // totalYen + weights·environmentalTotals に一致する。
+  const totalYen = breakdown.reduce((sum, food) => sum + food.cost, 0);
+  const environmentalTotals = solution.variables.reduce(
+    (acc, [id, hectoGrams]) => {
+      const food = foods.find((f) => f.id === id);
+      if (!food) return acc;
+      const env = environmentPerHectogram(food);
+      return {
+        co2eKg: acc.co2eKg + env.co2eKg * hectoGrams,
+        landM2: acc.landM2 + env.landM2 * hectoGrams,
+        waterL: acc.waterL + env.waterL * hectoGrams,
+      };
+    },
+    { co2eKg: 0, landM2: 0, waterL: 0 }
+  );
+
   return {
     status: solution.status,
     totalCost: solution.result,
+    totalYen,
+    environmentalTotals,
     totalNutritionFacts,
     breakdown,
   };

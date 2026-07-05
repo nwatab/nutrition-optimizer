@@ -4,10 +4,7 @@ import { HasseDiagram } from '@/components/hasse-diagram';
 import { Card } from '@/components/ui/card';
 import type { Locale } from '@/config';
 import type { Message } from '@/locales';
-import {
-  DEFAULT_COMPARE_NUTRIENT_KEYS,
-  dominates,
-} from '@/services/domination';
+import { DEFAULT_COMPARE_AXES, dominates } from '@/services/domination';
 import { toCompareNode, type CompareNode } from '@/services/environment';
 import type { FoodToOptimize } from '@/types/nutrition';
 
@@ -75,13 +72,9 @@ export default function FoodDominationCard({
     .map((other) => toCompareNode(other, 'per100g', locale))
     .filter((node): node is CompareNode => node !== null);
 
-  const nutrientKeys = DEFAULT_COMPARE_NUTRIENT_KEYS;
-  const dominators = others.filter((other) =>
-    dominates(other, self, nutrientKeys)
-  );
-  const dominated = others.filter((other) =>
-    dominates(self, other, nutrientKeys)
-  );
+  const axes = DEFAULT_COMPARE_AXES;
+  const dominators = others.filter((other) => dominates(other, self, axes));
+  const dominated = others.filter((other) => dominates(self, other, axes));
   const incomparableCount =
     others.length - dominators.length - dominated.length;
 
@@ -106,7 +99,7 @@ export default function FoodDominationCard({
         <div className="mb-6">
           <HasseDiagram
             nodes={[...dominators, self, ...dominated]}
-            nutrientKeys={nutrientKeys}
+            axes={axes}
             highlightedIds={[self.id]}
             locale={locale}
             messages={messages}
