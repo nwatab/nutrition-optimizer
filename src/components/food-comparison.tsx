@@ -2,16 +2,26 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { HasseDiagram, truncate } from '@/components/hasse-diagram';
 import { Card, CardContent } from '@/components/ui/card';
 import type { Locale } from '@/config';
+import {
+  ZERO_WEIGHTS,
+  hasNonZeroWeights,
+  readStoredWeights,
+} from '@/lib/environmental-prices';
+import { unitMap } from '@/lib/unitmap';
 import type { Message } from '@/locales';
 import type { NutrientKey } from '@/services/diagnose';
 import {
-  DEFAULT_COMPARE_NUTRIENT_KEYS,
-  rankByScalarizedCost,
+  COST_AXES,
+  DEFAULT_COMPARE_AXES,
+  scalarizeCost,
+  skyline,
+  type ComparisonAxes,
+  type CostAxis,
   type ScalarizationWeights,
 } from '@/services/domination';
 import { toCompareNode, type CompareNode } from '@/services/environment';
@@ -55,7 +65,7 @@ const NUTRIENT_KEYS: NutrientKey[] = [
   'molybdenum',
 ];
 
-// 栄養軸は 2〜5 個。高次元では比較可能対が 2^{1-d} で消えて
+// 軸は栄養+コスト合計で 2〜5 個。高次元では比較可能対が 2^{1-d} で消えて
 // ほぼ全ノードが antichain 化するため（domination.test.ts で確認済み）。
 const MIN_AXES = 2;
 const MAX_AXES = 5;
@@ -66,95 +76,213 @@ const BASIS_LABELS: Record<Basis, keyof Message> = {
   perKcal: 'per 1 kcal',
 };
 
-const ScalarizedRanking = ({
+// 基準の分母に使っている量は全ノードで定数になるため、軸から外す
+const denominatorNutrientOf = (basis: Basis): NutrientKey | null =>
+  basis === 'perKcal' ? 'calories' : null;
+const denominatorCostOf = (basis: Basis): CostAxis | null =>
+  basis === 'perYen' ? 'yen' : null;
+
+const costAxisLabels = (messages: Message): Record<CostAxis, string> => ({
+  yen: messages.price,
+  co2eKg: 'CO2e',
+  landM2: messages.land,
+  waterL: messages.water,
+});
+
+const costAxisUnits = (messages: Message): Record<CostAxis, string> => ({
+  yen: messages.yen,
+  co2eKg: 'kg',
+  landM2: 'm²',
+  waterL: 'L',
+});
+
+type SortKey =
+  | { kind: 'label' }
+  | { kind: 'cost'; axis: CostAxis }
+  | { kind: 'nutrient'; key: NutrientKey }
+  | { kind: 'totalCost' };
+
+const sortValueOf = (
+  node: CompareNode,
+  key: SortKey,
+  weights: ScalarizationWeights
+): number | string => {
+  switch (key.kind) {
+    case 'label':
+      return node.label;
+    case 'cost':
+      return node.costVector[key.axis];
+    case 'nutrient':
+      return node.nutrientDensity[key.key];
+    case 'totalCost':
+      return scalarizeCost(node.costVector, weights);
+  }
+};
+
+const sameSortKey = (a: SortKey, b: SortKey): boolean =>
+  a.kind === b.kind &&
+  (a.kind !== 'cost' || a.axis === (b as { axis: CostAxis }).axis) &&
+  (a.kind !== 'nutrient' || a.key === (b as { key: NutrientKey }).key);
+
+/**
+ * 表ビュー。順位ではなく、選択中の軸の生の値を並べた表。
+ * ソートは表示上の操作で、比較（上位互換バッジ）は軸選択だけから決まる。
+ * 総コスト列は換算価格が設定されているときだけ現れる導出列。
+ */
+const ComparisonTable = ({
   nodes,
+  axes,
   weights,
   highlightedIds,
   locale,
   messages,
+  basis,
 }: {
   nodes: CompareNode[];
+  axes: ComparisonAxes;
   weights: ScalarizationWeights;
   highlightedIds: ReadonlySet<string>;
   locale: Locale;
   messages: Message;
+  basis: Basis;
 }) => {
-  const ranking = useMemo(
-    () => rankByScalarizedCost(nodes, weights),
-    [nodes, weights]
+  const [sort, setSort] = useState<{ key: SortKey; ascending: boolean }>({
+    key: { kind: 'label' },
+    ascending: true,
+  });
+  const front = useMemo(
+    () => new Set(skyline(nodes, axes).map((node) => node.id)),
+    [nodes, axes]
   );
+  const showTotalCost = hasNonZeroWeights(weights);
+
+  const basisSuffix =
+    basis === 'perYen' ? `/${messages.yen}` : basis === 'perKcal' ? '/kcal' : '';
+  const costLabels = costAxisLabels(messages);
+  const costUnits = costAxisUnits(messages);
+
+  const columns: { key: SortKey; label: string }[] = [
+    { key: { kind: 'label' }, label: messages['food name'] },
+    ...axes.costAxes.map((axis) => ({
+      key: { kind: 'cost', axis } as SortKey,
+      label: `${costLabels[axis]} [${costUnits[axis]}${basisSuffix}]`,
+    })),
+    ...(showTotalCost
+      ? [
+          {
+            key: { kind: 'totalCost' } as SortKey,
+            label: messages['total cost [yen]'],
+          },
+        ]
+      : []),
+    ...axes.nutrientKeys.map((key) => ({
+      key: { kind: 'nutrient', key } as SortKey,
+      label: `${messages[key]} [${unitMap[key]}${basisSuffix}]`,
+    })),
+  ];
+
+  const sorted = useMemo(
+    () =>
+      nodes.toSorted((a, b) => {
+        const va = sortValueOf(a, sort.key, weights);
+        const vb = sortValueOf(b, sort.key, weights);
+        const diff =
+          typeof va === 'string'
+            ? va.localeCompare(vb as string, locale)
+            : va - (vb as number);
+        return sort.ascending ? diff : -diff;
+      }),
+    [nodes, sort, weights, locale]
+  );
+
+  const toggleSort = (key: SortKey) =>
+    setSort((previous) =>
+      sameSortKey(previous.key, key)
+        ? { key, ascending: !previous.ascending }
+        : { key, ascending: true }
+    );
+
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="text-left text-emerald-800 border-b border-emerald-200">
-            <th className="py-2 pr-2">#</th>
-            <th className="py-2 pr-2">{messages['food name']}</th>
-            <th className="py-2 pr-2 text-right">
-              {messages['total cost [yen]']}
-            </th>
-            <th className="py-2 pr-2 text-right">{messages.yen}</th>
-            <th className="py-2 pr-2 text-right">
-              {messages['CO2e share [yen]']}
-            </th>
-            <th className="py-2 pr-2 text-right">
-              {messages['land share [yen]']}
-            </th>
-            <th className="py-2 pr-2 text-right">
-              {messages['water share [yen]']}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {ranking.map(({ node, totalCost }, index) => (
-            <tr
-              key={node.id}
-              className={`border-b border-gray-100 ${
-                highlightedIds.has(node.id) ? 'bg-amber-50' : ''
-              }`}
-            >
-              <td className="py-1 pr-2 text-gray-500">{index + 1}</td>
-              <td className="py-1 pr-2">
-                <Link
-                  href={`/${locale}/foods/${node.foodId}`}
-                  className="hover:text-emerald-800 hover:underline"
+    <div>
+      <p className="mb-2 text-xs text-gray-500">{messages['table note']}</p>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left text-emerald-800 border-b border-emerald-200">
+              {columns.map((column, index) => (
+                <th
+                  key={column.label}
+                  className={`py-2 pr-2 cursor-pointer select-none whitespace-nowrap ${
+                    index > 0 ? 'text-right' : ''
+                  }`}
+                  onClick={() => toggleSort(column.key)}
                 >
-                  {truncate(node.label, 24)}
-                </Link>
-                {node.productionMethod === 'organic' && (
-                  <span className="ml-1 rounded bg-green-100 px-1 text-xs text-green-700">
-                    {messages.organic}
-                  </span>
-                )}
-                {node.pesticideResidue && (
-                  <span className="ml-1 rounded bg-amber-100 px-1 text-xs text-amber-700">
-                    {
-                      messages[
-                        'pesticide residue: present (health impact not assessed)'
-                      ]
-                    }
-                  </span>
-                )}
-              </td>
-              <td className="py-1 pr-2 text-right font-medium">
-                {totalCost.toPrecision(4)}
-              </td>
-              <td className="py-1 pr-2 text-right">
-                {node.costVector.yen.toPrecision(3)}
-              </td>
-              <td className="py-1 pr-2 text-right">
-                {(weights.yenPerKgCo2e * node.costVector.co2eKg).toPrecision(3)}
-              </td>
-              <td className="py-1 pr-2 text-right">
-                {(weights.yenPerM2Land * node.costVector.landM2).toPrecision(3)}
-              </td>
-              <td className="py-1 pr-2 text-right">
-                {(weights.yenPerLWater * node.costVector.waterL).toPrecision(3)}
-              </td>
+                  {column.label}
+                  {sameSortKey(sort.key, column.key)
+                    ? sort.ascending
+                      ? ' ↑'
+                      : ' ↓'
+                    : ''}
+                </th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {sorted.map((node) => (
+              <tr
+                key={node.id}
+                className={`border-b border-gray-100 ${
+                  highlightedIds.has(node.id) ? 'bg-amber-50' : ''
+                }`}
+              >
+                <td className="py-1 pr-2">
+                  <Link
+                    href={`/${locale}/foods/${node.foodId}`}
+                    className="hover:text-emerald-800 hover:underline"
+                  >
+                    {truncate(node.label, 24)}
+                  </Link>
+                  {front.has(node.id) && (
+                    <span className="ml-1 rounded bg-emerald-100 px-1 text-xs text-emerald-700">
+                      {messages['not dominated']}
+                    </span>
+                  )}
+                  {node.productionMethod === 'organic' && (
+                    <span className="ml-1 rounded bg-green-100 px-1 text-xs text-green-700">
+                      {messages.organic}
+                    </span>
+                  )}
+                  {node.pesticideResidue && (
+                    <span className="ml-1 rounded bg-amber-100 px-1 text-xs text-amber-700">
+                      {messages['pesticide residue (not assessed)']}
+                    </span>
+                  )}
+                </td>
+                {axes.costAxes.map((axis) => (
+                  <td key={axis} className="py-1 pr-2 text-right">
+                    {node.costVector[axis].toPrecision(3)}
+                  </td>
+                ))}
+                {showTotalCost && (
+                  <td className="py-1 pr-2 text-right font-medium">
+                    {scalarizeCost(node.costVector, weights).toPrecision(4)}
+                  </td>
+                )}
+                {axes.nutrientKeys.map((key) => (
+                  <td key={key} className="py-1 pr-2 text-right">
+                    {node.nutrientDensity[key].toPrecision(3)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {showTotalCost && (
+        <p className="mt-2 text-xs text-gray-500">
+          {messages['total cost note']}
+        </p>
+      )}
     </div>
   );
 };
@@ -177,18 +305,15 @@ export default function FoodComparison({
   );
 
   const [basis, setBasis] = useState<Basis>('per100g');
-  const [mode, setMode] = useState<'pareto' | 'scalarized'>('pareto');
-  const [nutrientKeys, setNutrientKeys] = useState<NutrientKey[]>(
-    DEFAULT_COMPARE_NUTRIENT_KEYS
-  );
-  // p_* はユーザー設定。デフォルト 0（円のみのランキングに一致）。
-  // p_co2 の参照アンカー: J-クレジット取引価格（数千円/t-CO2e ≈ 数円/kg）〜
-  // 炭素の社会的費用（数万円/t-CO2e ≈ 数十円/kg）。採否はユーザーに委ねる。
-  const [weights, setWeights] = useState<ScalarizationWeights>({
-    yenPerKgCo2e: 0,
-    yenPerM2Land: 0,
-    yenPerLWater: 0,
-  });
+  const [mode, setMode] = useState<'graph' | 'table'>('graph');
+  const [axes, setAxes] = useState<ComparisonAxes>(DEFAULT_COMPARE_AXES);
+  // 環境負荷の円換算価格はおすすめ献立ページで設定し、ここでは
+  // 表の総コスト列（導出値）にだけ使う。SSG と一致させるため初期値 0。
+  const [weights, setWeights] =
+    useState<ScalarizationWeights>(ZERO_WEIGHTS);
+  useEffect(() => {
+    setWeights(readStoredWeights());
+  }, []);
 
   const nodes = useMemo(
     () =>
@@ -198,16 +323,46 @@ export default function FoodComparison({
     [foods, basis, locale]
   );
 
+  const axisCount = axes.nutrientKeys.length + axes.costAxes.length;
+
   const toggleNutrientKey = (key: NutrientKey) =>
-    setNutrientKeys((previous) =>
-      previous.includes(key)
-        ? previous.length > MIN_AXES
-          ? previous.filter((k) => k !== key)
-          : previous
-        : previous.length < MAX_AXES
-          ? [...previous, key]
-          : previous
-    );
+    setAxes((previous) => {
+      const count = previous.nutrientKeys.length + previous.costAxes.length;
+      const checked = previous.nutrientKeys.includes(key);
+      if (checked ? count <= MIN_AXES : count >= MAX_AXES) return previous;
+      return {
+        ...previous,
+        nutrientKeys: checked
+          ? previous.nutrientKeys.filter((k) => k !== key)
+          : [...previous.nutrientKeys, key],
+      };
+    });
+
+  const toggleCostAxis = (axis: CostAxis) =>
+    setAxes((previous) => {
+      const count = previous.nutrientKeys.length + previous.costAxes.length;
+      const checked = previous.costAxes.includes(axis);
+      if (checked ? count <= MIN_AXES : count >= MAX_AXES) return previous;
+      return {
+        ...previous,
+        costAxes: checked
+          ? previous.costAxes.filter((a) => a !== axis)
+          : [...previous.costAxes, axis],
+      };
+    });
+
+  const changeBasis = (next: Basis) => {
+    setBasis(next);
+    // 分母に使う量は全ノードで定数になるため、選択から外す
+    setAxes((previous) => ({
+      nutrientKeys: previous.nutrientKeys.filter(
+        (k) => k !== denominatorNutrientOf(next)
+      ),
+      costAxes: previous.costAxes.filter((a) => a !== denominatorCostOf(next)),
+    }));
+  };
+
+  const costLabels = costAxisLabels(messages);
 
   return (
     <div className="grid gap-6">
@@ -217,7 +372,7 @@ export default function FoodComparison({
         <CardContent className="p-6 grid gap-4">
           <div className="flex flex-wrap gap-4 items-center">
             <div className="flex gap-1 rounded-lg bg-emerald-100 p-1">
-              {(['pareto', 'scalarized'] as const).map((m) => (
+              {(['graph', 'table'] as const).map((m) => (
                 <button
                   key={m}
                   onClick={() => setMode(m)}
@@ -227,9 +382,7 @@ export default function FoodComparison({
                       : 'text-emerald-700'
                   }`}
                 >
-                  {m === 'pareto'
-                    ? messages['Pareto (Hasse diagram)']
-                    : messages.scalarized}
+                  {m === 'graph' ? messages.graph : messages.table}
                 </button>
               ))}
             </div>
@@ -237,7 +390,7 @@ export default function FoodComparison({
               {messages.denominator}:{' '}
               <select
                 value={basis}
-                onChange={(event) => setBasis(event.target.value as Basis)}
+                onChange={(event) => changeBasis(event.target.value as Basis)}
                 className="border rounded px-2 py-1"
               >
                 {(Object.keys(BASIS_LABELS) as Basis[]).map((b) => (
@@ -256,17 +409,50 @@ export default function FoodComparison({
 
           <fieldset>
             <legend className="text-sm font-medium text-emerald-800 mb-2">
-              {messages['nutrient axes (select {min}-{max}, currently {count})']
+              {messages['comparison axes (select {min}-{max}, currently {count})']
                 .replace('{min}', String(MIN_AXES))
                 .replace('{max}', String(MAX_AXES))
-                .replace('{count}', String(nutrientKeys.length))}
+                .replace('{count}', String(axisCount))}
             </legend>
-            <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <div className="mb-2 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+              <span className="text-xs font-medium text-gray-600">
+                {messages['cost axes']}:
+              </span>
+              {COST_AXES.map((axis) => {
+                const checked = axes.costAxes.includes(axis);
+                const isDenominator = denominatorCostOf(basis) === axis;
+                const disabled =
+                  isDenominator ||
+                  (checked ? axisCount <= MIN_AXES : axisCount >= MAX_AXES);
+                return (
+                  <label
+                    key={axis}
+                    className={`text-xs ${disabled ? 'text-gray-400' : 'text-gray-700'}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      disabled={disabled}
+                      onChange={() => toggleCostAxis(axis)}
+                      className="mr-1"
+                    />
+                    {costLabels[axis]}
+                    {isDenominator &&
+                      ` (${messages['used as the denominator']})`}
+                  </label>
+                );
+              })}
+            </div>
+            <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+              <span className="text-xs font-medium text-gray-600">
+                {messages['nutrient axes']}:
+              </span>
               {NUTRIENT_KEYS.map((key) => {
-                const checked = nutrientKeys.includes(key);
-                const disabled = checked
-                  ? nutrientKeys.length <= MIN_AXES
-                  : nutrientKeys.length >= MAX_AXES;
+                const checked = axes.nutrientKeys.includes(key);
+                const isDenominator = denominatorNutrientOf(basis) === key;
+                const disabled =
+                  isDenominator ||
+                  (checked ? axisCount <= MIN_AXES : axisCount >= MAX_AXES);
                 return (
                   <label
                     key={key}
@@ -280,85 +466,36 @@ export default function FoodComparison({
                       className="mr-1"
                     />
                     {messages[key]}
+                    {isDenominator &&
+                      ` (${messages['used as the denominator']})`}
                   </label>
                 );
               })}
             </div>
           </fieldset>
-
-          {mode === 'scalarized' && (
-            <div className="grid gap-3">
-              <p className="text-xs text-gray-500">
-                {messages['scalarization intro']}
-              </p>
-              <div className="grid gap-4 md:grid-cols-3">
-                {(
-                  [
-                    [
-                      'yenPerKgCo2e',
-                      'CO2e price [yen/kg-CO2e]',
-                      'co2e price reference',
-                      100,
-                    ],
-                    [
-                      'yenPerM2Land',
-                      'land price [yen/m2]',
-                      'land price reference',
-                      20,
-                    ],
-                    [
-                      'yenPerLWater',
-                      'water price [yen/L]',
-                      'water price reference',
-                      1,
-                    ],
-                  ] as const
-                ).map(([field, labelKey, referenceKey, max]) => (
-                  <label key={field} className="text-sm text-gray-700">
-                    {messages[labelKey]}: {weights[field]}
-                    <input
-                      type="range"
-                      min={0}
-                      max={max}
-                      step={max / 100}
-                      value={weights[field]}
-                      onChange={(event) =>
-                        setWeights((previous) => ({
-                          ...previous,
-                          [field]: Number(event.target.value),
-                        }))
-                      }
-                      className="w-full"
-                    />
-                    <span className="block text-xs font-normal text-gray-500">
-                      {messages[referenceKey]}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
 
       <Card className="min-w-0">
         <CardContent className="p-6">
-          {mode === 'pareto' ? (
+          {mode === 'graph' ? (
             <HasseDiagram
               nodes={nodes}
-              nutrientKeys={nutrientKeys}
+              axes={axes}
               highlightedIds={[...highlightedIds]}
               locale={locale}
               messages={messages}
               basis={basis}
             />
           ) : (
-            <ScalarizedRanking
+            <ComparisonTable
               nodes={nodes}
+              axes={axes}
               weights={weights}
               highlightedIds={highlightedIds}
               locale={locale}
               messages={messages}
+              basis={basis}
             />
           )}
           <p className="mt-4 text-xs text-gray-500">
