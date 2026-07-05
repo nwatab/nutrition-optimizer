@@ -37,7 +37,7 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
   // 「ふつう」が代表値のため既定選択にし、多くの人は触らず送信できるようにする
   const [pal, setPal] = useState<PalCategory>('normal');
 
-  // 前回のプロフィールを初期値に復元する。localStorage は SSG の HTML と
+  // 前回のプロフィールを初期値に復元する。sessionStorage は SSG の HTML と
   // 一致しないため、マウント後に読む。値は選択肢に残っているものだけ採用する。
   useEffect(() => {
     const profile = readStoredProfile();
