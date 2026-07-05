@@ -1,4 +1,5 @@
 import type { AgeBand, PalCategory, Sex } from '@/data';
+import type { Message } from '@/locales';
 
 export type Locale = 'en-US' | 'ja-JP';
 
@@ -68,6 +69,19 @@ export type StatusSegment =
   | 'pregnancy-mid'
   | 'pregnancy-late'
   | 'lactation';
+
+/**
+ * [status] セグメントの表示ラベルのメッセージキー。
+ * フォームの選択肢とリコメンドページの対象説明の両方が参照する。
+ */
+export const STATUS_LABEL_KEY: Record<StatusSegment, keyof Message> = {
+  none: 'not menstruating or pregnant',
+  menstruation: 'menstruating',
+  'pregnancy-early': 'pregnancy (first trimester)',
+  'pregnancy-mid': 'pregnancy (second trimester)',
+  'pregnancy-late': 'pregnancy (third trimester)',
+  lactation: 'lactating',
+};
 
 /** 月経ありを選べる年齢帯（鉄に月経あり列がある区分）。 */
 const MENSTRUATION_BANDS: ReadonlySet<AgeBand> = new Set<AgeBand>([

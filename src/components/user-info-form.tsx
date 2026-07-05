@@ -9,6 +9,7 @@ import {
   palCategoriesFor,
   statusesFor,
   PROFILE_STORAGE_KEY,
+  STATUS_LABEL_KEY,
   type StatusSegment,
   type StoredProfile,
 } from '@/config';
@@ -17,15 +18,6 @@ import { enUS, jaJP } from '@/locales';
 import { capitalize, toTitleCase } from '@/utils';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
-
-const STATUS_LABEL_KEY: Record<StatusSegment, keyof typeof enUS> = {
-  none: 'not menstruating or pregnant',
-  menstruation: 'menstruating',
-  'pregnancy-early': 'pregnancy (first trimester)',
-  'pregnancy-mid': 'pregnancy (second trimester)',
-  'pregnancy-late': 'pregnancy (third trimester)',
-  lactation: 'lactating',
-};
 
 export default function UserInfoForm({ locale }: { locale: Locale }) {
   const router = useRouter();

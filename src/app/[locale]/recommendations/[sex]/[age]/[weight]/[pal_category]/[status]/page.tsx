@@ -13,6 +13,7 @@ import {
   isChildSegment,
   palCategoriesFor,
   statusesFor,
+  STATUS_LABEL_KEY,
   type StatusSegment,
 } from '@/config';
 import type { Locale } from '@/config';
@@ -113,8 +114,19 @@ export default async function RecommendationPage({
                 'This is the result of calculation of your diet for cost and nutrition'
               ]
             }
-            : {messages[params.sex]}, {messages['physical activity level']}{' '}
-            {messages[params.pal_category]}
+            : {messages[params.sex]}, {messages['age']}{' '}
+            {ageBand.replace('-', '–')}
+            {/* 小児は体重・PAL を入力しないため、フォームに現れた項目だけを示す */}
+            {!isChildSegment(params.age) && <>, {weightKg} kg</>}
+            {palCategoriesFor(params.age).length > 1 && (
+              <>
+                , {messages['physical activity level']}{' '}
+                {messages[params.pal_category]}
+              </>
+            )}
+            {params.status !== 'none' && (
+              <>, {messages[STATUS_LABEL_KEY[params.status]]}</>
+            )}
           </p>
         </header>
 
