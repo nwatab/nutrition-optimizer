@@ -136,7 +136,7 @@ const ComparisonTable = ({
       ? [
           {
             key: { kind: 'totalCost' } as SortKey,
-            label: messages['total cost [yen]'],
+            label: `${messages['total cost']} [${messages.yen}${basisSuffix}]`,
           },
         ]
       : []),
