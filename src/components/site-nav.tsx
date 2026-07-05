@@ -24,7 +24,7 @@ export function SiteNav({
   labels: SiteNavLabels;
 }) {
   const pathname = usePathname();
-  // localStorage は SSG の HTML と一致しないため、マウント後に読む。
+  // sessionStorage は SSG の HTML と一致しないため、マウント後に読む。
   // フォーム送信直後の SPA 遷移でも反映されるよう、ルート変更ごとに再読する。
   const [profile, setProfile] = useState<StoredProfile | null>(null);
   useEffect(() => setProfile(readStoredProfile()), [pathname]);
