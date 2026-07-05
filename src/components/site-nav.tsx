@@ -1,32 +1,10 @@
 'use client';
 
-import {
-  PROFILE_STORAGE_KEY,
-  type Locale,
-  type StoredProfile,
-} from '@/config';
+import { type Locale, type StoredProfile } from '@/config';
+import { readStoredProfile } from '@/lib/profile-storage';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-
-const isStoredProfile = (value: unknown): value is StoredProfile =>
-  typeof value === 'object' &&
-  value !== null &&
-  (['sex', 'age', 'weight', 'pal', 'status'] as const).every(
-    (key) => typeof (value as Record<string, unknown>)[key] === 'string'
-  );
-
-const readProfile = (): StoredProfile | null => {
-  try {
-    const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
-    if (!raw) return null;
-    const parsed: unknown = JSON.parse(raw);
-    return isStoredProfile(parsed) ? parsed : null;
-  } catch {
-    // プライベートモード等で localStorage が使えない場合は未保存扱い
-    return null;
-  }
-};
 
 export type SiteNavLabels = {
   recommendations: string;
@@ -49,7 +27,7 @@ export function SiteNav({
   // localStorage は SSG の HTML と一致しないため、マウント後に読む。
   // フォーム送信直後の SPA 遷移でも反映されるよう、ルート変更ごとに再読する。
   const [profile, setProfile] = useState<StoredProfile | null>(null);
-  useEffect(() => setProfile(readProfile()), [pathname]);
+  useEffect(() => setProfile(readStoredProfile()), [pathname]);
 
   const recommendationsHref = profile
     ? `/${locale}/recommendations/${profile.sex}/${profile.age}/${profile.weight}/${profile.pal}/${profile.status}`
