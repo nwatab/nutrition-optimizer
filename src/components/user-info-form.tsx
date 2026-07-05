@@ -8,16 +8,23 @@ import {
   isChildSegment,
   palCategoriesFor,
   statusesFor,
-  PROFILE_STORAGE_KEY,
   STATUS_LABEL_KEY,
   type StatusSegment,
   type StoredProfile,
 } from '@/config';
-import { type Sex } from '@/data';
+import { type PalCategory, type Sex } from '@/data';
+import { readStoredProfile, writeStoredProfile } from '@/lib/profile-storage';
 import { enUS, jaJP } from '@/locales';
 import { capitalize, toTitleCase } from '@/utils';
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+
+const PAL_DESCRIPTION_KEY = {
+  low: 'You spend most of the day sitting, with little movement.',
+  normal:
+    'Mostly desk work, but you move around: commuting, shopping, housework, or light sports.',
+  high: 'You are on your feet a lot at work, or you exercise regularly.',
+} as const;
 
 export default function UserInfoForm({ locale }: { locale: Locale }) {
   const router = useRouter();
@@ -26,6 +33,25 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
   const [sex, setSex] = useState<'' | Sex>('');
   const [age, setAge] = useState('30');
   const [status, setStatus] = useState<StatusSegment>('none');
+  const [weight, setWeight] = useState('');
+  // 「ふつう」が代表値のため既定選択にし、多くの人は触らず送信できるようにする
+  const [pal, setPal] = useState<PalCategory>('normal');
+
+  // 前回のプロフィールを初期値に復元する。localStorage は SSG の HTML と
+  // 一致しないため、マウント後に読む。値は選択肢に残っているものだけ採用する。
+  useEffect(() => {
+    const profile = readStoredProfile();
+    if (!profile) return;
+    if (profile.sex === 'male' || profile.sex === 'female') setSex(profile.sex);
+    if (profile.age in AGE_SEGMENTS) setAge(profile.age);
+    if (WEIGHT_OPTIONS_KG.map(String).includes(profile.weight)) {
+      setWeight(profile.weight);
+    }
+    if (palCategoriesFor(profile.age).includes(profile.pal)) {
+      setPal(profile.pal);
+    }
+    setStatus(profile.status);
+  }, []);
 
   const isChild = isChildSegment(age);
   const ageBand = AGE_SEGMENTS[age];
@@ -36,57 +62,90 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
   );
   const effectiveStatus = statusOptions.includes(status) ? status : 'none';
   const palOptions = palCategoriesFor(age);
+  const effectivePal = palOptions.includes(pal) ? pal : 'normal';
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const form = e.currentTarget;
-    // 1〜5歳は PAL が「ふつう」のみのため選択させず、静的生成と同じトークンを送る。
-    const pal = palOptions.length === 1 ? palOptions[0] : form.pal.value;
+    if (!sex) return;
     // 小児は参照体重を用いるため体重入力を使わず、静的生成と同じトークンを送る。
-    const weight = isChild ? CHILD_WEIGHT_SEGMENT : form.weight.value;
+    const effectiveWeight = isChild ? CHILD_WEIGHT_SEGMENT : weight;
+    if (!effectiveWeight) return;
     // ナビの「おすすめ献立」が前回のページへ直接飛べるよう保存する
-    try {
-      const profile: StoredProfile = {
-        sex: sex as StoredProfile['sex'],
-        age,
-        weight,
-        pal,
-        status: effectiveStatus,
-      };
-      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
-    } catch {
-      // localStorage が使えない環境では保存を諦める
-    }
+    const profile: StoredProfile = {
+      sex,
+      age,
+      weight: effectiveWeight,
+      pal: effectivePal,
+      status: effectiveStatus,
+    };
+    writeStoredProfile(profile);
     router.push(
-      `/${locale}/recommendations/${sex}/${age}/${weight}/${pal}/${effectiveStatus}`
+      `/${locale}/recommendations/${sex}/${age}/${effectiveWeight}/${effectivePal}/${effectiveStatus}`
     );
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Sex */}
-      <div>
-        <label
-          htmlFor="sex"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
+      <fieldset>
+        <legend className="block text-sm font-medium text-gray-700 mb-1">
           {toTitleCase(messages['biological sex'])}
-        </label>
-        <select
-          id="sex"
-          name="sex"
-          required
-          className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-emerald-500 focus:border-emerald-500"
-          value={sex}
-          onChange={(e) => setSex(e.target.value as Sex)}
-        >
-          <option value="" disabled>
-            {toTitleCase(messages['select your sex'])}
-          </option>
-          <option value="male">{capitalize(messages['male'])}</option>
-          <option value="female">{capitalize(messages['female'])}</option>
-        </select>
-      </div>
+        </legend>
+        <div className="grid grid-cols-2 gap-2">
+          {(['male', 'female'] as const).map((option) => (
+            <label
+              key={option}
+              className={`cursor-pointer rounded-md border px-4 py-2.5 text-center text-sm transition-colors ${
+                sex === option
+                  ? 'border-emerald-600 bg-emerald-50 font-medium text-emerald-900 ring-1 ring-emerald-600'
+                  : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <input
+                type="radio"
+                name="sex"
+                value={option}
+                required
+                checked={sex === option}
+                onChange={() => setSex(option)}
+                className="sr-only"
+              />
+              {capitalize(messages[option])}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      {/* Reproductive status (females with menstruation/pregnancy options) */}
+      {sex === 'female' && statusOptions.length > 1 && (
+        <fieldset>
+          <legend className="block text-sm font-medium text-gray-700 mb-1">
+            {toTitleCase(messages['reproductive status'])}
+          </legend>
+          <div className="flex flex-wrap gap-2">
+            {statusOptions.map((option) => (
+              <label
+                key={option}
+                className={`cursor-pointer rounded-full border px-3 py-1.5 text-sm transition-colors ${
+                  effectiveStatus === option
+                    ? 'border-emerald-600 bg-emerald-50 font-medium text-emerald-900 ring-1 ring-emerald-600'
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="status"
+                  value={option}
+                  checked={effectiveStatus === option}
+                  onChange={() => setStatus(option)}
+                  className="sr-only"
+                />
+                {messages[STATUS_LABEL_KEY[option]]}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
 
       {/* Age band */}
       <div>
@@ -112,31 +171,6 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
         </select>
       </div>
 
-      {/* Reproductive status (females with menstruation/pregnancy options) */}
-      {sex === 'female' && statusOptions.length > 1 && (
-        <div>
-          <label
-            htmlFor="status"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            {toTitleCase(messages['reproductive status'])}
-          </label>
-          <select
-            id="status"
-            name="status"
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-emerald-500 focus:border-emerald-500"
-            value={effectiveStatus}
-            onChange={(e) => setStatus(e.target.value as StatusSegment)}
-          >
-            {statusOptions.map((s) => (
-              <option key={s} value={s}>
-                {messages[STATUS_LABEL_KEY[s]]}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
       {/* Weight (adults only; children use reference body weight) */}
       {!isChild && (
         <div>
@@ -151,7 +185,8 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
             name="weight"
             required
             className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-emerald-500 focus:border-emerald-500"
-            defaultValue=""
+            value={weight}
+            onChange={(e) => setWeight(e.target.value)}
           >
             <option value="" disabled>
               {messages['select your weight']}
@@ -167,55 +202,58 @@ export default function UserInfoForm({ locale }: { locale: Locale }) {
 
       {/* Physical Activity Level (hidden for ages 1-5; only 'normal' is defined) */}
       {palOptions.length > 1 && (
-        <div>
-          <label
-            htmlFor="pal"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
+        <fieldset>
+          <legend className="block text-sm font-medium text-gray-700 mb-1">
             {toTitleCase(messages['physical activity level'])}
-          </label>
-          <select
-            id="pal"
-            name="pal"
-            required
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-emerald-500 focus:border-emerald-500"
-            defaultValue=""
-          >
-            <option value="" disabled>
-              {messages['select your activity level']}
-            </option>
-            <option value="low">
-              {messages['low']} (
-              {
-                messages[
-                  'When most of your daily life is spent sitting and your activities are predominantly static.'
-                ]
-              }
-              )
-            </option>
-            <option value="normal">
-              {messages['normal']} (
-              {
-                messages[
-                  'Your work is mainly sedentary, but you also include any of the following: moving around or standing at work (e.g. serving), commuting, shopping, housework, or light sports.'
-                ]
-              }
-              )
-            </option>
-            <option value="high">
-              {messages['high']} (
-              {
-                messages[
-                  'You have a job involving a lot of movement or standing, or you maintain an active exercise habit in your leisure time (e.g. regular sports).'
-                ]
-              }
-              )
-            </option>
-          </select>
+          </legend>
+          <div className="space-y-2">
+            {palOptions.map((option) => (
+              <label
+                key={option}
+                className={`block cursor-pointer rounded-md border px-4 py-3 transition-colors ${
+                  effectivePal === option
+                    ? 'border-emerald-600 bg-emerald-50 ring-1 ring-emerald-600'
+                    : 'border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="pal"
+                  value={option}
+                  checked={effectivePal === option}
+                  onChange={() => setPal(option)}
+                  className="sr-only"
+                />
+                <span
+                  className={`block text-sm font-medium ${
+                    effectivePal === option
+                      ? 'text-emerald-900'
+                      : 'text-gray-900'
+                  }`}
+                >
+                  {capitalize(messages[option])}
+                  {option === 'normal' && (
+                    <span className="ml-2 font-normal text-xs text-emerald-700">
+                      {messages['most people choose this']}
+                    </span>
+                  )}
+                </span>
+                <span
+                  className={`mt-0.5 block text-xs leading-relaxed ${
+                    effectivePal === option
+                      ? 'text-emerald-800'
+                      : 'text-gray-500'
+                  }`}
+                >
+                  {messages[PAL_DESCRIPTION_KEY[option]]}
+                </span>
+              </label>
+            ))}
+          </div>
           <p className="mt-4 text-xs text-gray-500">
             {messages['This helps us calculate your daily calorie needs.']}
           </p>
-        </div>
+        </fieldset>
       )}
 
       {/* Submit Button */}
