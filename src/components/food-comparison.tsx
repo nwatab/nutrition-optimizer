@@ -4,9 +4,10 @@ import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 
-import { HasseDiagram, truncate } from '@/components/hasse-diagram';
+import { HasseDiagram } from '@/components/hasse-diagram';
 import { Card, CardContent } from '@/components/ui/card';
 import type { Locale } from '@/config';
+import { truncate } from '@/lib/hasse-layout';
 import {
   MAX_AXES,
   MIN_AXES,
