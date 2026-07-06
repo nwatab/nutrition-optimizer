@@ -29,10 +29,7 @@ type NutrientKey = keyof NutritionFactBase<number>;
  * 超過を赤で示す。食塩は下限も持つが目標は上限側なので明示的に含める
  * （レーダーチャートの塩分警告と同じ扱い）。飽和脂肪酸は上限のみ。
  */
-const LIMIT_NUTRIENTS = new Set<NutrientKey>([
-  'nacl',
-  'saturatedFattyAcids',
-]);
+const LIMIT_NUTRIENTS = new Set<NutrientKey>(['nacl', 'saturatedFattyAcids']);
 
 /**
  * 基準が性別で大きく変わり、併記が意思決定に効く栄養素。エネルギー比例で
@@ -42,62 +39,65 @@ const LIMIT_NUTRIENTS = new Set<NutrientKey>([
 const DUAL_SEX_NUTRIENTS = new Set<NutrientKey>(['iron', 'calcium']);
 
 // 結果ページ（nutrition-category-charts）と同一の6分類に統一する。
-const CATEGORIES: { id: string; nameKey: keyof Message; keys: NutrientKey[] }[] =
-  [
-    {
-      id: 'macros',
-      nameKey: 'macronutrients',
-      keys: ['calories', 'protein', 'fat', 'carbohydrates', 'fiber'],
-    },
-    {
-      id: 'fat-soluble-vitamins',
-      nameKey: 'fat-soluble vitamins',
-      keys: ['vitaminA', 'vitaminD', 'vitaminE', 'vitaminK'],
-    },
-    {
-      id: 'water-soluble-vitamins',
-      nameKey: 'water-soluble vitamins',
-      keys: [
-        'vitaminB1',
-        'vitaminB2',
-        'vitaminB6',
-        'vitaminB12',
-        'vitaminC',
-        'niacin',
-        'folate',
-        'pantothenicAcid',
-        'biotin',
-      ],
-    },
-    {
-      id: 'macro-minerals',
-      nameKey: 'macro-minerals',
-      keys: ['potassium', 'calcium', 'magnesium', 'phosphorus', 'nacl'],
-    },
-    {
-      id: 'trace-minerals',
-      nameKey: 'micro-minerals',
-      keys: [
-        'iron',
-        'zinc',
-        'copper',
-        'manganese',
-        'iodine',
-        'selenium',
-        'chromium',
-        'molybdenum',
-      ],
-    },
-    {
-      id: 'fats',
-      nameKey: 'fatty acids',
-      keys: [
-        'saturatedFattyAcids',
-        'n6PolyunsaturatedFattyAcids',
-        'n3PolyunsaturatedFattyAcids',
-      ],
-    },
-  ];
+const CATEGORIES: {
+  id: string;
+  nameKey: keyof Message;
+  keys: NutrientKey[];
+}[] = [
+  {
+    id: 'macros',
+    nameKey: 'macronutrients',
+    keys: ['calories', 'protein', 'fat', 'carbohydrates', 'fiber'],
+  },
+  {
+    id: 'fat-soluble-vitamins',
+    nameKey: 'fat-soluble vitamins',
+    keys: ['vitaminA', 'vitaminD', 'vitaminE', 'vitaminK'],
+  },
+  {
+    id: 'water-soluble-vitamins',
+    nameKey: 'water-soluble vitamins',
+    keys: [
+      'vitaminB1',
+      'vitaminB2',
+      'vitaminB6',
+      'vitaminB12',
+      'vitaminC',
+      'niacin',
+      'folate',
+      'pantothenicAcid',
+      'biotin',
+    ],
+  },
+  {
+    id: 'macro-minerals',
+    nameKey: 'macro-minerals',
+    keys: ['potassium', 'calcium', 'magnesium', 'phosphorus', 'nacl'],
+  },
+  {
+    id: 'trace-minerals',
+    nameKey: 'micro-minerals',
+    keys: [
+      'iron',
+      'zinc',
+      'copper',
+      'manganese',
+      'iodine',
+      'selenium',
+      'chromium',
+      'molybdenum',
+    ],
+  },
+  {
+    id: 'fats',
+    nameKey: 'fatty acids',
+    keys: [
+      'saturatedFattyAcids',
+      'n6PolyunsaturatedFattyAcids',
+      'n3PolyunsaturatedFattyAcids',
+    ],
+  },
+];
 
 type BarModel = {
   /** 基準となる量（1日推奨量、または上限量） */
@@ -169,9 +169,10 @@ export default function NutritionCategoryBars({
           <span className="text-gray-400">
             {' '}
             ·{' '}
-            {messages[
-              'daily reference intake (ages 30–49, {sex})'
-            ].replace('{sex}', messages[sex])}
+            {messages['daily reference intake (ages 30–49, {sex})'].replace(
+              '{sex}',
+              messages[sex]
+            )}
           </span>
         </p>
         <div
@@ -196,78 +197,93 @@ export default function NutritionCategoryBars({
         </div>
       </div>
 
-      {CATEGORIES.map((category) => (
-        <div key={category.id} className="space-y-3">
-          <h3 className="text-lg font-semibold text-emerald-700">
+      {/* カテゴリーへのジャンプ（結果ページと同じアンカーピル） */}
+      <nav className="flex flex-wrap gap-2">
+        {CATEGORIES.map((category) => (
+          <a
+            key={category.id}
+            href={'#' + category.id}
+            className="px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 hover:shadow-md border border-emerald-200 hover:border-emerald-300"
+          >
             {messages[category.nameKey]}
-          </h3>
-          {category.keys.map((key) => {
-            const value = nutritionFacts[key];
-            const bar = buildBar(key, value, activeTarget[key]);
-            const otherBar = buildBar(key, value, otherTarget[key]);
-            const percent = bar?.percent ?? 0;
-            const width = Math.min(Math.max(percent, 0), 100);
-            const barColor = bar?.isOver
-              ? 'bg-rose-500'
-              : bar?.isLimit
-                ? 'bg-emerald-500'
-                : 'bg-emerald-500';
-            const shareText = bar
-              ? (bar.isLimit
-                  ? messages['{percent}% of upper limit']
-                  : messages['{percent}% of daily reference']
-                ).replace(
-                  '{percent}',
-                  Math.round(bar.percent).toLocaleString(locale)
-                )
-              : null;
-            // 鉄・カルシウムのみ、性差が意思決定に効くため他方の割合を併記する。
-            const showOther =
-              DUAL_SEX_NUTRIENTS.has(key) &&
-              bar !== null &&
-              otherBar !== null &&
-              Math.round(otherBar.percent) !== Math.round(bar.percent);
+          </a>
+        ))}
+      </nav>
 
-            return (
-              <div
-                key={key}
-                className="grid grid-cols-12 gap-2 items-center"
-              >
-                <div className="col-span-3 text-sm font-medium text-gray-700">
-                  {toTitleCase(messages[key])}
-                </div>
-                <div className="col-span-6">
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div
-                      className={`h-2.5 rounded-full ${barColor}`}
-                      style={{ width: `${width}%` }}
-                    ></div>
+      <div className="space-y-6">
+        {CATEGORIES.map((category) => (
+          <div
+            key={category.id}
+            id={category.id}
+            className="space-y-3 scroll-mt-4 pt-6 border-t border-emerald-100 first:border-t-0 first:pt-0"
+          >
+            <h3 className="text-lg font-semibold text-emerald-700">
+              {messages[category.nameKey]}
+            </h3>
+            {category.keys.map((key) => {
+              const value = nutritionFacts[key];
+              const bar = buildBar(key, value, activeTarget[key]);
+              const otherBar = buildBar(key, value, otherTarget[key]);
+              const percent = bar?.percent ?? 0;
+              const width = Math.min(Math.max(percent, 0), 100);
+              const barColor = bar?.isOver ? 'bg-rose-500' : 'bg-emerald-500';
+              const shareText = bar
+                ? (bar.isLimit
+                    ? messages['{percent}% of upper limit']
+                    : messages['{percent}% of daily reference']
+                  ).replace(
+                    '{percent}',
+                    Math.round(bar.percent).toLocaleString(locale)
+                  )
+                : null;
+              // 鉄・カルシウムのみ、性差が意思決定に効くため他方の割合を併記する。
+              const showOther =
+                DUAL_SEX_NUTRIENTS.has(key) &&
+                bar !== null &&
+                otherBar !== null &&
+                Math.round(otherBar.percent) !== Math.round(bar.percent);
+
+              return (
+                <div key={key} className="grid grid-cols-12 gap-2 items-center">
+                  <div className="col-span-3 text-sm font-medium text-gray-700">
+                    {toTitleCase(messages[key])}
                   </div>
-                </div>
-                <div className="col-span-3 text-right">
-                  <div className="text-sm text-gray-700">
-                    {formatNutrientAmount(key, value, locale)} {unitMap[key]}
-                  </div>
-                  {shareText && (
-                    <div
-                      className={`text-xs ${bar?.isOver ? 'text-rose-600' : 'text-gray-500'}`}
-                    >
-                      {shareText}
-                      {showOther && otherBar && (
-                        <span className="text-gray-400">
-                          {' '}
-                          ({messages[otherSex]}{' '}
-                          {Math.round(otherBar.percent).toLocaleString(locale)}%)
-                        </span>
-                      )}
+                  <div className="col-span-6">
+                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                      <div
+                        className={`h-2.5 rounded-full ${barColor}`}
+                        style={{ width: `${width}%` }}
+                      ></div>
                     </div>
-                  )}
+                  </div>
+                  <div className="col-span-3 text-right">
+                    <div className="text-sm text-gray-700">
+                      {formatNutrientAmount(key, value, locale)} {unitMap[key]}
+                    </div>
+                    {shareText && (
+                      <div
+                        className={`text-xs ${bar?.isOver ? 'text-rose-600' : 'text-gray-500'}`}
+                      >
+                        {shareText}
+                        {showOther && otherBar && (
+                          <span className="text-gray-400">
+                            {' '}
+                            ({messages[otherSex]}{' '}
+                            {Math.round(otherBar.percent).toLocaleString(
+                              locale
+                            )}
+                            %)
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      ))}
+              );
+            })}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
