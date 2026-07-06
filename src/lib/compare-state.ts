@@ -51,9 +51,12 @@ export const NUTRIENT_KEYS: NutrientKey[] = [
   'molybdenum',
 ];
 
-// 軸は栄養+コスト合計で 2〜5 個。高次元では比較可能対が 2^{1-d} で消えて
-// ほぼ全ノードが antichain 化するため（domination.test.ts で確認済み）。
-export const MIN_AXES = 2;
+// 軸は栄養+コスト合計で 1〜5 個。
+// 1軸だと半順序が全順序（鎖）になり、全食品が縦一列に順位づけされて
+// 「上ほど良い」が厳密に成り立つ（理解の入口として有用）。
+// 上限側は逆に、高次元では比較可能対が 2^{1-d} で消えてほぼ全ノードが
+// antichain 化するため 5 で頭打ちにする（domination.test.ts で確認済み）。
+export const MIN_AXES = 1;
 export const MAX_AXES = 5;
 
 export type CompareView = 'graph' | 'table';

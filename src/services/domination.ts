@@ -11,9 +11,10 @@ import type { CompareNode, CostVector } from '@/services/environment';
  * 円換算（スカラー化）は比較には使わない。単一の数字が必要な場面
  * （最適化の目的関数・表の総コスト列）だけが scalarizeCost を使う。
  *
- * 軸は合計 2〜5 個選択する想定。次元 d を上げるとランダムな点同士が
- * 比較可能になる確率は 2^{1-d} で落ち、ほぼ全ノードが非支配
- * （antichain）になるため（domination.test.ts で確認済み）。
+ * 軸は合計 1〜5 個選択する想定。1軸なら全順序（鎖）になり全ノードが
+ * 一列に順位づけされる。次元 d を上げるとランダムな点同士が比較可能に
+ * なる確率は 2^{1-d} で落ち、ほぼ全ノードが非支配（antichain）になる
+ * ため上限は 5（domination.test.ts で確認済み）。
  */
 
 export const COST_AXES = ['yen', 'co2eKg', 'landM2', 'waterL'] as const;
