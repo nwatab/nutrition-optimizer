@@ -46,40 +46,6 @@ export default async function FoodPage({
     notFound();
   }
 
-  // 主要栄養素カテゴリー
-  const categories = [
-    {
-      name: messages.macronutrients,
-      items: ['protein', 'fat', 'carbohydrates'],
-    },
-    {
-      name: messages.vitamins,
-      items: [
-        'vitaminA',
-        'vitaminB1',
-        'vitaminB2',
-        'vitaminB6',
-        'vitaminB12',
-        'vitaminC',
-        'vitaminD',
-        'vitaminE',
-        'vitaminK',
-      ],
-    },
-    {
-      name: messages.minerals,
-      items: ['calcium', 'iron', 'potassium', 'magnesium', 'zinc'],
-    },
-    {
-      name: messages['fatty acids'],
-      items: [
-        'saturatedFattyAcids',
-        'n6PolyunsaturatedFattyAcids',
-        'n3PolyunsaturatedFattyAcids',
-      ],
-    },
-  ];
-
   // 100円あたりの栄養素量を計算
   const nutritionPer100Yen = Object.entries(food.nutritionFacts).reduce(
     (acc, [key, value]) => {
@@ -240,22 +206,15 @@ export default async function FoodPage({
             <h2 className="text-2xl font-bold text-emerald-800 mb-4">
               {messages['Nutrient categories']}
             </h2>
-            <div className="space-y-6">
-              {categories.map((category) => (
-                <div key={category.name}>
-                  <h3 className="text-lg font-semibold text-emerald-700 mb-3">
-                    {category.name}
-                  </h3>
-                  <NutritionCategoryBars
-                    nutritionFacts={food.nutritionFacts}
-                    items={
-                      category.items as Array<keyof typeof food.nutritionFacts>
-                    }
-                    messages={messages}
-                  />
-                </div>
-              ))}
-            </div>
+            <NutritionCategoryBars
+              nutritionFacts={food.nutritionFacts}
+              targets={{
+                male: referenceDailyIntakes,
+                female: femaleReferenceDailyIntakes,
+              }}
+              messages={messages}
+              locale={locale}
+            />
           </Card>
 
           {/* 詳細な栄養成分表 */}
