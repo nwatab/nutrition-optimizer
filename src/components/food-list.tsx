@@ -6,6 +6,7 @@ import { useMemo } from 'react';
 
 import { Card, CardContent } from '@/components/ui/card';
 import type { Locale } from '@/config';
+import { withBasePath } from '@/lib/shallow-url';
 import { formatNutrientAmount, unitMap } from '@/lib/unitmap';
 import type { Message } from '@/locales';
 import type { NutrientKey } from '@/services/diagnose';
@@ -123,12 +124,7 @@ export default function FoodList({
     Object.entries(updates).forEach(([key, value]) =>
       value === null ? params.delete(key) : params.set(key, value)
     );
-    const query = params.toString();
-    window.history.replaceState(
-      null,
-      '',
-      query ? `${pathname}?${query}` : pathname
-    );
+    window.history.replaceState(null, '', withBasePath(pathname, params.toString()));
   };
 
   const changeSort = (column: Column) => {

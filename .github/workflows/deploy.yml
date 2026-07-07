@@ -26,9 +26,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
+      # basePath は src/lib/base-path.ts が NODE_ENV=production から自動で付ける。
       - run: pnpm build
-        env:
-          NEXT_PUBLIC_BASE_PATH: /nutrition-optimizer
       - uses: actions/upload-pages-artifact@v3
         with:
           path: out

@@ -9,6 +9,7 @@ import NutritionCategoryCharts from '@/components/nutrition-category-charts';
 import NutritionSummary from '@/components/nutrition-summary';
 import { Card, CardContent } from '@/components/ui/card';
 import type { Locale } from '@/config';
+import { BASE_PATH } from '@/lib/base-path';
 import {
   PRICE_PRESETS,
   ZERO_WEIGHTS,
@@ -79,7 +80,7 @@ export default function RecommendationResults({
     // 二重取得にはならない。cleanup で破棄すると自身の setState が取得結果を
     // 捨ててしまうため、あえて破棄しない（unmount 後の setState は無害）。
     setFetchState('loading');
-    fetch(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/api/foods`)
+    fetch(`${BASE_PATH}/api/foods`)
       .then((response) => {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         return response.json();

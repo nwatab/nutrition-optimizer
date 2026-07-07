@@ -1,4 +1,5 @@
 import type { AgeBand, PalCategory, Sex } from '@/data';
+import { BASE_PATH } from '@/lib/base-path';
 import type { Message } from '@/locales';
 
 export type Locale = 'en-US' | 'ja-JP';
@@ -118,7 +119,8 @@ export const statusesFor = (
 
 // next/image with `unoptimized` does not prepend basePath, so public
 // assets referenced by absolute path must include it themselves.
-export const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+// 値は単一の情報源（@/lib/base-path）から取る。
+export const basePath = BASE_PATH;
 
 /**
  * フォーム入力（リコメンド URL のセグメント）の sessionStorage 保存先。
