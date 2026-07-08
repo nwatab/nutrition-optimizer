@@ -85,7 +85,7 @@ If you are unsure whether an idea fits, open an issue first and let's discuss.
 
 Pushing to `main` triggers the [Deploy to GitHub Pages](.github/workflows/deploy.yml) workflow, which builds the static export (`next build` with `output: 'export'`) and publishes the `out/` directory to GitHub Pages.
 
-The site is served under the `/nutrition-optimizer` base path. The workflow sets `NEXT_PUBLIC_BASE_PATH=/nutrition-optimizer` at build time; local `pnpm dev` and `pnpm build` are unaffected and serve from the root.
+The site is served under the `/nutrition-optimizer` base path. The base path lives in a single source of truth, [`src/lib/base-path.ts`](src/lib/base-path.ts), which resolves to `/nutrition-optimizer` for production builds (`NODE_ENV=production`, i.e. `next build`) and `''` for `next dev`. Both `next.config.ts` and the client-side URL helpers derive from it, so config and runtime can't drift. As a result `pnpm build` (local or CI) produces a base-path'd export, while `pnpm dev` serves from the root for clean local URLs.
 
 One-time setup: in the repository settings, set **Settings → Pages → Source** to **GitHub Actions**.
 

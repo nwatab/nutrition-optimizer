@@ -27,6 +27,7 @@ import {
   hasNonZeroWeights,
   readStoredWeights,
 } from '@/lib/environmental-prices';
+import { withBasePath } from '@/lib/shallow-url';
 import { unitMap } from '@/lib/unitmap';
 import type { Message } from '@/locales';
 import type { NutrientKey } from '@/services/diagnose';
@@ -288,8 +289,7 @@ export default function FoodComparison({
     Object.entries(updates).forEach(([key, value]) =>
       value === null ? params.delete(key) : params.set(key, value)
     );
-    const query = params.toString();
-    window.history.replaceState(null, '', query ? `${pathname}?${query}` : pathname);
+    window.history.replaceState(null, '', withBasePath(pathname, params.toString()));
   };
 
   const changeView = (next: CompareView) =>
