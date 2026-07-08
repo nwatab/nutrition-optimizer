@@ -191,5 +191,9 @@
   "co2e price reference": "参考: J-クレジット取引価格 ≈ 1〜4円/kg、炭素の社会的費用の推計 ≈ 20〜30円/kg",
   "land price reference": "参考: 日本の農地の年間借地料 ≈ 5〜15円/m²",
   "water price reference": "参考: 家庭用の水道料金 ≈ 0.1〜0.4円/L（農業用水はさらに安価）",
-  "isolated foods heading": "どの食品とも線で結ばれない食品（すべての組が一長一短）"
+  "isolated foods heading": "どの食品とも線で結ばれない食品（すべての組が一長一短）",
+  "all categories": "すべて",
+  "food category": "分類",
+  "reference product": "参考にした商品",
+  "no market price": "市場価格なし"
 }

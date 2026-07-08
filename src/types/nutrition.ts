@@ -98,7 +98,14 @@ export type EstatPriceFoodData = {
   nutritionFacts: NutritionFactBase<number>;
 };
 export type ManualPriceFoodData = {
+  /**
+   * 商品の原題（EC サイトの商品名そのまま）。分類・ID ハッシュ・出所表示に使う。
+   */
   productName: string;
+  /**
+   * 一覧・見出し用の短い日本語表示名（参照データで手動管理）。原題は長すぎるため。
+   */
+  productNameJa: string;
   /**
    * 商品の英語表示名（参照データで手動管理）
    */
@@ -124,7 +131,14 @@ export type ManualPriceFoodData = {
 };
 
 export type ManualFoodData = {
+  /**
+   * 商品の原題（EC サイトの商品名そのまま）。分類・ID ハッシュ・出所表示に使う。
+   */
   productName: string;
+  /**
+   * 一覧・見出し用の短い日本語表示名（参照データで手動管理）。原題は長すぎるため。
+   */
+  productNameJa: string;
   /**
    * 商品の英語表示名（参照データで手動管理）
    */
@@ -141,6 +155,27 @@ export type ManualFoodData = {
    * 商品のURL
    */
   url: string;
+};
+
+/**
+ * 市場価格が入手できない食材。食品標準成分表の栄養値のみを持ち、価格は null。
+ * 栄養リファレンス（/foods）を厚くするための食材で、最適化・円あたり比較の対象外。
+ */
+export type MextFoodData = {
+  nameInNutritionFacts: string;
+  /**
+   * 食品標準成分表 英語版の食品名（七訂英語版 + 八訂追加分の暫定訳）
+   */
+  nameEnInNutritionFacts: string;
+  shokuhinbangou: string;
+  /**
+   * 価格が無いことを表す。0（タダ）ではなく null（未取得）で持つ。
+   */
+  cost: null;
+  /**
+   * 可食部100gあたりの栄養成分
+   */
+  nutritionFacts: NutritionFactBase<number>;
 };
 
 /**
@@ -169,15 +204,32 @@ export type EnvAttributes = {
 export type WithId<T> = T & { id: string };
 export type WithIngredientType<
   I,
-  T extends 'manual' | 'estat' | 'manualPrice' | 'productLink',
+  T extends 'manual' | 'estat' | 'manualPrice' | 'mext' | 'productLink',
 > = I & {
   type: T;
 };
 
+/**
+ * 価格ありの食材（最適化・比較・円あたり密度の入力）。cost は常に number。
+ */
 export type FoodToOptimize =
   | WithId<WithIngredientType<ManualFoodData, 'manual'>>
   | WithId<WithIngredientType<EstatPriceFoodData, 'estat'>>
   | WithId<WithIngredientType<ManualPriceFoodData, 'manualPrice'>>;
+
+/**
+ * リファレンスDBの食材。価格あり（FoodToOptimize）に価格なし（mext）を加えた上位集合。
+ * loadFoodData が返す型。cost は number | null。
+ */
+export type Food =
+  | FoodToOptimize
+  | WithId<WithIngredientType<MextFoodData, 'mext'>>;
+
+/**
+ * 価格ありの食材だけに絞る型ガード。mext のみ cost が null。
+ */
+export const isPriced = (food: Food): food is FoodToOptimize =>
+  food.cost !== null;
 
 export type FoodRequired =
   | (WithId<WithIngredientType<EstatPriceFoodData, 'estat'>> & {
