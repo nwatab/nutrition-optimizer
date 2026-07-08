@@ -15,6 +15,7 @@ import type { Locale } from '@/config';
 import { MaternalStatus, PalCategory, Sex, childReferenceWeight } from '@/data';
 import { enUS, jaJP } from '@/locales';
 import { loadFoodData, optimizeDiet, buildTarget } from '@/services';
+import { isPriced } from '@/types/nutrition';
 
 /**
  * [status] セグメント → 月経有無 + 妊娠授乳状態への変換。
@@ -71,7 +72,8 @@ export default async function RecommendationPage({
     locale: Locale;
   }>;
 }) {
-  const foods = await loadFoodData();
+  // 献立最適化は価格を目的関数に使うため価格あり食材のみ。
+  const foods = (await loadFoodData()).filter(isPriced);
   const params = await paramsPromise;
 
   const ageBand = AGE_SEGMENTS[params.age] ?? '30-49';

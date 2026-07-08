@@ -4,6 +4,7 @@ import FoodComparison from '@/components/food-comparison';
 import { appConfig, type Locale } from '@/config';
 import { enUS, jaJP } from '@/locales';
 import { loadFoodData } from '@/services';
+import { isPriced } from '@/types/nutrition';
 
 export async function generateStaticParams() {
   return appConfig.i18n.map((locale) => ({ locale }));
@@ -17,7 +18,8 @@ export default async function ComparePage({
   params: Promise<{ locale: Locale }>;
 }) {
   const params = await paramsPromise;
-  const foods = await loadFoodData();
+  // 比較はコスト軸を含む半順序なので価格あり食材のみを対象にする。
+  const foods = (await loadFoodData()).filter(isPriced);
   const messages = params.locale === 'ja-JP' ? jaJP : enUS;
 
   return (

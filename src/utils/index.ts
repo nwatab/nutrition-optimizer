@@ -1,15 +1,19 @@
 import type { Locale } from '@/config';
-import type { FoodToOptimize } from '@/types/nutrition';
+import type { Food } from '@/types/nutrition';
 
 /**
- * 食材の表示名。日本語はデータの原文名（e-stat 品目名 / 商品名）、
+ * 食材の表示名。日本語はデータの原文名（e-stat 品目名 / 商品短縮名）、
  * 英語は成分表英語版の食品名（手動データは参照データの英語商品名）。
+ * 価格なし食材（mext）は成分表名をそのまま表示名にする。
  */
-export function foodDisplayName(food: FoodToOptimize, locale: Locale): string {
+export function foodDisplayName(food: Food, locale: Locale): string {
   if (locale === 'ja-JP') {
-    return food.type === 'estat' ? food.nameInEstat : food.productName;
+    // estat/mext は成分表・e-stat 名が既に短い。manual 系は原題が長いので短縮名を使う。
+    if (food.type === 'estat') return food.nameInEstat;
+    if (food.type === 'mext') return food.nameInNutritionFacts;
+    return food.productNameJa;
   }
-  return food.type === 'estat'
+  return food.type === 'estat' || food.type === 'mext'
     ? food.nameEnInNutritionFacts
     : food.productNameEn;
 }
@@ -18,7 +22,7 @@ export function foodDisplayName(food: FoodToOptimize, locale: Locale): string {
  * 表示名を補足する成分表上の食品名。表示名と同一なら undefined。
  */
 export function foodNutritionFactsName(
-  food: FoodToOptimize,
+  food: Food,
   locale: Locale
 ): string | undefined {
   if (food.type === 'manual') return undefined;

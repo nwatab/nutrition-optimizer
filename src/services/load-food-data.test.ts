@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { loadFoodData } from '@/services/load-food-data';
 import { density } from '@/services/nutrient-density';
+import { isPriced } from '@/types/nutrition';
 
 // public_data/ の xlsx を差し替えた際の回帰テスト。
 // 価格スナップショットはデータ更新のたびに `pnpm vitest run -u` で更新する。
@@ -17,6 +18,19 @@ describe('loadFoodData', { timeout: 60_000 }, () => {
       )
     );
     expect(invalid).toEqual([]);
+  });
+
+  it('価格なし食材（mext）が含まれ、cost は null で type は mext、isPriced で除外できる', async () => {
+    const foods = await loadFoodData();
+    const unpriced = foods.filter((f) => f.cost === null);
+    expect(unpriced.length).toBeGreaterThan(0);
+    expect(unpriced.every((f) => f.type === 'mext')).toBe(true);
+    // 価格なし食材にも成分表由来の栄養値が入っている
+    expect(unpriced.every((f) => f.nutritionFacts.calories >= 0)).toBe(true);
+    // isPriced で価格ありだけに絞れる
+    const priced = foods.filter(isPriced);
+    expect(priced.length).toBe(foods.length - unpriced.length);
+    expect(priced.every((f) => f.cost !== null)).toBe(true);
   });
 
   it('主要食材の pricePer100 が妥当域にある', async () => {
@@ -67,7 +81,7 @@ describe('loadFoodData', { timeout: 60_000 }, () => {
         )
         .map((f) => [
           f.type === 'estat' ? f.nameInEstat : '',
-          Number(f.cost.toFixed(2)),
+          Number((f.cost ?? NaN).toFixed(2)),
         ])
     );
     const soy = foods.find(
@@ -104,6 +118,7 @@ describe('loadFoodData', { timeout: 60_000 }, () => {
       (f) => 'shokuhinbangou' in f && f.shokuhinbangou === '02003'
     );
     if (!konnyaku) throw new Error('こんにゃくが見つかりません');
+    if (!isPriced(konnyaku)) throw new Error('こんにゃくに価格がありません');
     expect(density(konnyaku, 'perKcal', 'fiber')).toBeUndefined();
     expect(density(konnyaku, 'perYen', 'fiber')).toBeDefined();
   });

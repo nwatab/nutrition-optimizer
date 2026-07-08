@@ -12,6 +12,7 @@ import {
 import { toCompareNode } from '@/services/environment';
 import { loadFoodData } from '@/services/load-food-data';
 import { makeCompareNode } from '@/services/test-fixtures';
+import { isPriced } from '@/types/nutrition';
 
 const axes: ComparisonAxes = {
   nutrientKeys: ['protein', 'fiber'],
@@ -139,7 +140,7 @@ describe('scalarizeCost', () => {
 describe('軸の次元と antichain 化（実データ）', () => {
   // xlsx の読み込みが重いためタイムアウトを延長
   it('34栄養軸 + 全コスト軸ではほぼ全ノードが非支配になる → UI 既定は合計 2〜5 軸にする', { timeout: 60_000 }, async () => {
-    const foods = await loadFoodData();
+    const foods = (await loadFoodData()).filter(isPriced);
     const nodes = foods
       .map((food) => toCompareNode(food, 'perYen'))
       .filter((node) => node !== null);

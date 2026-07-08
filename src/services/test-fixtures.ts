@@ -109,6 +109,7 @@ export const makeManualFood = ({
   id,
   type: 'manual',
   productName: id,
+  productNameJa: id,
   productNameEn: id,
   url: `https://example.com/${id}`,
   cost,

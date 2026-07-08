@@ -6,6 +6,7 @@ import {
   crossFoodReference,
   foodIngredientDataReference,
   foodProductDataReferences,
+  nutritionOnlyReference,
 } from '@/data';
 import { englishFoodNameOverrides } from '@/data/food-name-en-reference';
 
@@ -21,17 +22,18 @@ import {
 } from '@/services';
 import {
   EstatPriceFoodData,
-  FoodToOptimize,
+  Food,
   ManualFoodData,
   ManualPriceFoodData,
+  MextFoodData,
   NutritionFactBase,
 } from '@/types/nutrition';
 
 const DATA_DIR = 'public_data';
 
-let cachedData: FoodToOptimize[] | null = null;
+let cachedData: Food[] | null = null;
 
-export const loadFoodData = async (): Promise<FoodToOptimize[]> => {
+export const loadFoodData = async (): Promise<Food[]> => {
   if (cachedData) {
     return cachedData;
   }
@@ -139,6 +141,7 @@ export const loadFoodData = async (): Promise<FoodToOptimize[]> => {
       return {
         nutritionFacts: nutriantValuesWithoutNull,
         productName: food.name,
+        productNameJa: food.nameJa,
         productNameEn: food.nameEn,
         nameInNutritionFacts: nameInNutritionFacts,
         nameEnInNutritionFacts: englishNameOf(food.shokuhinbangou),
@@ -157,6 +160,7 @@ export const loadFoodData = async (): Promise<FoodToOptimize[]> => {
         massForNutritionGram,
         refuseRate,
         name,
+        nameJa,
         nameEn,
         url,
         nutritionFacts,
@@ -172,14 +176,31 @@ export const loadFoodData = async (): Promise<FoodToOptimize[]> => {
       return {
         nutritionFacts: nutrientFactsPer100,
         productName: name,
+        productNameJa: nameJa,
         productNameEn: nameEn,
         url: url,
         cost: pricePer100g,
       };
     }
   );
+
+  // 価格なし食材。成分表の栄養値のみを載せる（cost は null）。
+  const mextFoodData: MextFoodData[] = nutritionOnlyReference.map(
+    (shokuhinbangou) => {
+      const { name: nameInNutritionFacts, nutritionFacts: nutriantRawFacts } =
+        readNutritionFacts(shokuhinbangou);
+      return {
+        nameInNutritionFacts,
+        nameEnInNutritionFacts: englishNameOf(shokuhinbangou),
+        shokuhinbangou,
+        cost: null,
+        nutritionFacts: parseNutritionsRaw(nutriantRawFacts),
+      };
+    }
+  );
+
   // サーバー側で最適化を実行
-  const foods = [
+  const foods: Food[] = [
     ...estatFoodData.map((data) => ({
       ...data,
       id: crypto
@@ -201,6 +222,14 @@ export const loadFoodData = async (): Promise<FoodToOptimize[]> => {
       id: crypto.createHash('sha256').update(data.productName).digest('hex'),
       type: 'manual' as const,
     })),
+    ...mextFoodData.map((data) => ({
+      ...data,
+      id: crypto
+        .createHash('sha256')
+        .update('mext:' + data.shokuhinbangou)
+        .digest('hex'),
+      type: 'mext' as const,
+    })),
   ];
 
   // id は名前由来のハッシュなので、参照データに同じ食材が二重登録されると衝突する。
@@ -212,7 +241,11 @@ export const loadFoodData = async (): Promise<FoodToOptimize[]> => {
     const duplicates = foods
       .filter((food) => duplicateIds.includes(food.id))
       .map((food) =>
-        'nameInEstat' in food ? food.nameInEstat : food.productName
+        'nameInEstat' in food
+          ? food.nameInEstat
+          : 'productName' in food
+            ? food.productName
+            : food.nameInNutritionFacts
       );
     throw new Error(
       `Duplicate food ids detected: ${[...new Set(duplicates)].join(', ')}. ` +

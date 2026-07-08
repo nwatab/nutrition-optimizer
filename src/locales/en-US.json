@@ -191,5 +191,9 @@
   "co2e price reference": "Reference: J-Credit market price ≈ 1–4 JPY/kg; social cost of carbon estimates ≈ 20–30 JPY/kg",
   "land price reference": "Reference: average annual farmland rent in Japan ≈ 5–15 JPY/m²",
   "water price reference": "Reference: household tap water ≈ 0.1–0.4 JPY/L (agricultural water is cheaper)",
-  "isolated foods heading": "Foods not connected to any other food (every pairing is a trade-off)"
+  "isolated foods heading": "Foods not connected to any other food (every pairing is a trade-off)",
+  "all categories": "All",
+  "food category": "Category",
+  "reference product": "Reference product",
+  "no market price": "No market price"
 }

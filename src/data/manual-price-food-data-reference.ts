@@ -1,5 +1,10 @@
 type FoodIngredientDataReference = {
+  /** 商品の原題（EC サイトの商品名そのまま）。分類・ID ハッシュ・出所表示に使う。 */
   name: string;
+  /**
+   * 一覧・見出し用の短い日本語表示名。原題（name）は長すぎるため手動で併記する。
+   */
+  nameJa: string;
   /**
    * 商品の英語表示名。原文が日本語の商品名のため手動で併記する。
    */
@@ -13,6 +18,7 @@ type FoodIngredientDataReference = {
 export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   {
     name: '大豆 岩手県産 宮城県産 規格外 B級品令和６年産】',
+    nameJa: '大豆（B級品）',
     nameEn: 'Soybeans, grade B, 5 kg (Iwate/Miyagi)',
     price: 2100 + 880, // 大豆
     massGram: 5000,
@@ -21,6 +27,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'ひよこ豆 ガルバンソ　カレー　サラダ　大容量 アメリカ産5kg',
+    nameJa: 'ひよこ豆',
     nameEn: 'Chickpeas (garbanzo), 5 kg (USA)',
     price: 3900 + 880,
     massGram: 5000,
@@ -29,6 +36,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'そばの実',
+    nameJa: 'そばの実',
     nameEn: 'Buckwheat groats, 5 kg',
     price: 7380 + 0,
     massGram: 5000,
@@ -37,6 +45,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'キヌア',
+    nameJa: 'キヌア',
     nameEn: 'Quinoa, 2 kg',
     price: 2511 + 0,
     massGram: 2040,
@@ -45,6 +54,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'ヤマク テンペ100g×2ケース（全20本）送料無料 新商品 新発売',
+    nameJa: 'テンペ',
     nameEn: 'Yamaku tempeh, 100 g × 20',
     price: 3740 + 0,
     massGram: 200,
@@ -53,6 +63,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: '亜麻仁油 低温圧搾一番搾り ニュージーランド産 170g 3本 エクストラバージン フラックスシードオイル オメガ3 アマニオイル あまに油 first squeeze extra virgin flaxseed oil',
+    nameJa: '亜麻仁油（低温圧搾）',
     nameEn: 'Cold-pressed extra virgin flaxseed oil, 170 g × 3 (New Zealand)',
     price: 3781 + 0,
     massGram: 510,
@@ -61,6 +72,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'お徳用サイズのえごま油！朝日えごま油280gは、オメガ3系脂肪酸のα-リノレン酸を約60％含んだ健康と美容にうれしいエゴマ油です 自然の恵み ナチュランド 株式会社朝日',
+    nameJa: 'えごま油',
     nameEn: 'Asahi perilla (egoma) seed oil, 280 g',
     price: 3800 + 0,
     massGram: 280,
@@ -69,6 +81,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'レンズ豆 皮つき 1Kg 最強配送 まめやの底力 アメリカ産 れんずまめ レンティルピース 皮付き 国内加工 乾燥豆 豆類 乾燥豆 スープ 輸入豆',
+    nameJa: 'レンズ豆（皮つき）',
     nameEn: 'Lentils with skin, 1 kg (USA)',
     price: 861 + 650,
     massGram: 1000,
@@ -77,6 +90,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: '【メール便送料無料】アマランサス オーガニック 有機JAS認証で安心！ギフト',
+    nameJa: 'アマランサス（有機）',
     nameEn: 'Organic amaranth (JAS certified), 900 g',
     price: 1690 + 0,
     massGram: 900,
@@ -85,6 +99,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: '送料無料 ローストアマニ 亜麻仁 粒 80g 煎りアマニ 北海道産 国産 国産雑穀米 国産原料100％ フラックスシード 実 タネ 油 オイル 十勝 オメガ3 αリノレン酸 ポイント消化 【単品配送｜同梱不可】',
+    nameJa: 'ロースト亜麻仁（粒）',
     nameEn: 'Roasted whole flaxseed, 80 g (Hokkaido)',
     price: 980 + 0,
     massGram: 80,
@@ -93,6 +108,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'チアシード ペルー産 1kg',
+    nameJa: 'チアシード',
     nameEn: 'Chia seeds, 1 kg (Peru)',
     price: 1950 + 300,
     massGram: 1000,
@@ -101,6 +117,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'チアシード 800g 黒 南米産',
+    nameJa: 'チアシード（黒）',
     nameEn: 'Black chia seeds, 800 g (South America)',
     price: 2190 + 0,
     massGram: 800,
@@ -109,6 +126,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'アリサン 有機ピーナッツバタークランチ',
+    nameJa: '有機ピーナッツバター（クランチ）',
     nameEn: 'Alishan organic crunchy peanut butter, 454 g',
     price: 1620 + 770,
     massGram: 454,
@@ -117,6 +135,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'ローストクルミ400ｇ(200ｇ×2入)【おつまみ・素焼きナッツ】【送料無料】【チャンドラー種/LHP】',
+    nameJa: 'ローストくるみ',
     nameEn: 'Roasted walnuts, 400 g (200 g × 2)',
     price: 1200 + 0,
     massGram: 400,
@@ -125,6 +144,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'あおさ 干し 12g',
+    nameJa: 'あおさ（干し）',
     nameEn: 'Dried aosa (sea lettuce), 12 g',
     price: 98 * 1.1,
     massGram: 12,
@@ -133,6 +153,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'フジッコ 塩昆布 28g',
+    nameJa: '塩昆布',
     nameEn: 'Fujicco shio-kombu (salted kelp), 28 g',
     price: 98 * 1.1,
     massGram: 28,
@@ -141,6 +162,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: '尾道の昆布問屋-北海道釧路産きざみ昆布-300g国産-徳用-乾燥・Dry',
+    nameJa: 'きざみ昆布',
     nameEn: 'Shredded dried kombu, 300 g (Kushiro, Hokkaido)',
     price: 1339,
     massGram: 200,
@@ -149,6 +171,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'S&B クローブ　粉 15g 286円',
+    nameJa: 'クローブ（粉）',
     nameEn: 'S&B ground cloves, 15 g',
     price: 286,
     massGram: 15,
@@ -157,6 +180,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'S&B バジル　こな 100g 421円',
+    nameJa: 'バジル（粉）',
     nameEn: 'S&B ground basil, 100 g',
     price: 421,
     massGram: 100,
@@ -165,6 +189,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'Ｓ＆Ｂ　韓国産唐辛子（パウダー）',
+    nameJa: '唐辛子（粉）',
     nameEn: 'S&B Korean chili powder, 13 g',
     price: 243,
     massGram: 13,
@@ -173,6 +198,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'Ｓ＆Ｂ　タイム（パウダー）',
+    nameJa: 'タイム（粉）',
     nameEn: 'S&B ground thyme, 10 g',
     price: 189,
     massGram: 10,
@@ -181,6 +207,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'きくらげ 中国産菌床栽培(おがくず栽培)',
+    nameJa: 'きくらげ（乾）',
     nameEn: 'Dried wood ear mushrooms, 30 g (China)',
     price: 171,
     massGram: 30,
@@ -189,6 +216,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'いりごま 白 大',
+    nameJa: 'いりごま（白）',
     nameEn: 'Roasted white sesame seeds, 140 g',
     price: 203,
     massGram: 140,
@@ -197,6 +225,7 @@ export const foodIngredientDataReference: FoodIngredientDataReference[] = [
   },
   {
     name: 'オーガニック香ばしく焼き上げた粒そろいのからつき落花生',
+    nameJa: '落花生（有機・殻つき）',
     nameEn: 'Organic roasted peanuts in shell, 200 g',
     price: 279,
     massGram: 200,
